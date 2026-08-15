@@ -1,25 +1,40 @@
 #!/usr/bin/env python3
 """Fail if any tracked JSON file in the repo does not parse.
 
-The generated caches under data/ are committed, so a truncated or half-written
+The universe cache under data/ is committed, so a truncated or half-written
 file is a change that CI can catch rather than something index.html discovers.
+The generated .js payloads are covered by the node --check step in ci.yml.
+
+Tracked means tracked: the file list comes from git, so an untracked scratch
+file cannot fail a local run in a way CI would never reproduce.
 """
 
 import json
 import pathlib
+import subprocess
 import sys
 
-SKIP_DIRS = {".git", "node_modules", "__pycache__"}
+
+def tracked_json(root):
+    out = subprocess.run(
+        ["git", "-C", str(root), "ls-files", "-z", "*.json"],
+        capture_output=True, text=True, check=True,
+    ).stdout
+    return sorted(root / name for name in out.split("\0") if name)
 
 
 def main():
     root = pathlib.Path(__file__).resolve().parents[2]
+    try:
+        paths = tracked_json(root)
+    except (OSError, subprocess.CalledProcessError) as exc:
+        print("cannot list tracked files (need a git checkout): %s" % exc)
+        return 1
+
     broken = []
     checked = 0
 
-    for path in sorted(root.rglob("*.json")):
-        if SKIP_DIRS.intersection(path.relative_to(root).parts):
-            continue
+    for path in paths:
         checked += 1
         try:
             json.loads(path.read_text())

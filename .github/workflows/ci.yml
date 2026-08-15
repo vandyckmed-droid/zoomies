@@ -6,9 +6,10 @@ on:
   pull_request:
 
 # A new push to a branch makes the in-flight run for that branch pointless.
+# Except on main, where every landed commit should keep a completed result.
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 permissions:
   contents: read
@@ -35,6 +36,15 @@ jobs:
 
       - name: Validate JSON
         run: python .github/scripts/check_json.py
+
+      # The generated payloads are .js, so JSON parsing cannot see them. Node is
+      # already on the runner, and a truncated scores.js fails this immediately.
+      - name: Check generated JS
+        run: |
+          for f in $(git ls-files '*.js'); do
+            node --check "$f"
+          done
+          echo "checked $(git ls-files '*.js' | wc -l) JS file(s)"
 
       # The test suite is optional while the repo is still taking shape.
       - name: Test
