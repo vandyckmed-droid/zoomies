@@ -76,6 +76,9 @@ Each stock is regressed on `SPY` over the same 12–1 window, on the benchmark's
 trading calendar, giving beta, annualized alpha (no risk-free adjustment) and R².
 A name needs 120 overlapping days before a regression is reported.
 
+The detail panel also lists the five names a stock is most correlated with and
+the five it is least correlated with, ranked across every tracked name.
+
 Starring names adds them to a watchlist, which drives a pair matrix below the
 table showing correlation or annualized covariance of daily log returns. The
 matrix is computed in the browser from the aligned return series in
@@ -86,9 +89,16 @@ it only when a matrix first needs it — the initial load is `scores.js` alone.
 The series are stored as integers scaled by 1e6 to keep the file small;
 correlation is unaffected by the scaling and covariance divides it back out.
 
+## Filtering
+
+Three filters sit above the table: a minimum score, a maximum annualized
+volatility, and watchlist-only. They combine with the search box, and a clear
+link appears whenever any of them is active. Columns sort on rank, ticker,
+score, return, volatility and market cap.
+
 ## State
 
 The page remembers sort, search, scroll position, the open ticker, the theme,
-the watchlist and the pair mode in localStorage, so reopening it lands exactly
+the watchlist, the filters and the pair mode in localStorage, so reopening it lands exactly
 where you left off. The theme button cycles auto (follow the device) →
 light → dark.

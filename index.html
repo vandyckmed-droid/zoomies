@@ -118,6 +118,40 @@
     -webkit-appearance: none;
   }
   #search:focus { outline: 2px solid var(--fg); outline-offset: -1px; border-color: var(--fg); }
+  .filters { display: flex; align-items: center; gap: .5rem; padding: .5rem 0 0; }
+  .filters label {
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .filters input {
+    font: inherit;
+    font-size: .85rem;
+    width: 3.4rem;
+    padding: .3rem .4rem;
+    border: 1px solid var(--field);
+    border-radius: 6px;
+    background: var(--bg);
+    color: var(--fg);
+    -webkit-appearance: none;
+    -moz-appearance: textfield;
+  }
+  .filters input::-webkit-outer-spin-button,
+  .filters input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .filters input:focus { outline: 2px solid var(--fg); outline-offset: -1px; }
+  .filters .pctsign { margin-left: -.2rem; }
+  .filters #only-watch { margin-left: auto; }
+  #clear-filters {
+    font: inherit; font-size: .75rem; background: none; border: 0; padding: 0;
+    color: var(--muted); text-decoration: underline; cursor: pointer;
+  }
+  #clear-filters[hidden] { display: none; }
+  #clear-filters:hover { color: var(--fg); }
   .barrow { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .45rem 0 0; }
   #count { color: var(--muted); font-size: .8rem; }
 
@@ -145,6 +179,7 @@
   td { text-align: right; font-variant-numeric: tabular-nums; }
   td.ticker { font-weight: 600; }
   td.rank { color: var(--muted); width: 3rem; }
+  td.cap { color: var(--muted); }
   td.score { font-weight: 600; }
   td.note { color: var(--muted); font-size: .85rem; text-align: right; }
   .pos { color: var(--pos); }
@@ -159,12 +194,14 @@
   table[data-sort="symbol"]    td:nth-child(2),
   table[data-sort="score"]     td:nth-child(3),
   table[data-sort="annReturn"] td:nth-child(4),
-  table[data-sort="annVol"]    td:nth-child(5) { background: var(--sorted); }
+  table[data-sort="annVol"]    td:nth-child(5),
+  table[data-sort="marketCap"]  td:nth-child(6) { background: var(--sorted); }
   table[data-sort="rank"]      th:nth-child(1),
   table[data-sort="symbol"]    th:nth-child(2),
   table[data-sort="score"]     th:nth-child(3),
   table[data-sort="annReturn"] th:nth-child(4),
-  table[data-sort="annVol"]    th:nth-child(5) { color: var(--fg); }
+  table[data-sort="annVol"]    th:nth-child(5),
+  table[data-sort="marketCap"]  th:nth-child(6) { color: var(--fg); }
 
   /* Watchlist star */
   th.watch, td.watch { width: 2.6rem; text-align: center; padding-left: 0; padding-right: .25rem; }
@@ -207,6 +244,26 @@
   #matrix th.rowhead { text-align: left; color: var(--fg); font-weight: 600; }
   #matrix td.self { color: var(--muted); }
   .pnote { color: var(--muted); font-size: .8rem; margin: .7rem 0 0; }
+
+  /* Most / least correlated lists in the detail panel */
+  #ov-corr h3 {
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--muted);
+    font-weight: 400;
+    margin: 1.1rem 0 .4rem;
+  }
+  #ov-corr .crow {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: .2rem 0;
+    font-size: .9rem;
+  }
+  #ov-corr .crow span:first-child { font-weight: 600; }
+  #ov-corr .cname { color: var(--muted); font-weight: 400; font-size: .8rem; }
+  #ov-corr .cval { font-variant-numeric: tabular-nums; }
 
   #empty { color: var(--muted); padding: 1.5rem .6rem; display: none; }
   footer { color: var(--muted); font-size: .8rem; margin-top: 1.5rem; }
@@ -256,12 +313,28 @@
   @media (min-width: 560px) { #overlay { align-items: center; } }
 
   @media (max-width: 559px) {
-    body { padding: 1.25rem .75rem 3rem; }
-    th, td { padding: .8rem .4rem; }   /* taller rows = easier tap targets */
-    th { font-size: .68rem; letter-spacing: .02em; }
+    body { padding: 1.25rem .6rem 3rem; }
+    /* Tall rows for tap targets, tight columns so seven of them fit. */
+    th, td { padding: .8rem .22rem; }
+    th { font-size: .62rem; letter-spacing: 0; }
     .long { display: none; }           /* "Ann. Return" -> "Return" */
-    td.rank { width: 2.2rem; }
-    td, th { font-size: .95rem; }
+    td.rank { width: 1.9rem; }
+    td, th { font-size: .88rem; }
+    th.watch, td.watch { width: 1.9rem; padding-right: 0; }
+    .star { padding: .4rem .25rem; }
+    .filters label { font-size: .66rem; }
+    .filters input { width: 3rem; }
+  }
+
+  /* Narrower phones (SE, mini) need the last few pixels squeezed out. */
+  @media (max-width: 389px) {
+    body { padding: 1.25rem .35rem 3rem; }
+    th, td { padding: .8rem .15rem; }
+    td, th { font-size: .8rem; }
+    th { font-size: .58rem; }
+    td.rank { width: 1.5rem; }
+    th.watch, td.watch { width: 1.6rem; }
+    .star { font-size: .95rem; padding: .4rem .15rem; }
   }
 </style>
 </head>
@@ -276,9 +349,16 @@
 <div class="bar">
   <input id="search" type="search" placeholder="Search ticker or company" autocomplete="off"
          autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="Search ticker or company">
+  <div class="filters">
+    <label>Min score <input id="f-score" type="number" step="0.25" inputmode="decimal"
+           placeholder="any" aria-label="Minimum score"></label>
+    <label>Max vol <input id="f-vol" type="number" step="5" min="0" inputmode="decimal"
+           placeholder="any" aria-label="Maximum annualized volatility, percent"><span class="pctsign">%</span></label>
+    <button id="only-watch" aria-pressed="false">&#9733; <span id="watch-n">0</span></button>
+  </div>
   <div class="barrow">
     <span id="count"></span>
-    <button id="only-watch" aria-pressed="false">&#9733; <span id="watch-n">0</span></button>
+    <button id="clear-filters" hidden>clear</button>
   </div>
 </div>
 
@@ -290,6 +370,7 @@
       <th data-key="score">Score<span class="arrow"></span></th>
       <th data-key="annReturn"><span class="long">Ann. </span>Return<span class="arrow"></span></th>
       <th data-key="annVol"><span class="long">Ann. </span>Vol<span class="arrow"></span></th>
+      <th data-key="marketCap">Cap<span class="arrow"></span></th>
       <th class="watch" aria-label="Watchlist">&#9734;</th>
     </tr>
   </thead>
@@ -314,6 +395,7 @@
     <h2 id="ov-title"></h2>
     <p class="sub" id="ov-sub"></p>
     <dl id="ov-stats"></dl>
+    <div id="ov-corr"></div>
   </div>
 </div>
 
@@ -324,11 +406,13 @@
 
   var STORE_KEY = 'zoomies.view';
   // Each column's first click sorts the way you would expect it to.
-  var FIRST_DIR = { rank: 1, symbol: 1, score: -1, annReturn: -1, annVol: -1 };
+  var FIRST_DIR = { rank: 1, symbol: 1, score: -1, annReturn: -1, annVol: -1,
+                    marketCap: -1 };
 
   // Everything the page remembers between visits.
   var view = { key: 'rank', dir: 1, q: '', scroll: 0, open: null, theme: 'auto',
-              watch: [], onlyWatch: false, pairsMode: 'correlation' };
+              watch: [], onlyWatch: false, pairsMode: 'correlation',
+              minScore: '', maxVol: '' };
   try {
     var saved = JSON.parse(localStorage.getItem(STORE_KEY));
     if (saved && FIRST_DIR[saved.key]) {
@@ -353,6 +437,9 @@
   }
   function pct(x) { return x === null ? '—' : (x * 100).toFixed(1) + '%'; }
   function signed(x) { return '<span class="' + (x >= 0 ? 'pos' : 'neg') + '">' + pct(x) + '</span>'; }
+  function capShort(x) {
+    return x >= 1e12 ? (x / 1e12).toFixed(1) + 'T' : Math.round(x / 1e9) + 'B';
+  }
   function cap(x) {
     return x >= 1e12 ? '$' + (x / 1e12).toFixed(2) + 'T' : '$' + (x / 1e9).toFixed(0) + 'B';
   }
@@ -378,8 +465,14 @@
 
   function render() {
     var q = view.q.trim().toLowerCase();
+    var minScore = view.minScore === '' ? null : parseFloat(view.minScore);
+    var maxVol = view.maxVol === '' ? null : parseFloat(view.maxVol) / 100;
+
     var shown = stocks.filter(function (s) {
       if (view.onlyWatch && !watched(s.symbol)) return false;
+      // A name with no score cannot satisfy a score or volatility floor.
+      if (minScore !== null && !isNaN(minScore) && !(s.score >= minScore)) return false;
+      if (maxVol !== null && !isNaN(maxVol) && !(s.annVol <= maxVol)) return false;
       return !q || s.symbol.toLowerCase().indexOf(q) > -1 || s.name.toLowerCase().indexOf(q) > -1;
     }).sort(compare);
 
@@ -392,10 +485,12 @@
 
     document.getElementById('rows').innerHTML = shown.map(function (s) {
       var cells = s.score === null
-        ? '<td class="note" colspan="3">insufficient price history</td>'
+        ? '<td class="note" colspan="3">insufficient price history</td>' +
+          '<td class="cap">' + capShort(s.marketCap) + '</td>'
         : '<td class="score ' + (s.score >= 0 ? 'pos' : 'neg') + '">' + s.score.toFixed(2) + '</td>' +
           '<td>' + signed(s.annReturn) + '</td>' +
-          '<td>' + pct(s.annVol) + '</td>';
+          '<td>' + pct(s.annVol) + '</td>' +
+          '<td class="cap">' + capShort(s.marketCap) + '</td>';
       var on = watched(s.symbol);
       return '<tr tabindex="0" data-symbol="' + esc(s.symbol) + '">' +
         '<td class="rank">' + (s.rank === null ? '—' : s.rank) + '</td>' +
@@ -410,6 +505,9 @@
       shown.length === stocks.length
         ? stocks.length + ' stocks'
         : shown.length + ' of ' + stocks.length + ' shown';
+
+    document.getElementById('clear-filters').hidden =
+      !(view.q || view.minScore !== '' || view.maxVol !== '' || view.onlyWatch);
 
     var only = document.getElementById('only-watch');
     document.getElementById('watch-n').textContent = view.watch.length;
@@ -584,7 +682,48 @@
     overlay.hidden = false;
     view.open = symbol;
     save();
+    renderCorrelations(symbol);
+    document.querySelector('.card').scrollTop = 0;
     if (focus !== false) document.getElementById('ov-close').focus();
+  }
+
+  // The five names this stock moves with most, and the five it moves with
+  // least. Computed against every tracked name, not just the visible ones.
+  function renderCorrelations(symbol) {
+    var box = document.getElementById('ov-corr');
+    if (!haveReturns()) {
+      box.innerHTML = '<h3>Correlations</h3><div class="crow">loading…</div>';
+      withReturns(function (ok) {
+        if (view.open === symbol) {
+          if (ok) renderCorrelations(symbol);
+          else box.innerHTML = '<h3>Correlations</h3><div class="crow">unavailable</div>';
+        }
+      });
+      return;
+    }
+    var mine = RETURNS[symbol];
+    if (!mine) { box.innerHTML = ''; return; }
+
+    var scored = [];
+    stocks.forEach(function (other) {
+      if (other.symbol === symbol || !RETURNS[other.symbol]) return;
+      var st = pairStats(mine, RETURNS[other.symbol]);
+      if (st) scored.push({ symbol: other.symbol, name: other.name, corr: st.corr });
+    });
+    if (scored.length < 5) { box.innerHTML = ''; return; }
+    scored.sort(function (a, b) { return b.corr - a.corr; });
+
+    function list(title, items) {
+      return '<h3>' + title + '</h3>' + items.map(function (x) {
+        return '<div class="crow"><span>' + esc(x.symbol) +
+               ' <span class="cname">' +
+               esc(x.name.length > 22 ? x.name.slice(0, 21) + '…' : x.name) + '</span></span>' +
+               '<span class="cval ' + (x.corr >= 0 ? 'pos' : 'neg') + '">' +
+               x.corr.toFixed(2) + '</span></div>';
+      }).join('');
+    }
+    box.innerHTML = list('Most correlated', scored.slice(0, 5)) +
+                    list('Least correlated', scored.slice(-5).reverse());
   }
 
   function closeDetail() {
@@ -618,6 +757,27 @@
     if (star) { toggleWatch(star.dataset.star); return; }   // never opens detail
     var tr = e.target.closest('tr');
     if (tr) openDetail(tr.dataset.symbol);
+  });
+
+  ['f-score', 'f-vol'].forEach(function (id) {
+    var el = document.getElementById(id);
+    var field = id === 'f-score' ? 'minScore' : 'maxVol';
+    el.value = view[field];
+    el.addEventListener('input', function () {
+      view[field] = el.value;
+      save();
+      render();
+    });
+  });
+
+  document.getElementById('clear-filters').addEventListener('click', function () {
+    view.q = view.minScore = view.maxVol = '';
+    view.onlyWatch = false;
+    document.getElementById('search').value = '';
+    document.getElementById('f-score').value = '';
+    document.getElementById('f-vol').value = '';
+    save();
+    render();
   });
 
   document.getElementById('only-watch').addEventListener('click', function () {
