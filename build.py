@@ -26,8 +26,8 @@ from datetime import date, timedelta
 API = "https://financialmodelingprep.com/stable"
 API_KEY = os.environ.get("API_KEY", "")
 
-UNIVERSE_SIZE = 50      # names to track
-DISPLAY_COUNT = 10      # names shown in index.html (proof of concept)
+UNIVERSE_SIZE = 500     # names to track
+DISPLAY_COUNT = 50      # names shown in index.html
 LOOKBACK = 252          # trading days in the scoring window
 SKIP = 21               # most recent trading days excluded
 HISTORY_DAYS = 730      # calendar days of prices to keep (~2 years)
@@ -51,6 +51,10 @@ NAME_NOISE = re.compile(
 )
 
 
+class RateLimited(Exception):
+    """The API plan's request quota is spent."""
+
+
 def api_get(path, **params):
     """GET an FMP endpoint, retrying on transient failures."""
     params["apikey"] = API_KEY
@@ -58,7 +62,18 @@ def api_get(path, **params):
     for attempt in range(4):
         try:
             with urllib.request.urlopen(url, timeout=60) as resp:
-                return json.loads(resp.read().decode())
+                payload = json.loads(resp.read().decode())
+            if isinstance(payload, dict) and "Error Message" in payload:
+                raise RateLimited(payload["Error Message"][:120])
+            return payload
+        except urllib.error.HTTPError as exc:
+            # Quota and plan errors will not clear by trying again.
+            if exc.code in (402, 403, 429):
+                raise RateLimited("HTTP %d on %s" % (exc.code, path))
+            if attempt == 3:
+                raise
+            print("  retrying (%s)" % exc)
+            time.sleep(2 ** attempt)
         except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
             if attempt == 3:
                 raise
@@ -91,11 +106,11 @@ def build_universe():
     print("Building universe...")
     rows = api_get(
         "company-screener",
-        marketCapMoreThan=50_000_000_000,
+        marketCapMoreThan=3_000_000_000,
         isEtf="false",
         isFund="false",
         isActivelyTrading="true",
-        limit=500,
+        limit=3000,
     )
     rows = [r for r in rows if r.get("marketCap") and is_common_stock(r)]
     rows.sort(key=lambda r: -r["marketCap"])
@@ -158,17 +173,28 @@ def write_prices(symbol, prices):
             writer.writerow([day, "%.6f" % prices[day]])
 
 
-def update_prices(symbol):
+def latest_session(today):
+    """The most recent weekday, i.e. the newest bar that could exist yet."""
+    while today.weekday() > 4:
+        today -= timedelta(days=1)
+    return today
+
+
+def update_prices(symbol, verbose=True):
     """Return the full history, downloading only the days we are missing."""
     prices = read_prices(symbol)
     today = date.today()
+
+    # Already holding the newest bar that can exist: no request at all.
+    if prices and max(prices) >= latest_session(today).isoformat():
+        if verbose:
+            print("  %-6s current (%d days)" % (symbol, len(prices)))
+        return prices
+
     start = today - timedelta(days=HISTORY_DAYS)
     if prices:
         # Refetch the last cached day too, so splits/dividends restate cleanly.
         start = max(start, date.fromisoformat(max(prices)))
-    if prices and start >= today:
-        print("  %-6s cached (%d days)" % (symbol, len(prices)))
-        return prices
 
     bars = api_get(
         "historical-price-eod/dividend-adjusted",
@@ -180,11 +206,15 @@ def update_prices(symbol):
         print("  %-6s no data" % symbol)
         return {}
 
+    before = dict(prices)
     prices.update(fetched)
     cutoff = (today - timedelta(days=HISTORY_DAYS)).isoformat()
     prices = {d: p for d, p in prices.items() if d >= cutoff}
-    write_prices(symbol, prices)
-    print("  %-6s +%d new (%d days)" % (symbol, len(fetched), len(prices)))
+    if prices != before:                      # only touch the file on a change
+        write_prices(symbol, prices)
+    added = len(set(prices) - set(before))
+    if verbose:
+        print("  %-6s +%d new (%d days)" % (symbol, added, len(prices)))
     return prices
 
 
@@ -222,10 +252,21 @@ def main():
 
     universe = load_universe("--refresh-universe" in sys.argv)
 
-    print("Updating prices...")
-    rows, window = [], None
-    for stock in universe:
-        prices = update_prices(stock["symbol"])
+    print("Updating prices for %d names..." % len(universe))
+    rows, window, limited = [], None, None
+    for i, stock in enumerate(universe, 1):
+        if limited:
+            prices = read_prices(stock["symbol"])       # quota spent, cache only
+        else:
+            try:
+                prices = update_prices(stock["symbol"], verbose=len(universe) <= 60)
+            except RateLimited as exc:
+                limited = exc
+                print("  quota reached at %s (%s)" % (stock["symbol"], exc))
+                print("  continuing from cache; rerun later to fill the rest")
+                prices = read_prices(stock["symbol"])
+        if len(universe) > 60 and (i % 50 == 0 or i == len(universe)):
+            print("  %d/%d" % (i, len(universe)))
         result = score(prices) if prices else None
         row = {
             "symbol": stock["symbol"],
@@ -263,6 +304,9 @@ def main():
 
     print("Wrote scores.js: %d of %d names scored, window %s to %s"
           % (scored, len(rows), report["windowStart"], report["windowEnd"]))
+    if limited:
+        missing = sum(1 for r in rows if not r["historyDays"])
+        print("Incomplete: %d name(s) have no cached prices yet." % missing)
 
 
 if __name__ == "__main__":

@@ -5,18 +5,59 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>12-1 Score</title>
 <style>
+  /* Light is the base palette; the two blocks below restate only the tokens,
+     so every rule further down works in either theme. */
   :root {
-    --line: #e5e5e5;
+    color-scheme: light;
+    --bg: #fff;
+    --fg: #1a1a1a;
     --muted: #666;
+    --line: #e5e5e5;
+    --sorted: #f6f8fa;
+    --hover: #fafafa;
+    --field: #ccc;
+    --card: #fff;
+    --scrim: rgba(0, 0, 0, .35);
     --pos: #157347;
     --neg: #b02a37;
-    --sorted: #f6f8fa;
+  }
+  /* Following the system, unless the viewer explicitly picked light. */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #14161a;
+      --fg: #e8eaed;
+      --muted: #9aa0a8;
+      --line: #2a2e35;
+      --sorted: #1c2028;
+      --hover: #1a1d23;
+      --field: #3a3f47;
+      --card: #1c1f25;
+      --scrim: rgba(0, 0, 0, .6);
+      --pos: #3fb950;
+      --neg: #f85149;
+    }
+  }
+  /* An explicit dark choice wins over a light system setting. */
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #14161a;
+    --fg: #e8eaed;
+    --muted: #9aa0a8;
+    --line: #2a2e35;
+    --sorted: #1c2028;
+    --hover: #1a1d23;
+    --field: #3a3f47;
+    --card: #1c1f25;
+    --scrim: rgba(0, 0, 0, .6);
+    --pos: #3fb950;
+    --neg: #f85149;
   }
   * { box-sizing: border-box; }
   body {
     font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-    color: #1a1a1a;
-    background: #fff;
+    color: var(--fg);
+    background: var(--bg);
     max-width: 720px;
     margin: 0 auto;
     padding: 2rem 1.25rem 4rem;
@@ -29,7 +70,7 @@
   .bar {
     position: sticky;
     top: 0;
-    background: #fff;
+    background: var(--bg);
     padding: .75rem 0 .5rem;
     z-index: 3;
   }
@@ -37,11 +78,11 @@
     width: 100%;
     font: inherit;
     padding: .6rem .75rem;
-    border: 1px solid #ccc;
+    border: 1px solid var(--field);
     border-radius: 8px;
     -webkit-appearance: none;
   }
-  #search:focus { outline: 2px solid #1a1a1a; outline-offset: -1px; border-color: #1a1a1a; }
+  #search:focus { outline: 2px solid var(--fg); outline-offset: -1px; border-color: var(--fg); }
   #count { color: var(--muted); font-size: .8rem; padding: .4rem 0 0; }
 
   table { border-collapse: collapse; width: 100%; }
@@ -49,7 +90,7 @@
   th {
     position: sticky;
     top: var(--bar-h, 5.5rem);   /* measured from the search bar above it */
-    background: #fff;
+    background: var(--bg);
     z-index: 2;
     text-align: right;
     font-size: .75rem;
@@ -60,9 +101,9 @@
     cursor: pointer;
     user-select: none;
     -webkit-user-select: none;
-    box-shadow: inset 0 -2px 0 #1a1a1a;
+    box-shadow: inset 0 -2px 0 var(--fg);
   }
-  th:hover { color: #1a1a1a; }
+  th:hover { color: var(--fg); }
   th .arrow { font-size: .7em; opacity: .55; }
   th:nth-child(-n+2), td:nth-child(-n+2) { text-align: left; }
   td { text-align: right; font-variant-numeric: tabular-nums; }
@@ -74,8 +115,8 @@
   .neg { color: var(--neg); }
 
   tbody tr { cursor: pointer; }
-  tbody tr:hover { background: #fafafa; }
-  tbody tr:focus-visible { outline: 2px solid #1a1a1a; outline-offset: -2px; }
+  tbody tr:hover { background: var(--hover); }
+  tbody tr:focus-visible { outline: 2px solid var(--fg); outline-offset: -2px; }
 
   /* Highlight whichever column is driving the sort. */
   table[data-sort="rank"]      td:nth-child(1),
@@ -87,16 +128,16 @@
   table[data-sort="symbol"]    th:nth-child(2),
   table[data-sort="score"]     th:nth-child(3),
   table[data-sort="annReturn"] th:nth-child(4),
-  table[data-sort="annVol"]    th:nth-child(5) { color: #1a1a1a; }
+  table[data-sort="annVol"]    th:nth-child(5) { color: var(--fg); }
 
   #empty { color: var(--muted); padding: 1.5rem .6rem; display: none; }
-  footer { color: #888; font-size: .8rem; margin-top: 1.5rem; }
+  footer { color: var(--muted); font-size: .8rem; margin-top: 1.5rem; }
 
   /* Detail overlay */
   #overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, .35);
+    background: var(--scrim);
     display: flex;
     align-items: flex-end;
     justify-content: center;
@@ -105,7 +146,7 @@
   }
   #overlay[hidden] { display: none; }
   .card {
-    background: #fff;
+    background: var(--card);
     border-radius: 14px;
     padding: 1.25rem;
     width: 100%;

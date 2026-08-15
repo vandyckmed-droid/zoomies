@@ -3,7 +3,13 @@
 A 12–1 momentum ranking of the largest US-traded common stocks.
 
 This repo doubles as the cache: the downloaded price history lives in `data/`,
-so later sessions only fetch the trading days they are missing.
+so later sessions only fetch the trading days they are missing. A rerun that is
+already up to date makes no API calls at all and rewrites no files.
+
+Rebuilding all 500 names from scratch takes a few minutes; after that a rerun
+takes about a second. If the API plan's quota runs out mid-build, the run keeps
+going from cache and says how many names are still missing — rerun later and it
+picks up where it stopped.
 
 ## Run
 
@@ -29,7 +35,7 @@ refreshed automatically once a week.
 
 ## Universe
 
-The 50 largest US-traded common stocks by market cap, from the FMP screener:
+The 500 largest US-traded common stocks by market cap, from the FMP screener:
 
 - ETFs, funds, preferreds, warrants, rights and units are excluded.
 - Only NASDAQ / NYSE / AMEX lines are kept, so foreign cross-listings of the same
@@ -40,8 +46,9 @@ The 50 largest US-traded common stocks by market cap, from the FMP screener:
 US-listed ADRs (`TSM`, `ASML`, `ARM`, …) are included — they are US-traded common
 equity.
 
-`index.html` shows the 10 largest of those names as the proof of concept; raise
-`DISPLAY_COUNT` in `build.py` to show more.
+`index.html` shows the 50 largest of those names; `DISPLAY_COUNT` in `build.py`
+controls how many, and `UNIVERSE_SIZE` how many are tracked and cached.
+The table sorts, searches and re-renders in under 15ms even at 500 rows.
 
 ## Score
 
@@ -58,4 +65,7 @@ Annualized volatility  = stdev × √252
 ```
 
 Ranked highest score first. A stock listed too recently to fill the window
-(273 trading days) is shown without a score rather than ranked on partial data.
+(273 trading days) is shown without a score rather than ranked on partial data;
+8 of the current 500 fall in that bucket.
+
+The page follows the system light/dark setting.

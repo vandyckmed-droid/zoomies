@@ -300,6 +300,2706 @@
    "name": "Alibaba Group Holding Limited",
    "marketCap": 296588955758,
    "exchange": "NYSE"
+  },
+  {
+   "symbol": "NVS",
+   "name": "Novartis AG",
+   "marketCap": 286779855059,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "GEV",
+   "name": "GE Vernova Inc.",
+   "marketCap": 283179200200,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "WFC",
+   "name": "Wells Fargo & Company",
+   "marketCap": 268500960000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "KLAC",
+   "name": "KLA Corporation",
+   "marketCap": 266115361600,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "MUFG",
+   "name": "Mitsubishi UFJ Financial Group, Inc.",
+   "marketCap": 260044682617,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "TXN",
+   "name": "Texas Instruments Incorporated",
+   "marketCap": 255325788052,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "SHEL",
+   "name": "Shell plc",
+   "marketCap": 252238954650,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ANET",
+   "name": "Arista Networks, Inc.",
+   "marketCap": 250348067663,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "SNDK",
+   "name": "Sandisk Corporation",
+   "marketCap": 243031569623,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "AZN",
+   "name": "AstraZeneca PLC",
+   "marketCap": 242633995272,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "SAP",
+   "name": "SAP SE",
+   "marketCap": 242333957057,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "C",
+   "name": "Citigroup Inc.",
+   "marketCap": 238921261200,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "AXP",
+   "name": "American Express Company",
+   "marketCap": 231280168800,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "TM",
+   "name": "Toyota Motor Corporation",
+   "marketCap": 226309522728,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "AMGN",
+   "name": "Amgen Inc.",
+   "marketCap": 224092158680,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "LIN",
+   "name": "Linde plc",
+   "marketCap": 223315524000,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "CRWD",
+   "name": "CrowdStrike Holdings, Inc.",
+   "marketCap": 220911350796,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "IBM",
+   "name": "International Business Machines Corporation",
+   "marketCap": 220760838880,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "BHP",
+   "name": "BHP Group Limited",
+   "marketCap": 220451147084,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "TMO",
+   "name": "Thermo Fisher Scientific Inc.",
+   "marketCap": 218620918090,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "STX",
+   "name": "Seagate Technology Holdings plc",
+   "marketCap": 218273477760,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "SAN",
+   "name": "Banco Santander, S.A.",
+   "marketCap": 216650567185,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "TD",
+   "name": "The Toronto-Dominion Bank",
+   "marketCap": 210106220000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "APH",
+   "name": "Amphenol Corporation",
+   "marketCap": 206043287800,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "NVO",
+   "name": "Novo Nordisk A/S",
+   "marketCap": 203779529388,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "VZ",
+   "name": "Verizon Communications Inc.",
+   "marketCap": 202431148800,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "SHOP",
+   "name": "Shopify Inc.",
+   "marketCap": 200254070681,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "TTE",
+   "name": "TotalEnergies SE",
+   "marketCap": 196711170397,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "TMUS",
+   "name": "T-Mobile US, Inc.",
+   "marketCap": 195880563250,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "MRVL",
+   "name": "Marvell Technology, Inc.",
+   "marketCap": 194437567320,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "MCD",
+   "name": "McDonald's Corporation",
+   "marketCap": 193847351980,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "SCHW",
+   "name": "The Charles Schwab Corporation",
+   "marketCap": 193201062600,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ABT",
+   "name": "Abbott Laboratories",
+   "marketCap": 192522453969,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "PEP",
+   "name": "PepsiCo, Inc.",
+   "marketCap": 192319140000,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "ADI",
+   "name": "Analog Devices, Inc.",
+   "marketCap": 189666806930,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "DIS",
+   "name": "The Walt Disney Company",
+   "marketCap": 185563458600,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "BA",
+   "name": "The Boeing Company",
+   "marketCap": 183105017900,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "BLK",
+   "name": "BlackRock, Inc.",
+   "marketCap": 181922281350,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "NEE",
+   "name": "NextEra Energy, Inc.",
+   "marketCap": 179790460541,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "UBS",
+   "name": "UBS Group AG",
+   "marketCap": 175788677967,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "WDC",
+   "name": "Western Digital Corporation",
+   "marketCap": 175374201600,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "ETN",
+   "name": "Eaton Corporation plc",
+   "marketCap": 175321333000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "UNP",
+   "name": "Union Pacific Corporation",
+   "marketCap": 174468092253,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "QCOM",
+   "name": "QUALCOMM Incorporated",
+   "marketCap": 174079500000,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "BX",
+   "name": "Blackstone Inc.",
+   "marketCap": 173878486511,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "GILD",
+   "name": "Gilead Sciences, Inc.",
+   "marketCap": 171783607767,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "T",
+   "name": "AT&T Inc.",
+   "marketCap": 170487463200,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "WELL",
+   "name": "Welltower Inc.",
+   "marketCap": 169665885710,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "TJX",
+   "name": "The TJX Companies, Inc.",
+   "marketCap": 168014499192,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "DE",
+   "name": "Deere & Company",
+   "marketCap": 164351401211,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "BKNG",
+   "name": "Booking Holdings Inc.",
+   "marketCap": 164320628680,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "CRM",
+   "name": "Salesforce, Inc.",
+   "marketCap": 160695990000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "IBKR",
+   "name": "Interactive Brokers Group, Inc.",
+   "marketCap": 159082666058,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "BBVA",
+   "name": "Banco Bilbao Vizcaya Argentaria, S.A.",
+   "marketCap": 158575697983,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "TBB",
+   "name": "AT&T Inc. 5.35% GLB NTS 66",
+   "marketCap": 158100324939,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "BUD",
+   "name": "Anheuser-Busch InBev SA/NV",
+   "marketCap": 157023116493,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "RIO",
+   "name": "Rio Tinto Group",
+   "marketCap": 155481890828,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "UBER",
+   "name": "Uber Technologies, Inc.",
+   "marketCap": 154603745037,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "COP",
+   "name": "ConocoPhillips",
+   "marketCap": 154455314207,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "SCCO",
+   "name": "Southern Copper Corporation",
+   "marketCap": 154025976245,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "PFE",
+   "name": "Pfizer Inc.",
+   "marketCap": 152687997600,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "GLW",
+   "name": "Corning Inc",
+   "marketCap": 142912883080,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "SONY",
+   "name": "Sony Group Corporation",
+   "marketCap": 142642192922,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "DHR",
+   "name": "Danaher Corporation",
+   "marketCap": 142319526632,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "LMT",
+   "name": "Lockheed Martin Corporation",
+   "marketCap": 140477865880,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "COF",
+   "name": "Capital One Financial Corporation",
+   "marketCap": 139469679900,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ISRG",
+   "name": "Intuitive Surgical, Inc.",
+   "marketCap": 139371703780,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "UL",
+   "name": "Unilever PLC",
+   "marketCap": 133762184789,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "PH",
+   "name": "Parker-Hannifin Corporation",
+   "marketCap": 133128313826,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "CB",
+   "name": "Chubb Limited",
+   "marketCap": 132576312000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "MFG",
+   "name": "Mizuho Financial Group, Inc.",
+   "marketCap": 132420437301,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "PLD",
+   "name": "Prologis, Inc.",
+   "marketCap": 131591708280,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "BMY",
+   "name": "Bristol-Myers Squibb Company",
+   "marketCap": 130386179300,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "BMO",
+   "name": "Bank of Montreal",
+   "marketCap": 130144411976,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "SYK",
+   "name": "Stryker Corporation",
+   "marketCap": 130039804078,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "VRTX",
+   "name": "Vertex Pharmaceuticals Incorporated",
+   "marketCap": 128361878750,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "NOW",
+   "name": "ServiceNow, Inc.",
+   "marketCap": 128198888000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "NEM",
+   "name": "Newmont Corporation",
+   "marketCap": 124082801833,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "CVS",
+   "name": "CVS Health Corp.",
+   "marketCap": 123969358800,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "SPGI",
+   "name": "S&P Global Inc.",
+   "marketCap": 123462240000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "BTI",
+   "name": "British American Tobacco p.l.c.",
+   "marketCap": 123074301923,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "SBUX",
+   "name": "Starbucks Corporation",
+   "marketCap": 122766600000,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "LOW",
+   "name": "Lowe's Companies, Inc.",
+   "marketCap": 122497658290,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "PGR",
+   "name": "The Progressive Corporation",
+   "marketCap": 121861440000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "PDD",
+   "name": "PDD Holdings Inc.",
+   "marketCap": 120689784911,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "HDB",
+   "name": "HDFC Bank Limited",
+   "marketCap": 119872640254,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "FTNT",
+   "name": "Fortinet, Inc.",
+   "marketCap": 117401521617,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "MDT",
+   "name": "Medtronic plc",
+   "marketCap": 116830163500,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "HWM",
+   "name": "Howmet Aerospace Inc.",
+   "marketCap": 115703081934,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "PBR",
+   "name": "Petr\u00f3leo Brasileiro S.A. - Petrobras",
+   "marketCap": 115225266297,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "CM",
+   "name": "Canadian Imperial Bank of Commerce",
+   "marketCap": 114658845140,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "SNOW",
+   "name": "Snowflake Inc.",
+   "marketCap": 114003672000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "VRT",
+   "name": "Vertiv Holdings Co",
+   "marketCap": 113124873920,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "BNY",
+   "name": "Bank of New York Mellon Corp",
+   "marketCap": 112044507960,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "NET",
+   "name": "Cloudflare, Inc.",
+   "marketCap": 112043761751,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "BNS",
+   "name": "The Bank of Nova Scotia",
+   "marketCap": 111595817525,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "BP",
+   "name": "BP p.l.c.",
+   "marketCap": 111535137650,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ENB",
+   "name": "Enbridge Inc.",
+   "marketCap": 111172167000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "MO",
+   "name": "Altria Group, Inc.",
+   "marketCap": 109702178238,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ABNB",
+   "name": "Airbnb, Inc.",
+   "marketCap": 109242118554,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "ADP",
+   "name": "Automatic Data Processing, Inc.",
+   "marketCap": 109111392640,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "EQIX",
+   "name": "Equinix, Inc.",
+   "marketCap": 108746065141,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "ACN",
+   "name": "Accenture plc",
+   "marketCap": 108246439661,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "GD",
+   "name": "General Dynamics Corporation",
+   "marketCap": 107081049460,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "SO",
+   "name": "The Southern Company",
+   "marketCap": 106753408000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "IBN",
+   "name": "ICICI Bank Limited",
+   "marketCap": 106362457014,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "APP",
+   "name": "AppLovin Corporation",
+   "marketCap": 105968758719,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "TT",
+   "name": "Trane Technologies plc",
+   "marketCap": 105655132477,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "SPOT",
+   "name": "Spotify Technology S.A.",
+   "marketCap": 105427692008,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "SNY",
+   "name": "Sanofi",
+   "marketCap": 104980464000,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "ADBE",
+   "name": "Adobe Inc.",
+   "marketCap": 104947950000,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "MPC",
+   "name": "Marathon Petroleum Corporation",
+   "marketCap": 103760248540,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "PWR",
+   "name": "Quanta Services, Inc.",
+   "marketCap": 103102222540,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "PNC",
+   "name": "The PNC Financial Services Group, Inc.",
+   "marketCap": 102531030000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "KKR",
+   "name": "KKR & Co. Inc.",
+   "marketCap": 102366494003,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ING",
+   "name": "ING Groep N.V.",
+   "marketCap": 101979870728,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "SMFG",
+   "name": "Sumitomo Mitsui Financial Group, Inc.",
+   "marketCap": 101970628480,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "USB",
+   "name": "U.S. Bancorp",
+   "marketCap": 101906809646,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "MCK",
+   "name": "McKesson Corporation",
+   "marketCap": 101740782000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "CEG",
+   "name": "Constellation Energy Corporation",
+   "marketCap": 101446320650,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "CNQ",
+   "name": "Canadian Natural Resources Limited",
+   "marketCap": 100051508700,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "GSK",
+   "name": "GSK plc",
+   "marketCap": 99213320000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "VLO",
+   "name": "Valero Energy Corporation",
+   "marketCap": 98376175942,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "BN",
+   "name": "Brookfield Corporation",
+   "marketCap": 97943165525,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "EQNR",
+   "name": "Equinor ASA",
+   "marketCap": 97470877500,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "CME",
+   "name": "CME Group Inc.",
+   "marketCap": 97014489474,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "DUK",
+   "name": "Duke Energy Corporation",
+   "marketCap": 96607536320,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "FCX",
+   "name": "Freeport-McMoRan Inc.",
+   "marketCap": 95597740000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "BNH",
+   "name": "Brookfield Finance Inc.",
+   "marketCap": 95372537065,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "BCS",
+   "name": "Barclays PLC",
+   "marketCap": 94879017794,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "DASH",
+   "name": "DoorDash, Inc.",
+   "marketCap": 94559674878,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "INTU",
+   "name": "Intuit Inc.",
+   "marketCap": 94550799420,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "AEM",
+   "name": "Agnico Eagle Mines Limited",
+   "marketCap": 94416792541,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "MMM",
+   "name": "3M Company",
+   "marketCap": 94196699465,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "PSX",
+   "name": "Phillips 66",
+   "marketCap": 93662430022,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "MELI",
+   "name": "MercadoLibre, Inc.",
+   "marketCap": 93515007974,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "BNJ",
+   "name": "Brookfield Finance Inc. 4.50% P",
+   "marketCap": 93143073092,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "JCI",
+   "name": "Johnson Controls International plc",
+   "marketCap": 93066119451,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "MAR",
+   "name": "Marriott International, Inc.",
+   "marketCap": 93020550255,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "CSX",
+   "name": "CSX Corporation",
+   "marketCap": 92920396800,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "CMCSA",
+   "name": "Comcast Corporation",
+   "marketCap": 92903306528,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "WMB",
+   "name": "The Williams Companies, Inc.",
+   "marketCap": 91982193894,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "MNST",
+   "name": "Monster Beverage Corporation",
+   "marketCap": 91580679420,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "EMR",
+   "name": "Emerson Electric Co.",
+   "marketCap": 91369113000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "DDOG",
+   "name": "Datadog, Inc.",
+   "marketCap": 90933586050,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "LYG",
+   "name": "Lloyds Banking Group plc",
+   "marketCap": 90131111400,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "WM",
+   "name": "Waste Management, Inc.",
+   "marketCap": 89756044567,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "MRSH",
+   "name": "Marsh & McLennan Companies, Inc.",
+   "marketCap": 89629820356,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "CDNS",
+   "name": "Cadence Design Systems, Inc.",
+   "marketCap": 89453154260,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "UPS",
+   "name": "United Parcel Service, Inc.",
+   "marketCap": 88781471369,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "HCA",
+   "name": "HCA Healthcare, Inc.",
+   "marketCap": 87613827829,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "SHW",
+   "name": "The Sherwin-Williams Company",
+   "marketCap": 87174452024,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "CMI",
+   "name": "Cummins Inc.",
+   "marketCap": 87106936140,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ASX",
+   "name": "ASE Technology Holding Co., Ltd.",
+   "marketCap": 86941125330,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ICE",
+   "name": "Intercontinental Exchange, Inc.",
+   "marketCap": 86864648350,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ELV",
+   "name": "Elevance Health Inc.",
+   "marketCap": 86817114173,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "BAM",
+   "name": "Brookfield Asset Management Ltd.",
+   "marketCap": 86721470144,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "HOOD",
+   "name": "Robinhood Markets, Inc.",
+   "marketCap": 85916306021,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "EPD",
+   "name": "Enterprise Products Partners L.P.",
+   "marketCap": 84160860742,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "MCO",
+   "name": "Moody's Corporation",
+   "marketCap": 83995072000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ITW",
+   "name": "Illinois Tool Works Inc.",
+   "marketCap": 83666037000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "NOC",
+   "name": "Northrop Grumman Corporation",
+   "marketCap": 83230449810,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "CVNA",
+   "name": "Carvana Co.",
+   "marketCap": 82942713139,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "REGN",
+   "name": "Regeneron Pharmaceuticals, Inc.",
+   "marketCap": 82776116560,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "CP",
+   "name": "Canadian Pacific Kansas City Ltd.",
+   "marketCap": 82193907444,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "AMT",
+   "name": "American Tower Corporation",
+   "marketCap": 81813256800,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "RCL",
+   "name": "Royal Caribbean Cruises Ltd.",
+   "marketCap": 81799475000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ITUB",
+   "name": "Ita\u00fa Unibanco Holding S.A.",
+   "marketCap": 81560296832,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "NGG",
+   "name": "National Grid plc",
+   "marketCap": 81484308046,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "MDLZ",
+   "name": "Mondelez International, Inc.",
+   "marketCap": 81186079100,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "APO",
+   "name": "Apollo Global Management, Inc.",
+   "marketCap": 81073789301,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "SNPS",
+   "name": "Synopsys, Inc.",
+   "marketCap": 80708535488,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "E",
+   "name": "Eni S.p.A.",
+   "marketCap": 80087268939,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "NTES",
+   "name": "NetEase, Inc.",
+   "marketCap": 79879277310,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "CTAS",
+   "name": "Cintas Corporation",
+   "marketCap": 79841830811,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "SLB",
+   "name": "Slb N.V.",
+   "marketCap": 79802383520,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "FDX",
+   "name": "FedEx Corporation",
+   "marketCap": 79169528752,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ROST",
+   "name": "Ross Stores, Inc.",
+   "marketCap": 78706844807,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "GM",
+   "name": "General Motors Company",
+   "marketCap": 78479260213,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "HPE",
+   "name": "Hewlett Packard Enterprise Company",
+   "marketCap": 77730746683,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "SU",
+   "name": "Suncor Energy Inc.",
+   "marketCap": 77716965000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ECL",
+   "name": "Ecolab Inc.",
+   "marketCap": 77707846180,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "MSI",
+   "name": "Motorola Solutions, Inc.",
+   "marketCap": 77438793960,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "TRV",
+   "name": "The Travelers Companies, Inc.",
+   "marketCap": 77247845148,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "BSX",
+   "name": "Boston Scientific Corporation",
+   "marketCap": 77038038800,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "CNI",
+   "name": "Canadian National Railway Company",
+   "marketCap": 76725516000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "EOG",
+   "name": "EOG Resources, Inc.",
+   "marketCap": 75958221690,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "AON",
+   "name": "Aon plc",
+   "marketCap": 75480593180,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ORLY",
+   "name": "O'Reilly Automotive, Inc.",
+   "marketCap": 75454500750,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "NSC",
+   "name": "Norfolk Southern Corporation",
+   "marketCap": 75111161280,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "CI",
+   "name": "Cigna Corporation",
+   "marketCap": 74663791724,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "MFC",
+   "name": "Manulife Financial Corporation",
+   "marketCap": 74198849400,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "HON",
+   "name": "Honeywell International Inc.",
+   "marketCap": 74151282400,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "DLR",
+   "name": "Digital Realty Trust, Inc.",
+   "marketCap": 74050696800,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "NU",
+   "name": "Nu Holdings Ltd.",
+   "marketCap": 73760717600,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "HLT",
+   "name": "Hilton Worldwide Holdings Inc.",
+   "marketCap": 73643518650,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "CL",
+   "name": "Colgate-Palmolive Company",
+   "marketCap": 73577378550,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "SE",
+   "name": "Sea Limited",
+   "marketCap": 73206591935,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "KMI",
+   "name": "Kinder Morgan, Inc.",
+   "marketCap": 73083576000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "RACE",
+   "name": "Ferrari N.V.",
+   "marketCap": 72978765460,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "DB",
+   "name": "Deutsche Bank AG",
+   "marketCap": 72457324800,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ET",
+   "name": "Energy Transfer LP",
+   "marketCap": 72436418000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "LITE",
+   "name": "Lumentum Holdings Inc.",
+   "marketCap": 72053692000,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "URI",
+   "name": "United Rentals, Inc.",
+   "marketCap": 71817263775,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "SPG",
+   "name": "Simon Property Group, Inc.",
+   "marketCap": 71205841560,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "AMX",
+   "name": "Am\u00e9rica M\u00f3vil, S.A.B. de C.V.",
+   "marketCap": 70374035875,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "TDG",
+   "name": "TransDigm Group Incorporated",
+   "marketCap": 70302941840,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "WBD",
+   "name": "Warner Bros. Discovery, Inc.",
+   "marketCap": 70174756289,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "TGT",
+   "name": "Target Corporation",
+   "marketCap": 70163425680,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "B",
+   "name": "Barrick Mining Corporation",
+   "marketCap": 69701216000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "SATA",
+   "name": "Strive, Inc. Variable Rate Series A Perpetual Preferred Stock",
+   "marketCap": 69356426174,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "MPWR",
+   "name": "Monolithic Power Systems, Inc.",
+   "marketCap": 68880751300,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "PCAR",
+   "name": "PACCAR Inc",
+   "marketCap": 68843272203,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "APD",
+   "name": "Air Products and Chemicals, Inc.",
+   "marketCap": 68803148204,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "AEP",
+   "name": "American Electric Power Company, Inc.",
+   "marketCap": 68376263200,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "BE",
+   "name": "Bloom Energy Corporation",
+   "marketCap": 67723538380,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ALL",
+   "name": "The Allstate Corporation",
+   "marketCap": 67292423610,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "TRP",
+   "name": "TC Energy Corporation",
+   "marketCap": 66645025504,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "NBIS",
+   "name": "Nebius Group N.V.",
+   "marketCap": 66643200000,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "TFC",
+   "name": "Truist Financial Corporation",
+   "marketCap": 66156228000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "RSG",
+   "name": "Republic Services, Inc.",
+   "marketCap": 66058537440,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "TER",
+   "name": "Teradyne, Inc.",
+   "marketCap": 65474047390,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "IMO",
+   "name": "Imperial Oil Limited",
+   "marketCap": 65294362337,
+   "exchange": "AMEX"
+  },
+  {
+   "symbol": "CRH",
+   "name": "CRH plc",
+   "marketCap": 64915649430,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "AJG",
+   "name": "Arthur J. Gallagher & Co.",
+   "marketCap": 64535848749,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "BKR",
+   "name": "Baker Hughes Company",
+   "marketCap": 64345128680,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "COHR",
+   "name": "Coherent, Inc.",
+   "marketCap": 63745159961,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "MET",
+   "name": "MetLife, Inc.",
+   "marketCap": 62838035837,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "TEL",
+   "name": "TE Connectivity plc",
+   "marketCap": 62693871507,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "GWW",
+   "name": "W.W. Grainger, Inc.",
+   "marketCap": 62445934584,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "FIX",
+   "name": "Comfort Systems USA, Inc.",
+   "marketCap": 62441375117,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "AFL",
+   "name": "Aflac Incorporated",
+   "marketCap": 61816228250,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "NUE",
+   "name": "Nucor Corporation",
+   "marketCap": 61241832310,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "KEYS",
+   "name": "Keysight Technologies, Inc.",
+   "marketCap": 61149780578,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "COR",
+   "name": "Cencora, Inc.",
+   "marketCap": 61057151849,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "WPM",
+   "name": "Wheaton Precious Metals Corp.",
+   "marketCap": 60948116250,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "PSA",
+   "name": "Public Storage",
+   "marketCap": 60778122680,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "CIEN",
+   "name": "Ciena Corporation",
+   "marketCap": 60693646366,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "D",
+   "name": "Dominion Energy, Inc.",
+   "marketCap": 60476204253,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "MPLX",
+   "name": "MPLX Lp",
+   "marketCap": 60356140400,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "NKE",
+   "name": "NIKE, Inc.",
+   "marketCap": 60272711194,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "RELX",
+   "name": "RELX Plc",
+   "marketCap": 60111154865,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "OKE",
+   "name": "ONEOK, Inc.",
+   "marketCap": 59857663530,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "GRMN",
+   "name": "Garmin Ltd.",
+   "marketCap": 59823000600,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "TRGP",
+   "name": "Targa Resources Corp.",
+   "marketCap": 59196668760,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "NXPI",
+   "name": "NXP Semiconductors N.V.",
+   "marketCap": 59185453280,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "DAL",
+   "name": "Delta Air Lines, Inc.",
+   "marketCap": 58758615050,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "FAST",
+   "name": "Fastenal Company",
+   "marketCap": 58545450000,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "O",
+   "name": "Realty Income Corporation",
+   "marketCap": 58504610820,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "AME",
+   "name": "AMETEK, Inc.",
+   "marketCap": 58398632370,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "NOK",
+   "name": "Nokia Oyj",
+   "marketCap": 58167606840,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "VALE",
+   "name": "Vale S.A.",
+   "marketCap": 58125598434,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "OXY",
+   "name": "Occidental Petroleum Corporation",
+   "marketCap": 58046881150,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "CRWV",
+   "name": "CoreWeave, Inc. Class A Common Stock",
+   "marketCap": 57426739041,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "F",
+   "name": "Ford Motor Company",
+   "marketCap": 57281813566,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "CVE",
+   "name": "Cenovus Energy Inc.",
+   "marketCap": 57190037450,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "FANG",
+   "name": "Diamondback Energy, Inc.",
+   "marketCap": 56957443110,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "LNG",
+   "name": "Cheniere Energy, Inc.",
+   "marketCap": 56922705280,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "SRE",
+   "name": "Sempra",
+   "marketCap": 56486821870,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "MT",
+   "name": "ArcelorMittal S.A.",
+   "marketCap": 56214846000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "TAK",
+   "name": "Takeda Pharmaceutical Company Limited",
+   "marketCap": 56101239163,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ALAB",
+   "name": "Astera Labs, Inc. Common Stock",
+   "marketCap": 55126507262,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "CAH",
+   "name": "Cardinal Health, Inc.",
+   "marketCap": 55078225020,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "LHX",
+   "name": "L3Harris Technologies, Inc.",
+   "marketCap": 54341261300,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "NDAQ",
+   "name": "Nasdaq, Inc.",
+   "marketCap": 54231984631,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "ADSK",
+   "name": "Autodesk, Inc.",
+   "marketCap": 53136813867,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "STT",
+   "name": "State Street Corporation",
+   "marketCap": 53067304580,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "DEO",
+   "name": "Diageo plc",
+   "marketCap": 53054618800,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ARGX",
+   "name": "argenx SE",
+   "marketCap": 52939827575,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "EA",
+   "name": "Electronic Arts Inc.",
+   "marketCap": 52924891248,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "PYPL",
+   "name": "PayPal Holdings, Inc.",
+   "marketCap": 52747725260,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "EW",
+   "name": "Edwards Lifesciences Corporation",
+   "marketCap": 52743280000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "HONA",
+   "name": "Honeywell Aerospace Inc",
+   "marketCap": 52726096810,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "FITB",
+   "name": "Fifth Third Bancorp",
+   "marketCap": 52620474720,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "HEI",
+   "name": "HEICO Corporation",
+   "marketCap": 52198900759,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "WDAY",
+   "name": "Workday, Inc.",
+   "marketCap": 52042657819,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "CARR",
+   "name": "Carrier Global Corporation",
+   "marketCap": 51751127078,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "CTVA",
+   "name": "Corteva, Inc.",
+   "marketCap": 51285117600,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "AMP",
+   "name": "Ameriprise Financial, Inc.",
+   "marketCap": 51199994334,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "BDX",
+   "name": "Becton, Dickinson and Company",
+   "marketCap": 50534036000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "WAB",
+   "name": "Westinghouse Air Brake Technologies Corporation",
+   "marketCap": 50507767220,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ETR",
+   "name": "Entergy Corporation",
+   "marketCap": 50321540744,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ROK",
+   "name": "Rockwell Automation, Inc.",
+   "marketCap": 50003197380,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "VST",
+   "name": "Vistra Corp.",
+   "marketCap": 49946838985,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ELC",
+   "name": "Entergy Louisiana, LLC COLLATERAL TR MT",
+   "marketCap": 49829102734,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "CBRS",
+   "name": "Cerebras Systems Inc.",
+   "marketCap": 49607186349,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "XEL",
+   "name": "Xcel Energy Inc.",
+   "marketCap": 49452273780,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "AXON",
+   "name": "Axon Enterprise, Inc.",
+   "marketCap": 49395370848,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "AZO",
+   "name": "AutoZone, Inc.",
+   "marketCap": 49384331975,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "XYZ",
+   "name": "Block, Inc.",
+   "marketCap": 49328598959,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "INFY",
+   "name": "Infosys Limited",
+   "marketCap": 49056142200,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "AU",
+   "name": "AngloGold Ashanti plc",
+   "marketCap": 48703354052,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "CRDO",
+   "name": "Credo Technology Group Holding Ltd",
+   "marketCap": 48465605690,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "STM",
+   "name": "STMicroelectronics N.V.",
+   "marketCap": 48456278202,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "PCG",
+   "name": "PG&E Corporation",
+   "marketCap": 47813171249,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "UMC",
+   "name": "United Microelectronics Corporation",
+   "marketCap": 47766953977,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "CCEP",
+   "name": "Coca-Cola Europacific Partners PLC",
+   "marketCap": 47707985520,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "FERG",
+   "name": "Ferguson plc",
+   "marketCap": 47503129631,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ARES",
+   "name": "Ares Management Corporation",
+   "marketCap": 47298321963,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "EXC",
+   "name": "Exelon Corporation",
+   "marketCap": 47247446285,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "HUM",
+   "name": "Humana Inc.",
+   "marketCap": 46717124000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "FLEX",
+   "name": "Flex Ltd.",
+   "marketCap": 46603879704,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "FER",
+   "name": "Ferrovial SE",
+   "marketCap": 46515527244,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "RKLB",
+   "name": "Rocket Lab USA, Inc.",
+   "marketCap": 46454114869,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "TTWO",
+   "name": "Take-Two Interactive Software, Inc.",
+   "marketCap": 46174711000,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "EBAY",
+   "name": "eBay Inc.",
+   "marketCap": 45794160000,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "TRI",
+   "name": "Thomson Reuters Corporation",
+   "marketCap": 45229788902,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "FNV",
+   "name": "Franco-Nevada Corporation",
+   "marketCap": 45168803760,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "SLF",
+   "name": "Sun Life Financial Inc.",
+   "marketCap": 45085815080,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "IX",
+   "name": "ORIX Corporation",
+   "marketCap": 44586158819,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "VTR",
+   "name": "Ventas, Inc.",
+   "marketCap": 44494278400,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "NTRA",
+   "name": "Natera, Inc.",
+   "marketCap": 44386624950,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "CBRE",
+   "name": "CBRE Group, Inc.",
+   "marketCap": 44255792793,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "WDS",
+   "name": "Woodside Energy Group Ltd",
+   "marketCap": 43926069464,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ODFL",
+   "name": "Old Dominion Freight Line, Inc.",
+   "marketCap": 43875068665,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "LYV",
+   "name": "Live Nation Entertainment, Inc.",
+   "marketCap": 43857091980,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "VIK",
+   "name": "Viking Holdings Ltd",
+   "marketCap": 43529996770,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "IDXX",
+   "name": "IDEXX Laboratories, Inc.",
+   "marketCap": 43461377680,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "PRU",
+   "name": "Prudential Financial, Inc.",
+   "marketCap": 43420110000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "PAYX",
+   "name": "Paychex, Inc.",
+   "marketCap": 43400422577,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "RVMD",
+   "name": "Revolution Medicines, Inc.",
+   "marketCap": 43307931160,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "ABEV",
+   "name": "Ambev S.A.",
+   "marketCap": 43267924000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "BSBR",
+   "name": "Banco Santander (Brasil) S.A.",
+   "marketCap": 43203033006,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "MCHP",
+   "name": "Microchip Technology Incorporated",
+   "marketCap": 42989943360,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "CMG",
+   "name": "Chipotle Mexican Grill, Inc.",
+   "marketCap": 42971455000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "TEVA",
+   "name": "Teva Pharmaceutical Industries Limited",
+   "marketCap": 42823812800,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "KDP",
+   "name": "Keurig Dr Pepper Inc.",
+   "marketCap": 42775989768,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "HLN",
+   "name": "Haleon plc",
+   "marketCap": 42716855150,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "TEAM",
+   "name": "Atlassian Corporation",
+   "marketCap": 42611027379,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "CCJ",
+   "name": "Cameco Corporation",
+   "marketCap": 42568995420,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "KB",
+   "name": "KB Financial Group Inc.",
+   "marketCap": 42115178614,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "A",
+   "name": "Agilent Technologies, Inc.",
+   "marketCap": 41956120896,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "WCN",
+   "name": "Waste Connections, Inc.",
+   "marketCap": 41913394500,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "RKT",
+   "name": "Rocket Companies, Inc.",
+   "marketCap": 41682449356,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "DHI",
+   "name": "D.R. Horton, Inc.",
+   "marketCap": 41622345542,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "MSCI",
+   "name": "MSCI Inc.",
+   "marketCap": 41375751000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "HMC",
+   "name": "Honda Motor Co., Ltd.",
+   "marketCap": 40980489087,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "YUM",
+   "name": "Yum! Brands, Inc.",
+   "marketCap": 40822226310,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "JD",
+   "name": "JD.com, Inc.",
+   "marketCap": 40795876699,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "UAL",
+   "name": "United Airlines Holdings, Inc.",
+   "marketCap": 40681569708,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "NTAP",
+   "name": "NetApp, Inc.",
+   "marketCap": 40636136720,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "AIG",
+   "name": "American International Group, Inc.",
+   "marketCap": 40634987840,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "PFH",
+   "name": "Prudential Financial, Inc. 4.125% Junior Subordinated Notes due 2060",
+   "marketCap": 40336592143,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ROP",
+   "name": "Roper Technologies, Inc.",
+   "marketCap": 40300194780,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "FMX",
+   "name": "Fomento Econ\u00f3mico Mexicano, S.A.B. de C.V.",
+   "marketCap": 40292341870,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ED",
+   "name": "Consolidated Edison, Inc.",
+   "marketCap": 40096064000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "SYY",
+   "name": "Sysco Corporation",
+   "marketCap": 39684407170,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "VEEV",
+   "name": "Veeva Systems Inc.",
+   "marketCap": 39595552181,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "P",
+   "name": "Everpure, Inc.",
+   "marketCap": 39288941380,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "COIN",
+   "name": "Coinbase Global, Inc.",
+   "marketCap": 39171452984,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "IQV",
+   "name": "IQVIA Holdings Inc.",
+   "marketCap": 38954236000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ADM",
+   "name": "Archer-Daniels-Midland Company",
+   "marketCap": 38773440650,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "CLS",
+   "name": "Celestica Inc.",
+   "marketCap": 38524719100,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "CCL",
+   "name": "Carnival Corporation & plc",
+   "marketCap": 38514533226,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "IRM",
+   "name": "Iron Mountain Incorporated",
+   "marketCap": 38508619462,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "EXPE",
+   "name": "Expedia Group, Inc.",
+   "marketCap": 38092547551,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "JBL",
+   "name": "Jabil Inc.",
+   "marketCap": 38048192016,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "NWG",
+   "name": "NatWest Group plc",
+   "marketCap": 38023016611,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "PEG",
+   "name": "Public Service Enterprise Group Incorporated",
+   "marketCap": 37892328840,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "HIG",
+   "name": "The Hartford Insurance Group, Inc.",
+   "marketCap": 37835535776,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "VOD",
+   "name": "Vodafone Group Public Limited Company",
+   "marketCap": 37812718989,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "HSY",
+   "name": "The Hershey Company",
+   "marketCap": 37361585433,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ONC",
+   "name": "BeOne Medicines AG",
+   "marketCap": 37131181851,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "MDB",
+   "name": "MongoDB, Inc.",
+   "marketCap": 37025228956,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "EME",
+   "name": "EMCOR Group, Inc.",
+   "marketCap": 36888669107,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "KVUE",
+   "name": "Kenvue Inc.",
+   "marketCap": 36864166426,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "MTB",
+   "name": "M&T Bank Corporation",
+   "marketCap": 36826025970,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ESLT",
+   "name": "Elbit Systems Ltd.",
+   "marketCap": 36713519321,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "STLD",
+   "name": "Steel Dynamics, Inc.",
+   "marketCap": 36659027370,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "KMB",
+   "name": "Kimberly-Clark Corporation",
+   "marketCap": 36642856600,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "VMC",
+   "name": "Vulcan Materials Company",
+   "marketCap": 36541278000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ALC",
+   "name": "Alcon Inc.",
+   "marketCap": 36211725000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "HBAN",
+   "name": "Huntington Bancshares Incorporated",
+   "marketCap": 36185632256,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "TWLO",
+   "name": "Twilio Inc.",
+   "marketCap": 36152533452,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "GFI",
+   "name": "Gold Fields Limited",
+   "marketCap": 36015765760,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "WEC",
+   "name": "WEC Energy Group, Inc.",
+   "marketCap": 35999237520,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "SHG",
+   "name": "Shinhan Financial Group Co., Ltd.",
+   "marketCap": 35613930165,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "EC",
+   "name": "Ecopetrol S.A.",
+   "marketCap": 35298682400,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "BIDU",
+   "name": "Baidu, Inc.",
+   "marketCap": 35260735424,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "NTRS",
+   "name": "Northern Trust Corporation",
+   "marketCap": 35019607960,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "SUNB",
+   "name": "Sunbelt Rentals Holdings Inc",
+   "marketCap": 34763552749,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "RJF",
+   "name": "Raymond James Financial, Inc.",
+   "marketCap": 34733601000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "KR",
+   "name": "The Kroger Co.",
+   "marketCap": 34730958430,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "PUK",
+   "name": "Prudential plc",
+   "marketCap": 34688017200,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "UI",
+   "name": "Ubiquiti Inc.",
+   "marketCap": 34667050288,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ACGL",
+   "name": "Arch Capital Group Ltd.",
+   "marketCap": 34488286900,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "RDDT",
+   "name": "Reddit, Inc.",
+   "marketCap": 34260834561,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "VG",
+   "name": "Venture Global, Inc.",
+   "marketCap": 34161473596,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "EQT",
+   "name": "EQT Corporation",
+   "marketCap": 34040580720,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "DXCM",
+   "name": "DexCom, Inc.",
+   "marketCap": 33868149750,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "ERIC",
+   "name": "Telefonaktiebolaget LM Ericsson (publ)",
+   "marketCap": 33723418320,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "CQP",
+   "name": "Cheniere Energy Partners, L.P.",
+   "marketCap": 33423928700,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "CNC",
+   "name": "Centene Corp.",
+   "marketCap": 33329842650,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "GEHC",
+   "name": "GE HealthCare Technologies Inc.",
+   "marketCap": 33284759910,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "BBD",
+   "name": "Banco Bradesco S.A.",
+   "marketCap": 33207944289,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "CCI",
+   "name": "Crown Castle Inc.",
+   "marketCap": 33203260000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "CHT",
+   "name": "Chunghwa Telecom Co., Ltd.",
+   "marketCap": 33031207410,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "MLM",
+   "name": "Martin Marietta Materials, Inc.",
+   "marketCap": 32911853794,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "NTR",
+   "name": "Nutrien Ltd.",
+   "marketCap": 32756806916,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "IR",
+   "name": "Ingersoll Rand Inc.",
+   "marketCap": 32614025580,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "RMD",
+   "name": "ResMed Inc.",
+   "marketCap": 32559355953,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "KGC",
+   "name": "Kinross Gold Corporation",
+   "marketCap": 32396235948,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ON",
+   "name": "ON Semiconductor Corporation",
+   "marketCap": 32180529920,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "DVN",
+   "name": "Devon Energy Corporation",
+   "marketCap": 32106966254,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "CFG",
+   "name": "Citizens Financial Group, Inc.",
+   "marketCap": 31601971860,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "TDY",
+   "name": "Teledyne Technologies Incorporated",
+   "marketCap": 31505487749,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "CASY",
+   "name": "Casey's General Stores, Inc.",
+   "marketCap": 31322797605,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "EXR",
+   "name": "Extra Space Storage Inc.",
+   "marketCap": 31246767628,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ATI",
+   "name": "ATI Inc.",
+   "marketCap": 31180763161,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "EL",
+   "name": "The Est\u00e9e Lauder Companies Inc.",
+   "marketCap": 31140186676,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ZM",
+   "name": "Zoom Communications, Inc.",
+   "marketCap": 31070886349,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "BIIB",
+   "name": "Biogen Inc.",
+   "marketCap": 31003221400,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "ZTS",
+   "name": "Zoetis Inc.",
+   "marketCap": 30934834120,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "FTI",
+   "name": "TechnipFMC plc",
+   "marketCap": 30830395841,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "WAT",
+   "name": "Waters Corporation",
+   "marketCap": 30826534752,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "WTW",
+   "name": "Willis Towers Watson Public Limited Company",
+   "marketCap": 30795406585,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "MSTR",
+   "name": "Strategy Inc",
+   "marketCap": 30778376320,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "BAP",
+   "name": "Credicorp Ltd.",
+   "marketCap": 30745704196,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "TECK",
+   "name": "Teck Resources Limited",
+   "marketCap": 30684990000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ALNY",
+   "name": "Alnylam Pharmaceuticals, Inc.",
+   "marketCap": 30595427850,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "RYAAY",
+   "name": "Ryanair Holdings plc",
+   "marketCap": 30546796091,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "AEE",
+   "name": "Ameren Corporation",
+   "marketCap": 30370764480,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "JBS",
+   "name": "Jbs N.V.",
+   "marketCap": 30277153589,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "FOXA",
+   "name": "Fox Corporation",
+   "marketCap": 30274374361,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "KHC",
+   "name": "The Kraft Heinz Company",
+   "marketCap": 30249187545,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "MDLN",
+   "name": "Medline Inc.",
+   "marketCap": 30221965123,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "TSEM",
+   "name": "Tower Semiconductor Ltd.",
+   "marketCap": 29952765071,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "GFS",
+   "name": "GLOBALFOUNDRIES Inc.",
+   "marketCap": 29948091465,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "LVS",
+   "name": "Las Vegas Sands Corp.",
+   "marketCap": 29943225736,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "Q",
+   "name": "Qnity Electronics, Inc.",
+   "marketCap": 29759660672,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ZS",
+   "name": "Zscaler, Inc.",
+   "marketCap": 29689868790,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "LPLA",
+   "name": "LPL Financial Holdings Inc.",
+   "marketCap": 29647247087,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "DTE",
+   "name": "DTE Energy Company",
+   "marketCap": 29307113920,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "CPRT",
+   "name": "Copart, Inc.",
+   "marketCap": 29264900946,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "TCOM",
+   "name": "Trip.com Group Limited",
+   "marketCap": 29218262996,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "DTW",
+   "name": "DTE Energy Company JR SUB DB 2017 E",
+   "marketCap": 29053339034,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "VICI",
+   "name": "VICI Properties Inc.",
+   "marketCap": 29024404165,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "FISV",
+   "name": "Fiserv, Inc.",
+   "marketCap": 29003685060,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "CPNG",
+   "name": "Coupang, Inc.",
+   "marketCap": 28975888394,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ILMN",
+   "name": "Illumina, Inc.",
+   "marketCap": 28881657000,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "ASTS",
+   "name": "AST SpaceMobile, Inc.",
+   "marketCap": 28881197851,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "FTS",
+   "name": "Fortis Inc.",
+   "marketCap": 28857658157,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "HAL",
+   "name": "Halliburton Company",
+   "marketCap": 28754390039,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "TS",
+   "name": "Tenaris S.A.",
+   "marketCap": 28749132447,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "NMR",
+   "name": "Nomura Holdings, Inc.",
+   "marketCap": 28699855885,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "PBA",
+   "name": "Pembina Pipeline Corporation",
+   "marketCap": 28682188550,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "MTD",
+   "name": "Mettler-Toledo International Inc.",
+   "marketCap": 28674988552,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "STRF",
+   "name": "MicroStrategy Incorporated 10.00% Series A Perpetual Strife Preferred Stock",
+   "marketCap": 28581363312,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "WSM",
+   "name": "Williams-Sonoma, Inc.",
+   "marketCap": 28445226285,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ATO",
+   "name": "Atmos Energy Corporation",
+   "marketCap": 28363016154,
+   "exchange": "NYSE"
   }
  ]
 }
