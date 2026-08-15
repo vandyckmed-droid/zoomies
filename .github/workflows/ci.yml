@@ -47,6 +47,7 @@ jobs:
           echo "checked $(git ls-files '*.js' | wc -l) JS file(s)"
 
       # The test suite is optional while the repo is still taking shape.
+      # Browser tests are deliberately not here -- see the browser job.
       - name: Test
         run: |
           if [ -d tests ]; then
@@ -54,3 +55,26 @@ jobs:
           else
             echo "no tests/ directory yet - skipping"
           fi
+
+  # index.html is the only layer users touch and the only one the job above
+  # cannot see: ruff, compileall and node --check all prove the files parse,
+  # not that the page works. Separate job because it needs a browser, and
+  # because a slow install should not gate the fast checks.
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      # Pinned for the same reason ruff is: a new release should not be able
+      # to turn a green branch red without a commit doing it.
+      - name: Install Playwright
+        run: |
+          pip install playwright==1.62.0
+          python -m playwright install --with-deps chromium
+
+      - name: Browser tests
+        run: python -m unittest discover -s e2e -v
