@@ -45,12 +45,6 @@ above. If a merge shows up on a PR neither A nor B pushed, check the commit
 message before treating it as a rule violation — it's most likely C or
 Spencer.
 
-**Merging is a human action** — not Agent A's or Agent B's. Neither author
-nor reviewer merges on their own initiative: the author declines to merge
-its own work, and the reviewer declines to merge at all without being asked.
-A PR can sit approved and green indefinitely. That is the system working,
-not a stall, and neither agent should resolve it by merging.
-
 **An approving review cannot be recorded while both agents push under one
 account.** GitHub refuses it — `Can not approve your own pull request` — because
 the reviewer *is* the author as far as the API is concerned. So the approval
