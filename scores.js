@@ -5,7 +5,7 @@ const REPORT = {
  "windowEnd": "2026-07-16",
  "lookback": 252,
  "skip": 21,
- "displayCount": 500,
+ "displayCount": 1000,
  "benchmark": "SPY",
  "minOverlap": 120,
  "returnScale": 1000000,

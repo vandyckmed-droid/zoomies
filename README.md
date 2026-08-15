@@ -6,7 +6,7 @@ This repo doubles as the cache: the downloaded price history lives in `data/`,
 so later sessions only fetch the trading days they are missing. A rerun that is
 already up to date makes no API calls at all and rewrites no files.
 
-Rebuilding all 500 names from scratch takes a few minutes; after that a rerun
+Rebuilding all 1,000 names from scratch takes a few minutes; after that a rerun
 takes about a second. If the API plan's quota runs out mid-build, the run keeps
 going from cache and says how many names are still missing — rerun later and it
 picks up where it stopped.
@@ -23,12 +23,29 @@ only the Python standard library.
 Pass `--refresh-universe` to rebuild the stock list immediately; otherwise it is
 refreshed automatically once a week.
 
+`python3 build.py --offline` recomputes everything from the committed cache with
+no key and no requests — the right thing to run after changing the maths, since
+it makes the result reproducible by anyone without an API key.
+
+## Rebuilding from a phone
+
+The FMP key only exists server-side, so anything needing fresh data — a bigger
+universe, a different scoring window, new factors — cannot be done in the
+browser. **Actions > Rebuild data > Run workflow** does it instead: universe
+size, lookback and skip are inputs on the form, the key comes from the
+`API_KEY` repository secret, and the regenerated files are committed so Pages
+redeploys. No laptop, and the key never reaches the client.
+
+Filters that only threshold on data already in `scores.js` — score, return,
+volatility, drawdown, market cap, beta, alpha, R² — need no rebuild at all;
+they are instant and client-side.
+
 ## Files
 
 | Path                | Purpose                                                     |
 | ------------------- | ----------------------------------------------------------- |
 | `build.py`          | Picks the universe, updates the cache, computes the scores. |
-| `data/universe.json`| The 500 tracked names, with market caps.                    |
+| `data/universe.json`| The tracked names, with market caps.                        |
 | `data/prices/*.csv` | Cached daily adjusted closes, ~2 years per ticker.          |
 | `data/prices/SPY.csv`| The benchmark series for beta, alpha and R².                |
 | `scores.js`         | Generated table data, loaded by `index.html`.               |
@@ -37,7 +54,7 @@ refreshed automatically once a week.
 
 ## Universe
 
-The 500 largest US-traded common stocks by market cap, from the FMP screener:
+The 1,000 largest US-traded common stocks by market cap, from the FMP screener:
 
 - ETFs, funds, preferreds, warrants, rights and units are excluded.
 - Only NASDAQ / NYSE / AMEX lines are kept, so foreign cross-listings of the same
@@ -48,9 +65,16 @@ The 500 largest US-traded common stocks by market cap, from the FMP screener:
 US-listed ADRs (`TSM`, `ASML`, `ARM`, …) are included — they are US-traded common
 equity.
 
-`index.html` shows all 500; `DISPLAY_COUNT` in `build.py` controls how many,
-and `UNIVERSE_SIZE` how many are tracked and cached. Sorting and searching
-500 rows re-renders in about 15ms.
+`index.html` shows every tracked name; `DISPLAY_COUNT` in `build.py` controls
+how many, and `UNIVERSE_SIZE` how many are tracked and cached. Both read an
+environment variable of the same name first, which is how the rebuild workflow
+passes a size in without editing the file.
+
+Sorting or filtering re-renders the whole table, so its cost scales with the
+number of rows shown. Measured in headless Chromium at a 375px viewport under
+4x CPU throttling — a rough stand-in for a mid-range phone — a sort takes about
+380ms at 500 names and 880ms at 1,000. Past roughly 1,500 it becomes the
+limiting factor, ahead of download size.
 
 ## Score
 
@@ -67,8 +91,8 @@ Annualized volatility  = stdev × √252
 ```
 
 Ranked highest score first. A stock listed too recently to fill the window
-(273 trading days) is shown without a score rather than ranked on partial data;
-8 of the current 500 fall in that bucket.
+(273 trading days) is shown without a score rather than ranked on partial data
+— 8 names in the last build.
 
 ## Market statistics
 
