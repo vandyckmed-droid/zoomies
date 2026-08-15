@@ -8,7 +8,10 @@ between them, so anything not written down did not happen.
 
 **Agent A — author.** Writes code, commits, pushes to feature branches, opens
 PRs and keeps them updated. Does not review its own PRs, approve them, or merge.
-Like B, A pushes only to a branch it owns.
+Like B, A pushes only to a branch it owns — and this is not just a rule to
+follow, it is usually a sandbox restriction: an agent's environment typically
+only permits `git push` to the one branch its own session was created
+against. See the note on "adopting" a branch below.
 
 **Agent B — reviewer.** Reviews open PRs, leaves review comments, and approves
 or requests changes. Reviewing is B's default mode, not a prohibition on
@@ -33,6 +36,14 @@ follow" — it is not authority to originate app-code changes, override an
 unresolved review finding, or make the money-relevant calls reserved for
 Spencer above. C logs every decision as a PR/issue comment, the same as A
 and B, including merges: the commit message says who merged and why.
+
+**C's authority is a process decision, not a credential grant.** C can decide
+who *should* own a branch and say so on a PR — that does not and cannot
+change what an agent's sandbox will actually let it push to. Found live on
+#1: C assigned Agent A a branch it did not create its session against;
+Agent A's sandbox refused the direct push. The fix was the same one the
+"unowned branch" rule below already describes — Agent A pushed to its own
+branch and opened a PR into the assigned one instead.
 
 A human (Spencer) can act in any lane at any time, and his word overrides
 any of the above.
@@ -66,9 +77,13 @@ would make a real approving review possible.
   change, say so in a review comment and let its author push.
 - If a branch has no owner — no agent claims it, and its PR is stalled — do not
   adopt it silently. Either agent may open a PR *into* that branch with the fix,
-  so the change is reviewable and the branch stays untouched. Adopting the
-  branch itself needs a human — Spencer, or C assigning it explicitly on the
-  PR, as C did for #1.
+  so the change is reviewable and the branch stays untouched. **Treat this as
+  the default mechanism, not a fallback**: even when C or a human assigns a
+  branch to you by name, try the push and expect it may be refused by your own
+  sandbox — that assignment is a process decision about who *should* own the
+  work, not a credential grant to push somewhere your session wasn't created
+  against. If the push fails, open a PR into the assigned branch instead and
+  say so; don't treat it as a blocker needing a human, it's the normal path.
 
 ## Before starting anything
 
