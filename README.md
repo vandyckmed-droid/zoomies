@@ -32,6 +32,7 @@ refreshed automatically once a week.
 | `data/prices/*.csv` | Cached daily adjusted closes, ~2 years per ticker.          |
 | `data/prices/SPY.csv`| The benchmark series for beta, alpha and R².                |
 | `scores.js`         | Generated table data, loaded by `index.html`.               |
+| `returns.js`        | Generated return series, loaded only for pair statistics.   |
 | `index.html`        | The ranking table.                                          |
 
 ## Universe
@@ -47,9 +48,9 @@ The 500 largest US-traded common stocks by market cap, from the FMP screener:
 US-listed ADRs (`TSM`, `ASML`, `ARM`, …) are included — they are US-traded common
 equity.
 
-`index.html` shows the 50 largest of those names; `DISPLAY_COUNT` in `build.py`
-controls how many, and `UNIVERSE_SIZE` how many are tracked and cached.
-The table sorts, searches and re-renders in under 15ms even at 500 rows.
+`index.html` shows all 500; `DISPLAY_COUNT` in `build.py` controls how many,
+and `UNIVERSE_SIZE` how many are tracked and cached. Sorting and searching
+500 rows re-renders in about 15ms.
 
 ## Score
 
@@ -77,8 +78,13 @@ A name needs 120 overlapping days before a regression is reported.
 
 Starring names adds them to a watchlist, which drives a pair matrix below the
 table showing correlation or annualized covariance of daily log returns. The
-matrix is computed in the browser from the aligned return series `build.py`
-ships for the displayed names, so any combination works without a rebuild.
+matrix is computed in the browser from the aligned return series in
+`returns.js`, so any combination works without a rebuild.
+
+That file is five times the size of everything else, so `index.html` requests
+it only when a matrix first needs it — the initial load is `scores.js` alone.
+The series are stored as integers scaled by 1e6 to keep the file small;
+correlation is unaffected by the scaling and covariance divides it back out.
 
 ## State
 

@@ -408,7 +408,7 @@
     document.getElementById('empty').style.display = shown.length ? 'none' : 'block';
     document.getElementById('count').textContent =
       shown.length === stocks.length
-        ? stocks.length + ' of ' + REPORT.universe.length + ' tracked stocks'
+        ? stocks.length + ' stocks'
         : shown.length + ' of ' + stocks.length + ' shown';
 
     var only = document.getElementById('only-watch');
@@ -451,7 +451,28 @@
       sxy += dx * dy; sxx += dx * dx; syy += dy * dy;
     }
     if (sxx === 0 || syy === 0) return null;
-    return { corr: sxy / Math.sqrt(sxx * syy), cov: (sxy / (n - 1)) * 252, n: n };
+    var scale = REPORT.returnScale * REPORT.returnScale;
+    return { corr: sxy / Math.sqrt(sxx * syy), cov: (sxy / (n - 1)) / scale * 252, n: n };
+  }
+
+  // The series are five times the size of everything else, so they load only
+  // when a matrix actually needs them. A script tag rather than fetch(), so
+  // this still works when index.html is opened straight off the filesystem.
+  var loadingReturns = false;
+  function haveReturns() {
+    // returns.js declares `const RETURNS`, and a top-level const is a global
+    // lexical binding, never a property of window — so test the name itself.
+    return typeof RETURNS !== 'undefined';
+  }
+  function withReturns(done) {
+    if (haveReturns()) return done(true);
+    if (loadingReturns) return;
+    loadingReturns = true;
+    var el = document.createElement('script');
+    el.src = 'returns.js';
+    el.onload = function () { loadingReturns = false; done(true); };
+    el.onerror = function () { loadingReturns = false; done(false); };
+    document.head.appendChild(el);
   }
 
   function tint(corr) {
@@ -462,7 +483,7 @@
   function renderPairs() {
     var section = document.getElementById('pairs');
     var picked = view.watch.map(function (sym) {
-      return stocks.filter(function (x) { return x.symbol === sym && x.returns; })[0];
+      return stocks.filter(function (x) { return x.symbol === sym; })[0];
     }).filter(Boolean);
 
     if (picked.length < 2) {
@@ -470,6 +491,25 @@
       return;
     }
     section.hidden = false;
+
+    if (!haveReturns()) {
+      document.getElementById('matrix').innerHTML = '';
+      document.getElementById('pairs-note').textContent = 'Loading return series…';
+      withReturns(function (ok) {
+        if (ok) renderPairs();
+        else document.getElementById('pairs-note').textContent =
+          'Could not load returns.js, so pair statistics are unavailable.';
+      });
+      return;
+    }
+
+    picked = picked.filter(function (s) { return RETURNS[s.symbol]; });
+    if (picked.length < 2) {
+      document.getElementById('matrix').innerHTML = '';
+      document.getElementById('pairs-note').textContent =
+        'Needs two starred names with enough price history.';
+      return;
+    }
     var cov = view.pairsMode === 'covariance';
 
     var head = '<tr><th></th>' + picked.map(function (s) {
@@ -481,7 +521,7 @@
         if (row === col) {
           return '<td class="self">' + (cov ? (row.annVol * row.annVol).toFixed(3) : '1.00') + '</td>';
         }
-        var st = pairStats(row.returns, col.returns);
+        var st = pairStats(RETURNS[row.symbol], RETURNS[col.symbol]);
         if (!st) return '<td class="self">—</td>';
         return '<td style="' + tint(st.corr) + '">' +
                (cov ? st.cov.toFixed(3) : st.corr.toFixed(2)) + '</td>';
@@ -608,8 +648,11 @@
   window.addEventListener('orientationchange', syncStickyOffset);
 
   document.getElementById('meta').textContent =
-    REPORT.displayCount + ' largest US-traded common stocks of ' + REPORT.universe.length +
-    ' tracked · ' + REPORT.lookback + '-day window ending ' + REPORT.windowEnd +
+    (REPORT.displayCount >= REPORT.universe.length
+      ? REPORT.universe.length + ' largest US-traded common stocks'
+      : REPORT.displayCount + ' largest US-traded common stocks of ' +
+        REPORT.universe.length + ' tracked') +
+    ' · ' + REPORT.lookback + '-day window ending ' + REPORT.windowEnd +
     ', most recent ' + REPORT.skip + ' trading days excluded · built ' + REPORT.generated;
   document.getElementById('note').textContent =
     'Score = mean daily log return ÷ daily volatility × √252. ' +
