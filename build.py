@@ -28,13 +28,15 @@ from datetime import date, timedelta
 API = "https://financialmodelingprep.com/stable"
 API_KEY = os.environ.get("API_KEY", "")
 
-UNIVERSE_SIZE = 500     # names to track
-DISPLAY_COUNT = 500     # names shown in index.html
+# Overridable from the environment so the rebuild workflow can pass a size in
+# without editing the file -- see .github/workflows/rebuild.yml.
+UNIVERSE_SIZE = int(os.environ.get("UNIVERSE_SIZE") or 1000)   # names to track
+DISPLAY_COUNT = int(os.environ.get("DISPLAY_COUNT") or UNIVERSE_SIZE)  # names shown
 BENCHMARK = "SPY"       # market proxy for beta, alpha and R squared
 RETURN_SCALE = 1000000  # return series are stored as scaled integers
 MIN_OVERLAP = 120       # aligned days needed before a regression is meaningful
-LOOKBACK = 252          # trading days in the scoring window
-SKIP = 21               # most recent trading days excluded
+LOOKBACK = int(os.environ.get("LOOKBACK") or 252)   # trading days in the window
+SKIP = int(os.environ.get("SKIP") or 21)            # most recent days excluded
 HISTORY_DAYS = 730      # calendar days of prices to keep (~2 years)
 UNIVERSE_MAX_AGE = 7    # days before the universe is rebuilt
 
@@ -347,6 +349,15 @@ def main():
     offline = "--offline" in sys.argv
     if not API_KEY and not offline:
         sys.exit("API_KEY is not set (or pass --offline to rebuild from cache)")
+
+    # A window longer than the cache can reach scores nothing, which looks like
+    # a data fault rather than the config error it is. ~5 trading days a week.
+    reachable = HISTORY_DAYS * 5 // 7
+    if LOOKBACK + SKIP > reachable - 20:
+        sys.exit("LOOKBACK+SKIP is %d days, but HISTORY_DAYS=%d only reaches ~%d"
+                 % (LOOKBACK + SKIP, HISTORY_DAYS, reachable))
+    print("Window: %d-day lookback, %d skipped, %d names"
+          % (LOOKBACK, SKIP, UNIVERSE_SIZE))
 
     universe = load_universe("--refresh-universe" in sys.argv, offline)
 

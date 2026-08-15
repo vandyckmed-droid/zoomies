@@ -1,0 +1,87 @@
+name: Rebuild data
+
+# Spencer taps "Run workflow" from the GitHub mobile app or github.com; the
+# FMP key stays server-side as a repository secret and never reaches the
+# browser. This is how the settings that cannot be adjusted client-side --
+# universe size, the scoring window -- get changed without a laptop.
+#
+# There is deliberately no schedule: yet. A cron rebuild runs unattended, and
+# until #8 lands, a single ticker returning an unexpected HTTP error aborts the
+# whole run and writes nothing. Manual dispatch is attended, so a failure is
+# seen. Adding `schedule:` here is a two-line change once that is merged.
+
+on:
+  workflow_dispatch:
+    inputs:
+      universe_size:
+        description: "How many names to track"
+        type: choice
+        default: "1000"
+        options: ["500", "1000", "1500", "2000"]
+      refresh_universe:
+        description: "Rebuild the stock list itself, not just prices"
+        type: boolean
+        default: false
+      lookback:
+        description: "Trading days in the scoring window"
+        default: "252"
+      skip:
+        description: "Most recent trading days excluded"
+        default: "21"
+
+# Needed to commit the regenerated scores.js / returns.js / data back.
+permissions:
+  contents: write
+
+concurrency:
+  group: rebuild
+  cancel-in-progress: false        # never interrupt a run mid-write
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Rebuild
+        env:
+          API_KEY: ${{ secrets.API_KEY }}
+          UNIVERSE_SIZE: ${{ inputs.universe_size }}
+          LOOKBACK: ${{ inputs.lookback }}
+          SKIP: ${{ inputs.skip }}
+        run: |
+          if [ -z "$API_KEY" ]; then
+            echo "::error::API_KEY secret is not set. Add it under"
+            echo "::error::Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+          python build.py ${{ inputs.refresh_universe && '--refresh-universe' || '' }}
+
+      # node --check here as well as in ci.yml: this workflow writes the
+      # generated payloads, so it should refuse to commit one it broke.
+      - name: Check what was generated
+        run: |
+          node --check scores.js
+          node --check returns.js
+          python .github/scripts/check_json.py
+
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # --porcelain, not `git diff`: growing the universe adds new CSVs as
+          # untracked files, which `git diff` does not see.
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "No change -- the cache was already current."
+            exit 0
+          fi
+          git add -A
+          git commit -m "Rebuild data: ${{ inputs.universe_size }} names
+
+          Triggered by ${{ github.actor }} via workflow_dispatch.
+          lookback=${{ inputs.lookback }} skip=${{ inputs.skip }} refresh_universe=${{ inputs.refresh_universe }}"
+          git push
