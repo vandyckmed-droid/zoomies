@@ -30,6 +30,7 @@ refreshed automatically once a week.
 | `build.py`          | Picks the universe, updates the cache, computes the scores. |
 | `data/universe.json`| The 500 tracked names, with market caps.                    |
 | `data/prices/*.csv` | Cached daily adjusted closes, ~2 years per ticker.          |
+| `data/prices/SPY.csv`| The benchmark series for beta, alpha and R².                |
 | `scores.js`         | Generated table data, loaded by `index.html`.               |
 | `index.html`        | The ranking table.                                          |
 
@@ -68,6 +69,20 @@ Ranked highest score first. A stock listed too recently to fill the window
 (273 trading days) is shown without a score rather than ranked on partial data;
 8 of the current 500 fall in that bucket.
 
-The page remembers sort, search, scroll position, the open ticker and the
-theme in localStorage, so reopening it lands exactly where you left off. The
-theme button cycles auto (follow the device) → light → dark.
+## Market statistics
+
+Each stock is regressed on `SPY` over the same 12–1 window, on the benchmark's
+trading calendar, giving beta, annualized alpha (no risk-free adjustment) and R².
+A name needs 120 overlapping days before a regression is reported.
+
+Starring names adds them to a watchlist, which drives a pair matrix below the
+table showing correlation or annualized covariance of daily log returns. The
+matrix is computed in the browser from the aligned return series `build.py`
+ships for the displayed names, so any combination works without a rebuild.
+
+## State
+
+The page remembers sort, search, scroll position, the open ticker, the theme,
+the watchlist and the pair mode in localStorage, so reopening it lands exactly
+where you left off. The theme button cycles auto (follow the device) →
+light → dark.

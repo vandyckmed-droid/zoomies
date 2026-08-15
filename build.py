@@ -28,6 +28,8 @@ API_KEY = os.environ.get("API_KEY", "")
 
 UNIVERSE_SIZE = 500     # names to track
 DISPLAY_COUNT = 50      # names shown in index.html
+BENCHMARK = "SPY"       # market proxy for beta, alpha and R squared
+MIN_OVERLAP = 120       # aligned days needed before a regression is meaningful
 LOOKBACK = 252          # trading days in the scoring window
 SKIP = 21               # most recent trading days excluded
 HISTORY_DAYS = 730      # calendar days of prices to keep (~2 years)
@@ -218,6 +220,52 @@ def update_prices(symbol, verbose=True):
     return prices
 
 
+def log_returns(prices):
+    """Daily log returns keyed by date."""
+    days = sorted(prices)
+    out = {}
+    for a, b in zip(days, days[1:]):
+        if prices[a] > 0 and prices[b] > 0:
+            out[b] = math.log(prices[b] / prices[a])
+    return out
+
+
+def market_window(prices):
+    """The benchmark's 12-1 window, used as the common date axis."""
+    days = sorted(log_returns(prices))
+    if len(days) < LOOKBACK + SKIP:
+        sys.exit("benchmark %s has too little history" % BENCHMARK)
+    return days[-(LOOKBACK + SKIP):-SKIP]
+
+
+def align(returns, dates):
+    """A stock's returns on the benchmark's date axis, None where it did not trade."""
+    return [returns.get(d) for d in dates]
+
+
+def regress(stock, market):
+    """Beta, annualized alpha and R squared against the benchmark."""
+    pairs = [(s, m) for s, m in zip(stock, market) if s is not None and m is not None]
+    if len(pairs) < MIN_OVERLAP:
+        return None
+
+    xs = [m for _, m in pairs]
+    ys = [s for s, _ in pairs]
+    mx, my = statistics.fmean(xs), statistics.fmean(ys)
+    sxy = sum((x - mx) * (y - my) for x, y in zip(xs, ys))
+    sxx = sum((x - mx) ** 2 for x in xs)
+    syy = sum((y - my) ** 2 for y in ys)
+    if sxx == 0 or syy == 0:
+        return None
+
+    beta = sxy / sxx
+    return {
+        "beta": beta,
+        "alpha": (my - beta * mx) * 252,   # annualized, no risk-free adjustment
+        "r2": (sxy * sxy) / (sxx * syy),
+    }
+
+
 def score(prices):
     """12-1 momentum: risk-adjusted drift over 252 days, skipping the last 21."""
     series = [prices[d] for d in sorted(prices)]
@@ -252,6 +300,12 @@ def main():
 
     universe = load_universe("--refresh-universe" in sys.argv)
 
+    print("Updating benchmark %s..." % BENCHMARK)
+    market_prices = update_prices(BENCHMARK)
+    axis = market_window(market_prices)                  # shared date axis
+    market = align(log_returns(market_prices), axis)
+    print("  axis: %d days, %s to %s" % (len(axis), axis[0], axis[-1]))
+
     print("Updating prices for %d names..." % len(universe))
     rows, window, limited = [], None, None
     for i, stock in enumerate(universe, 1):
@@ -284,6 +338,15 @@ def main():
         for field in ("score", "annReturn", "annVol", "meanDaily", "dailyVol",
                       "windowReturn", "skipReturn", "windowStart", "windowEnd"):
             row[field] = result[field] if result else None
+
+        # Market stats, and — for the names the page can actually select —
+        # the aligned return series the browser needs for pair statistics.
+        aligned = align(log_returns(prices), axis) if prices else None
+        fit = regress(aligned, market) if aligned else None
+        for field in ("beta", "alpha", "r2"):
+            row[field] = fit[field] if fit else None
+        if aligned and i <= DISPLAY_COUNT:
+            row["returns"] = [None if r is None else round(r, 6) for r in aligned]
         rows.append(row)
         if result and not window:
             window = (result["windowStart"], result["windowEnd"])
@@ -296,6 +359,8 @@ def main():
         "lookback": LOOKBACK,
         "skip": SKIP,
         "displayCount": DISPLAY_COUNT,
+        "benchmark": BENCHMARK,
+        "minOverlap": MIN_OVERLAP,
         "universe": rows,
     }
     with open(OUTPUT_FILE, "w") as fh:

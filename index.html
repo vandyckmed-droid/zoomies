@@ -28,6 +28,8 @@
     --scrim: rgba(0, 0, 0, .35);
     --pos: #157347;
     --neg: #b02a37;
+    --pos-rgb: 21, 115, 71;
+    --neg-rgb: 176, 42, 55;
   }
   /* Following the system, unless the viewer explicitly picked light. */
   @media (prefers-color-scheme: dark) {
@@ -44,6 +46,8 @@
       --scrim: rgba(0, 0, 0, .6);
       --pos: #3fb950;
       --neg: #f85149;
+      --pos-rgb: 63, 185, 80;
+      --neg-rgb: 248, 81, 73;
     }
   }
   /* An explicit dark choice wins over a light system setting. */
@@ -60,6 +64,8 @@
     --scrim: rgba(0, 0, 0, .6);
     --pos: #3fb950;
     --neg: #f85149;
+    --pos-rgb: 63, 185, 80;
+    --neg-rgb: 248, 81, 73;
   }
   * { box-sizing: border-box; }
   body {
@@ -73,7 +79,7 @@
   }
   .head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
   h1 { font-size: 1.4rem; margin: 0 0 .25rem; }
-  #theme {
+  #theme, #only-watch, #pairs-mode {
     font: inherit;
     font-size: .7rem;
     text-transform: uppercase;
@@ -87,8 +93,12 @@
     white-space: nowrap;
     -webkit-appearance: none;
   }
-  #theme:hover { color: var(--fg); border-color: var(--field); }
-  #theme:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+  #theme:hover, #only-watch:hover, #pairs-mode:hover { color: var(--fg); border-color: var(--field); }
+  #theme:focus-visible, #only-watch:focus-visible, #pairs-mode:focus-visible {
+    outline: 2px solid var(--fg); outline-offset: 2px;
+  }
+  #only-watch[aria-pressed="true"] { color: var(--fg); border-color: var(--field); }
+  #only-watch:disabled { opacity: .45; cursor: default; }
   p.meta { color: var(--muted); font-size: .85rem; margin: 0 0 1.25rem; }
 
   /* Search sits above the sticky header and stays put with it. */
@@ -108,7 +118,8 @@
     -webkit-appearance: none;
   }
   #search:focus { outline: 2px solid var(--fg); outline-offset: -1px; border-color: var(--fg); }
-  #count { color: var(--muted); font-size: .8rem; padding: .4rem 0 0; }
+  .barrow { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .45rem 0 0; }
+  #count { color: var(--muted); font-size: .8rem; }
 
   table { border-collapse: collapse; width: 100%; }
   th, td { padding: .55rem .6rem; border-bottom: 1px solid var(--line); }
@@ -154,6 +165,48 @@
   table[data-sort="score"]     th:nth-child(3),
   table[data-sort="annReturn"] th:nth-child(4),
   table[data-sort="annVol"]    th:nth-child(5) { color: var(--fg); }
+
+  /* Watchlist star */
+  th.watch, td.watch { width: 2.6rem; text-align: center; padding-left: 0; padding-right: .25rem; }
+  th.watch { cursor: default; }
+  .star {
+    font: inherit;
+    font-size: 1.05rem;
+    line-height: 1;
+    background: none;
+    border: 0;
+    padding: .4rem;
+    color: var(--muted);
+    cursor: pointer;
+    -webkit-appearance: none;
+  }
+  .star[aria-pressed="true"] { color: var(--fg); }
+  .star:focus-visible { outline: 2px solid var(--fg); outline-offset: 1px; }
+
+  /* Pair statistics for the watchlist */
+  #pairs { margin-top: 2.25rem; }
+  #pairs[hidden] { display: none; }
+  .phead { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+  .phead h2 { font-size: 1rem; margin: 0 0 .5rem; }
+  .pscroll { overflow-x: auto; }          /* the matrix scrolls, not the page */
+  #matrix { width: auto; min-width: 100%; }
+  #matrix th, #matrix td {
+    position: static;
+    box-shadow: none;
+    border: 1px solid var(--line);
+    padding: .45rem .55rem;
+    font-size: .8rem;
+    text-align: right;
+    white-space: nowrap;
+    cursor: default;
+    text-transform: none;
+    letter-spacing: 0;
+    background: var(--bg);
+  }
+  #matrix th { color: var(--muted); font-weight: 400; }
+  #matrix th.rowhead { text-align: left; color: var(--fg); font-weight: 600; }
+  #matrix td.self { color: var(--muted); }
+  .pnote { color: var(--muted); font-size: .8rem; margin: .7rem 0 0; }
 
   #empty { color: var(--muted); padding: 1.5rem .6rem; display: none; }
   footer { color: var(--muted); font-size: .8rem; margin-top: 1.5rem; }
@@ -223,7 +276,10 @@
 <div class="bar">
   <input id="search" type="search" placeholder="Search ticker or company" autocomplete="off"
          autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="Search ticker or company">
-  <div id="count"></div>
+  <div class="barrow">
+    <span id="count"></span>
+    <button id="only-watch" aria-pressed="false">&#9733; <span id="watch-n">0</span></button>
+  </div>
 </div>
 
 <table id="table">
@@ -234,11 +290,21 @@
       <th data-key="score">Score<span class="arrow"></span></th>
       <th data-key="annReturn"><span class="long">Ann. </span>Return<span class="arrow"></span></th>
       <th data-key="annVol"><span class="long">Ann. </span>Vol<span class="arrow"></span></th>
+      <th class="watch" aria-label="Watchlist">&#9734;</th>
     </tr>
   </thead>
   <tbody id="rows"></tbody>
 </table>
 <div id="empty">No stocks match that search.</div>
+
+<section id="pairs" hidden>
+  <div class="phead">
+    <h2>Watchlist pairs</h2>
+    <button id="pairs-mode">correlation</button>
+  </div>
+  <div class="pscroll"><table id="matrix"></table></div>
+  <p class="pnote" id="pairs-note"></p>
+</section>
 
 <footer id="note"></footer>
 
@@ -261,7 +327,8 @@
   var FIRST_DIR = { rank: 1, symbol: 1, score: -1, annReturn: -1, annVol: -1 };
 
   // Everything the page remembers between visits.
-  var view = { key: 'rank', dir: 1, q: '', scroll: 0, open: null, theme: 'auto' };
+  var view = { key: 'rank', dir: 1, q: '', scroll: 0, open: null, theme: 'auto',
+              watch: [], onlyWatch: false, pairsMode: 'correlation' };
   try {
     var saved = JSON.parse(localStorage.getItem(STORE_KEY));
     if (saved && FIRST_DIR[saved.key]) {
@@ -312,12 +379,12 @@
   function render() {
     var q = view.q.trim().toLowerCase();
     var shown = stocks.filter(function (s) {
-      return !q || s.symbol.toLowerCase().indexOf(q) === 0 ||
-             s.symbol.toLowerCase().indexOf(q) > -1 || s.name.toLowerCase().indexOf(q) > -1;
+      if (view.onlyWatch && !watched(s.symbol)) return false;
+      return !q || s.symbol.toLowerCase().indexOf(q) > -1 || s.name.toLowerCase().indexOf(q) > -1;
     }).sort(compare);
 
     document.getElementById('table').setAttribute('data-sort', view.key);
-    document.querySelectorAll('th').forEach(function (th) {
+    document.querySelectorAll('th[data-key]').forEach(function (th) {
       var on = th.dataset.key === view.key;
       th.querySelector('.arrow').textContent = on ? (view.dir === 1 ? ' ↑' : ' ↓') : '';
       th.setAttribute('aria-sort', on ? (view.dir === 1 ? 'ascending' : 'descending') : 'none');
@@ -329,9 +396,13 @@
         : '<td class="score ' + (s.score >= 0 ? 'pos' : 'neg') + '">' + s.score.toFixed(2) + '</td>' +
           '<td>' + signed(s.annReturn) + '</td>' +
           '<td>' + pct(s.annVol) + '</td>';
+      var on = watched(s.symbol);
       return '<tr tabindex="0" data-symbol="' + esc(s.symbol) + '">' +
         '<td class="rank">' + (s.rank === null ? '—' : s.rank) + '</td>' +
-        '<td class="ticker">' + esc(s.symbol) + '</td>' + cells + '</tr>';
+        '<td class="ticker">' + esc(s.symbol) + '</td>' + cells +
+        '<td class="watch"><button class="star" data-star="' + esc(s.symbol) + '"' +
+        ' aria-pressed="' + on + '" aria-label="' + (on ? 'Remove ' : 'Add ') + esc(s.symbol) +
+        (on ? ' from' : ' to') + ' watchlist">' + (on ? '★' : '☆') + '</button></td></tr>';
     }).join('');
 
     document.getElementById('empty').style.display = shown.length ? 'none' : 'block';
@@ -339,6 +410,90 @@
       shown.length === stocks.length
         ? stocks.length + ' of ' + REPORT.universe.length + ' tracked stocks'
         : shown.length + ' of ' + stocks.length + ' shown';
+
+    var only = document.getElementById('only-watch');
+    document.getElementById('watch-n').textContent = view.watch.length;
+    only.setAttribute('aria-pressed', String(view.onlyWatch));
+    only.disabled = view.watch.length === 0;
+  }
+
+  // --- watchlist and pair statistics --------------------------------------
+
+  function watched(symbol) { return view.watch.indexOf(symbol) > -1; }
+
+  function toggleWatch(symbol) {
+    var i = view.watch.indexOf(symbol);
+    if (i > -1) view.watch.splice(i, 1);
+    else view.watch.push(symbol);
+    if (!view.watch.length) view.onlyWatch = false;
+    save();
+    render();
+    renderPairs();
+  }
+
+  // Correlation and annualized covariance over the days both names traded.
+  // The series are already aligned to the benchmark's date axis by build.py.
+  function pairStats(a, b) {
+    var xs = [], ys = [], i;
+    for (i = 0; i < a.length; i++) {
+      if (a[i] !== null && b[i] !== null) { xs.push(a[i]); ys.push(b[i]); }
+    }
+    var n = xs.length;
+    if (n < REPORT.minOverlap) return null;
+
+    var mx = 0, my = 0;
+    for (i = 0; i < n; i++) { mx += xs[i]; my += ys[i]; }
+    mx /= n; my /= n;
+
+    var sxy = 0, sxx = 0, syy = 0;
+    for (i = 0; i < n; i++) {
+      var dx = xs[i] - mx, dy = ys[i] - my;
+      sxy += dx * dy; sxx += dx * dx; syy += dy * dy;
+    }
+    if (sxx === 0 || syy === 0) return null;
+    return { corr: sxy / Math.sqrt(sxx * syy), cov: (sxy / (n - 1)) * 252, n: n };
+  }
+
+  function tint(corr) {
+    var alpha = (Math.min(Math.abs(corr), 1) * 0.3).toFixed(3);
+    return 'background:rgba(var(--' + (corr >= 0 ? 'pos' : 'neg') + '-rgb),' + alpha + ')';
+  }
+
+  function renderPairs() {
+    var section = document.getElementById('pairs');
+    var picked = view.watch.map(function (sym) {
+      return stocks.filter(function (x) { return x.symbol === sym && x.returns; })[0];
+    }).filter(Boolean);
+
+    if (picked.length < 2) {
+      section.hidden = true;
+      return;
+    }
+    section.hidden = false;
+    var cov = view.pairsMode === 'covariance';
+
+    var head = '<tr><th></th>' + picked.map(function (s) {
+      return '<th>' + esc(s.symbol) + '</th>';
+    }).join('') + '</tr>';
+
+    var body = picked.map(function (row) {
+      return '<tr><th class="rowhead">' + esc(row.symbol) + '</th>' + picked.map(function (col) {
+        if (row === col) {
+          return '<td class="self">' + (cov ? (row.annVol * row.annVol).toFixed(3) : '1.00') + '</td>';
+        }
+        var st = pairStats(row.returns, col.returns);
+        if (!st) return '<td class="self">—</td>';
+        return '<td style="' + tint(st.corr) + '">' +
+               (cov ? st.cov.toFixed(3) : st.corr.toFixed(2)) + '</td>';
+      }).join('') + '</tr>';
+    }).join('');
+
+    document.getElementById('matrix').innerHTML = head + body;
+    document.getElementById('pairs-mode').textContent = view.pairsMode;
+    document.getElementById('pairs-note').textContent = cov
+      ? 'Annualized covariance of daily log returns over the same 12–1 window. The diagonal is each stock’s own variance.'
+      : 'Correlation of daily log returns over the same 12–1 window, on the ' +
+        REPORT.benchmark + ' trading calendar.';
   }
 
   // --- detail overlay ------------------------------------------------------
@@ -368,6 +523,13 @@
         ['hr'],
         ['12–1 window', s.windowStart + ' → ' + s.windowEnd]
       );
+      if (s.beta !== null) {
+        stats.splice(stats.length - 2, 0,
+          ['hr'],
+          ['Beta vs ' + REPORT.benchmark, s.beta.toFixed(2)],
+          ['Alpha (annualized)', signed(s.alpha)],
+          ['R²', s.r2.toFixed(2)]);
+      }
     } else {
       stats.push(['hr'], ['Score', 'not enough history for a ' +
         (REPORT.lookback + REPORT.skip) + '-day window']);
@@ -393,7 +555,7 @@
 
   // --- wiring --------------------------------------------------------------
 
-  document.querySelectorAll('th').forEach(function (th) {
+  document.querySelectorAll('th[data-key]').forEach(function (th) {
     th.addEventListener('click', function () {
       var key = th.dataset.key;
       view.dir = view.key === key ? -view.dir : FIRST_DIR[key];
@@ -412,8 +574,22 @@
   });
 
   document.getElementById('rows').addEventListener('click', function (e) {
+    var star = e.target.closest('.star');
+    if (star) { toggleWatch(star.dataset.star); return; }   // never opens detail
     var tr = e.target.closest('tr');
     if (tr) openDetail(tr.dataset.symbol);
+  });
+
+  document.getElementById('only-watch').addEventListener('click', function () {
+    view.onlyWatch = !view.onlyWatch;
+    save();
+    render();
+  });
+
+  document.getElementById('pairs-mode').addEventListener('click', function () {
+    view.pairsMode = view.pairsMode === 'correlation' ? 'covariance' : 'correlation';
+    save();
+    renderPairs();
   });
   document.getElementById('rows').addEventListener('keydown', function (e) {
     if (e.key === 'Enter' && e.target.dataset.symbol) openDetail(e.target.dataset.symbol);
@@ -437,7 +613,8 @@
     ', most recent ' + REPORT.skip + ' trading days excluded · built ' + REPORT.generated;
   document.getElementById('note').textContent =
     'Score = mean daily log return ÷ daily volatility × √252. ' +
-    'Tap any row for detail, any column heading to sort.';
+    'Beta, alpha and R² are against ' + REPORT.benchmark + '. ' +
+    'Tap a row for detail, a heading to sort, ☆ to add to the watchlist.';
 
   // --- theme ---------------------------------------------------------------
   // auto follows the device; light and dark are explicit and stick.
@@ -478,6 +655,7 @@
 
   applyTheme();
   render();
+  renderPairs();
   syncStickyOffset();
 
   // Two frames: one for the table to lay out, one for the sticky offset.
