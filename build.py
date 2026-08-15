@@ -3,6 +3,7 @@
 
 Usage:
     API_KEY=<fmp key> python3 build.py [--refresh-universe]
+    python3 build.py --offline          # recompute from cache, no key needed
 
 Writes:
     data/universe.json   the tracked universe (cached, refreshed weekly)
@@ -145,7 +146,14 @@ def build_universe():
     return universe
 
 
-def load_universe(refresh):
+def load_universe(refresh, offline=False):
+    if offline:
+        if not os.path.exists(UNIVERSE_FILE):
+            sys.exit("--offline needs a cached %s" % os.path.basename(UNIVERSE_FILE))
+        with open(UNIVERSE_FILE) as fh:
+            cached = json.load(fh)
+        print("Universe: %d names from cache (offline)" % len(cached["stocks"]))
+        return cached["stocks"]
     if not refresh and os.path.exists(UNIVERSE_FILE):
         with open(UNIVERSE_FILE) as fh:
             cached = json.load(fh)
@@ -269,6 +277,27 @@ def regress(stock, market):
     }
 
 
+def drawdown(prices, dates):
+    """Deepest peak-to-trough fall in adjusted close across the given days.
+
+    Depth is negative (or zero when the series only ever rose), and the peak it
+    is measured from is the running high, so the trough always follows it.
+    """
+    peak = peak_day = None
+    worst = {"maxDrawdown": 0.0, "ddPeak": None, "ddTrough": None}
+    for day in dates:
+        price = prices[day]
+        if peak is None or price > peak:
+            peak, peak_day = price, day
+        elif peak > 0 and price / peak - 1.0 < worst["maxDrawdown"]:
+            worst = {
+                "maxDrawdown": price / peak - 1.0,
+                "ddPeak": peak_day,
+                "ddTrough": day,
+            }
+    return worst
+
+
 def score(prices):
     """12-1 momentum: risk-adjusted drift over 252 days, skipping the last 21."""
     series = [prices[d] for d in sorted(prices)]
@@ -283,7 +312,7 @@ def score(prices):
         return None
 
     dates = sorted(prices)[-(LOOKBACK + SKIP + 1):-SKIP]
-    return {
+    return dict(drawdown(prices, dates), **{
         "score": mean / vol * math.sqrt(252),
         "annReturn": mean * 252,
         "annVol": vol * math.sqrt(252),
@@ -294,7 +323,7 @@ def score(prices):
         "windowStart": dates[0],
         "windowEnd": dates[-1],
         "days": len(window),
-    }
+    })
 
 
 def write_returns(series):
@@ -313,13 +342,18 @@ def write_returns(series):
 
 
 def main():
-    if not API_KEY:
-        sys.exit("API_KEY is not set")
+    # Offline recomputes scores from the committed cache. It is what to use
+    # after changing the maths: no key, no requests, same numbers every run.
+    offline = "--offline" in sys.argv
+    if not API_KEY and not offline:
+        sys.exit("API_KEY is not set (or pass --offline to rebuild from cache)")
 
-    universe = load_universe("--refresh-universe" in sys.argv)
+    universe = load_universe("--refresh-universe" in sys.argv, offline)
 
     print("Updating benchmark %s..." % BENCHMARK)
-    market_prices = update_prices(BENCHMARK)
+    market_prices = read_prices(BENCHMARK) if offline else update_prices(BENCHMARK)
+    if not market_prices:
+        sys.exit("no cached prices for benchmark %s" % BENCHMARK)
     axis = market_window(market_prices)                  # shared date axis
     market = align(log_returns(market_prices), axis)
     print("  axis: %d days, %s to %s" % (len(axis), axis[0], axis[-1]))
@@ -327,8 +361,8 @@ def main():
     print("Updating prices for %d names..." % len(universe))
     rows, window, limited, series = [], None, None, {}
     for i, stock in enumerate(universe, 1):
-        if limited:
-            prices = read_prices(stock["symbol"])       # quota spent, cache only
+        if offline or limited:
+            prices = read_prices(stock["symbol"])       # cache only
         else:
             try:
                 prices = update_prices(stock["symbol"], verbose=len(universe) <= 60)
@@ -351,9 +385,11 @@ def main():
             "score": None,
             "annReturn": None,
             "annVol": None,
+            "maxDrawdown": None,
         }
         # Extra detail for the per-stock panel in index.html.
-        for field in ("score", "annReturn", "annVol", "meanDaily", "dailyVol",
+        for field in ("score", "annReturn", "annVol", "maxDrawdown",
+                      "ddPeak", "ddTrough", "meanDaily", "dailyVol",
                       "windowReturn", "skipReturn", "windowStart", "windowEnd"):
             row[field] = result[field] if result else None
 
