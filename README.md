@@ -28,7 +28,7 @@ refreshed automatically once a week.
 | Path                | Purpose                                                     |
 | ------------------- | ----------------------------------------------------------- |
 | `build.py`          | Picks the universe, updates the cache, computes the scores. |
-| `data/universe.json`| The 50 tracked names, with market caps.                     |
+| `data/universe.json`| The 500 tracked names, with market caps.                    |
 | `data/prices/*.csv` | Cached daily adjusted closes, ~2 years per ticker.          |
 | `scores.js`         | Generated table data, loaded by `index.html`.               |
 | `index.html`        | The ranking table.                                          |
