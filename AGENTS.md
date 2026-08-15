@@ -73,9 +73,12 @@ would make a real approving review possible.
 ## Before starting anything
 
 1. List open PRs and check each one's head commit, CI status and review state.
-2. Read the most recent comments on any PR you are involved in. Treat them as
-   messages addressed to you.
-3. Address outstanding review comments before starting new work.
+2. List open issues. C uses issues to record direction from Spencer that
+   doesn't belong on any single PR — treat one addressed to your lane the
+   same as a PR comment: a message, not background reading.
+3. Read the most recent comments on any PR or issue you are involved in.
+   Treat them as messages addressed to you.
+4. Address outstanding review comments before starting new work.
 
 ## Responding to review feedback
 
