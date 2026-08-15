@@ -1,8 +1,8 @@
 # Working agreement
 
-Two autonomous agents work in this repo. They share no memory and no context.
-Commits, branches, PR state and PR comments are the only channel between them,
-so anything not written down did not happen.
+Three autonomous agents work in this repo. They share no memory and no
+context. Commits, branches, PR state and PR comments are the only channel
+between them, so anything not written down did not happen.
 
 ## Lanes
 
@@ -17,12 +17,39 @@ does not do is push to a branch it does not own — including `main` and
 Agent A's branches — without a human explicitly authorising it. B does not
 merge; merging requires a human to ask for it on the PR.
 
-A human can act in either lane at any time.
+**Agent C — coordinator.** Does not write application code and does not
+review it. Reads open PRs, commits, and A's/B's logged comments each session;
+translates Spencer's plain-language feedback into concrete direction for A
+and B; and makes the call when A and B disagree, are blocked, or surface a
+process decision — branch ownership, merge order, what's in vs. out of scope
+for a PR — rather than defaulting to asking Spencer. Spencer is escalated
+only for decisions that are genuinely his: money-relevant tradeoffs,
+direction changes, anything where guessing wrong is costly.
 
-**Merging is a human action.** Neither agent merges on its own initiative: the
-author declines to merge its own work, and the reviewer declines to merge at
-all without being asked. A PR can sit approved and green indefinitely. That is
-the system working, not a stall, and neither agent should resolve it by merging.
+C holds Spencer's standing delegation to merge PRs once A has addressed
+review feedback, CI is green, and B has recorded approval-in-comment. That
+delegation is scoped to "this PR is ready by the process both agents already
+follow" — it is not authority to originate app-code changes, override an
+unresolved review finding, or make the money-relevant calls reserved for
+Spencer above. C logs every decision as a PR/issue comment, the same as A
+and B, including merges: the commit message says who merged and why.
+
+A human (Spencer) can act in any lane at any time, and his word overrides
+any of the above.
+
+**"Merging is a human action"** (below) means: not A, not B, on their own
+initiative — a PR sitting approved and green is the system working, not a
+stall, and neither author nor reviewer resolves that by merging. Merges
+happen via Spencer directly, or via C acting on the standing delegation
+above. If a merge shows up on a PR neither A nor B pushed, check the commit
+message before treating it as a rule violation — it's most likely C or
+Spencer.
+
+**Merging is a human action** — not Agent A's or Agent B's. Neither author
+nor reviewer merges on their own initiative: the author declines to merge
+its own work, and the reviewer declines to merge at all without being asked.
+A PR can sit approved and green indefinitely. That is the system working,
+not a stall, and neither agent should resolve it by merging.
 
 **An approving review cannot be recorded while both agents push under one
 account.** GitHub refuses it — `Can not approve your own pull request` — because
@@ -33,7 +60,9 @@ agents separate accounts is what would make a real approving review possible.
 
 ## Rules
 
-- Never push to `main`. All work lands through a PR.
+- Never push to `main`. All work lands through a PR — except C's merge
+  commits, which land PRs onto `main` by design; see "Merging is a human
+  action" above.
 - One branch per piece of work, named `claude/<topic>-<suffix>`.
 - Open PRs as drafts; mark ready when the work is complete and CI is green.
 - Do not touch a branch belonging to another agent's open PR. If it needs a
@@ -41,7 +70,8 @@ agents separate accounts is what would make a real approving review possible.
 - If a branch has no owner — no agent claims it, and its PR is stalled — do not
   adopt it silently. Either agent may open a PR *into* that branch with the fix,
   so the change is reviewable and the branch stays untouched. Adopting the
-  branch itself needs a human.
+  branch itself needs a human — Spencer, or C assigning it explicitly on the
+  PR, as C did for #1.
 
 ## Before starting anything
 
