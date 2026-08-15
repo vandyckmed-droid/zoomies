@@ -29,6 +29,18 @@ for a PR — rather than defaulting to asking Spencer. Spencer is escalated
 only for decisions that are genuinely his: money-relevant tradeoffs,
 direction changes, anything where guessing wrong is costly.
 
+**When to escalate to Spencer, in his own words (2026-08-15):** "Nudge me for
+human level coordination, major design choice, overarching direction
+clarification and things that need thumbs [i.e. his explicit sign-off]." He
+also confirmed the graduated response for a stalled agent: nudge the stalled
+agent directly first (a PR/issue comment, same as any other direction); if
+that doesn't get picked up, escalate to Spencer so he can prompt that agent's
+session himself — don't sit on a stall indefinitely hoping it resolves.
+Routine status ("here's what changed," CI passed, a PR merged) does not need
+his sign-off — tell him because he's a stakeholder, not because it's a
+decision point. The dividing line is whether a reasonable engineering lead
+would want to weigh in before it happens, versus after.
+
 C holds Spencer's standing delegation to merge PRs once A has addressed
 review feedback, CI is green, and B has recorded approval-in-comment. That
 delegation is scoped to "this PR is ready by the process both agents already
