@@ -351,7 +351,17 @@ def main():
     universe = load_universe("--refresh-universe" in sys.argv, offline)
 
     print("Updating benchmark %s..." % BENCHMARK)
-    market_prices = read_prices(BENCHMARK) if offline else update_prices(BENCHMARK)
+    if offline:
+        market_prices = read_prices(BENCHMARK)
+    else:
+        # The per-name loop below degrades to cache on a failed fetch; the
+        # benchmark has to do the same, or a build that starts with the quota
+        # already spent dies here instead of taking the documented cache path.
+        try:
+            market_prices = update_prices(BENCHMARK)
+        except (RateLimited, urllib.error.URLError, TimeoutError, ValueError) as exc:
+            print("  %s fetch failed (%s); using cache" % (BENCHMARK, exc))
+            market_prices = read_prices(BENCHMARK)
     if not market_prices:
         sys.exit("no cached prices for benchmark %s" % BENCHMARK)
     axis = market_window(market_prices)                  # shared date axis
@@ -360,6 +370,7 @@ def main():
 
     print("Updating prices for %d names..." % len(universe))
     rows, window, limited, series = [], None, None, {}
+    stalled = []
     for i, stock in enumerate(universe, 1):
         if offline or limited:
             prices = read_prices(stock["symbol"])       # cache only
@@ -370,6 +381,15 @@ def main():
                 limited = exc
                 print("  quota reached at %s (%s)" % (stock["symbol"], exc))
                 print("  continuing from cache; rerun later to fill the rest")
+                prices = read_prices(stock["symbol"])
+            except (urllib.error.URLError, TimeoutError, ValueError) as exc:
+                # One name's fetch failing is not the run failing. api_get has
+                # already retried four times, so this is persistent -- a
+                # delisted ticker, or an endpoint erroring for that symbol
+                # alone. Take its cache and keep going: aborting here would
+                # discard every name already fetched and write nothing.
+                stalled.append(stock["symbol"])
+                print("  %-6s fetch failed (%s); using cache" % (stock["symbol"], exc))
                 prices = read_prices(stock["symbol"])
         if len(universe) > 60 and (i % 50 == 0 or i == len(universe)):
             print("  %d/%d" % (i, len(universe)))
@@ -430,6 +450,11 @@ def main():
     if limited:
         missing = sum(1 for r in rows if not r["historyDays"])
         print("Incomplete: %d name(s) have no cached prices yet." % missing)
+    if stalled:
+        # Say this loudly: the run succeeded, but these names are as stale as
+        # their cache and will stay that way until their fetch starts working.
+        print("Stale: %d name(s) served from cache after a failed fetch: %s"
+              % (len(stalled), ", ".join(stalled[:10]) + (" ..." if len(stalled) > 10 else "")))
 
 
 if __name__ == "__main__":
