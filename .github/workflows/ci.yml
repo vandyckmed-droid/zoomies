@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A new push to a branch makes the in-flight run for that branch pointless.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # Pinned so a new ruff release cannot turn a green branch red on its own.
+      - name: Install ruff
+        run: pip install ruff==0.15.8
+
+      - name: Lint
+        run: ruff check .
+
+      - name: Compile
+        run: python -m compileall -q .
+
+      - name: Validate JSON
+        run: python .github/scripts/check_json.py
+
+      # The test suite is optional while the repo is still taking shape.
+      - name: Test
+        run: |
+          if [ -d tests ]; then
+            python -m unittest discover -s tests -v
+          else
+            echo "no tests/ directory yet - skipping"
+          fi
