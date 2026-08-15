@@ -1,124 +1,132 @@
 # Working agreement
 
-Three autonomous agents work in this repo. They share no memory and no
-context. Commits, branches, PR state and PR comments are the only channel
-between them, so anything not written down did not happen.
+**Status (2026-08-15): Agent A and Agent B have been retired.** Spencer
+deleted both and entrusted Agent C with full authority, solo — author,
+reviewer, and coordinator combined. Everything under "Historical: the
+three-lane model" below describes how this repo got here, not who does what
+now. Read "Current operating model" first; it supersedes the rest wherever
+they conflict.
 
-## Lanes
+## Current operating model (2026-08-15 onward)
 
-**Agent A — author.** Writes code, commits, pushes to feature branches, opens
-PRs and keeps them updated. Does not review its own PRs, approve them, or merge.
-Like B, A pushes only to a branch it owns — and this is not just a rule to
-follow, it is usually a sandbox restriction: an agent's environment typically
-only permits `git push` to the one branch its own session was created
-against. See the note on "adopting" a branch below.
+Agent C is the only agent working this repo. It writes code, reviews it with
+real rigor rather than rubber-stamping its own work, merges, and is
+responsible end-to-end for turning "Spencer said something" into "it's live
+on the page."
 
-**Agent B — reviewer.** Reviews open PRs, leaves review comments, and approves
-or requests changes. Reviewing is B's default mode, not a prohibition on
-writing code: B may author a fix when it is small and clearly correct. What B
-does not do is push to a branch it does not own — including `main` and
-Agent A's branches — without a human explicitly authorising it. B does not
-merge; merging requires a human to ask for it on the PR.
+**Session shape, in Spencer's own words:** "Your session begins when I give
+you feedback on the interface and ends after you've taken that feedback all
+the way to the point where it is merged and in the page for me to see the
+change." Concretely:
 
-**Agent C — coordinator.** Does not write application code and does not
-review it. Reads open PRs, commits, and A's/B's logged comments each session;
-translates Spencer's plain-language feedback into concrete direction for A
-and B; and makes the call when A and B disagree, are blocked, or surface a
-process decision — branch ownership, merge order, what's in vs. out of scope
-for a PR — rather than defaulting to asking Spencer. Spencer is escalated
-only for decisions that are genuinely his: money-relevant tradeoffs,
-direction changes, anything where guessing wrong is costly.
+- No background monitoring, no scheduled check-ins on open PRs. A session
+  runs synchronously to completion, not async-and-poll like the three-agent
+  model below did.
+- Don't stop to ask clarifying questions or hesitate at decision points that
+  are C's to make. The discretion boundary is unchanged from before: escalate
+  money-relevant tradeoffs, direction changes, and genuine design choices;
+  decide everything else and log why.
+- A session isn't done at "merged" — it's done at "confirmed live," including
+  triggering any rebuild the change needs, within the limits below.
 
-**When to escalate to Spencer, in his own words (2026-08-15):** "Nudge me for
-human level coordination, major design choice, overarching direction
-clarification and things that need thumbs [i.e. his explicit sign-off]." He
-also confirmed the graduated response for a stalled agent: nudge the stalled
-agent directly first (a PR/issue comment, same as any other direction); if
-that doesn't get picked up, escalate to Spencer so he can prompt that agent's
-session himself — don't sit on a stall indefinitely hoping it resolves.
-Routine status ("here's what changed," CI passed, a PR merged) does not need
-his sign-off — tell him because he's a stakeholder, not because it's a
-decision point. The dividing line is whether a reasonable engineering lead
-would want to weigh in before it happens, versus after.
+**Known hard limits — not choices, and not things to route around.** No
+matter how much authority C has, these always need Spencer directly:
 
-C holds Spencer's standing delegation to merge PRs once A has addressed
-review feedback, CI is green, and B has recorded approval-in-comment. That
-delegation is scoped to "this PR is ready by the process both agents already
-follow" — it is not authority to originate app-code changes, override an
-unresolved review finding, or make the money-relevant calls reserved for
-Spencer above. C logs every decision as a PR/issue comment, the same as A
-and B, including merges: the commit message says who merged and why.
+- **C's GitHub token cannot dispatch `workflow_dispatch` runs.** Attempting
+  one fails with `403: Resource not accessible by integration`. Any
+  on-demand workflow (`rebuild.yml` is the current example) needs Spencer to
+  tap "Run workflow" himself — Actions → the workflow name → Run workflow.
+- **C cannot set or read repository secrets.** An API key belongs in
+  Settings → Secrets and variables → Actions, entered by Spencer directly —
+  never relayed through chat, never something C holds even temporarily.
+- When C hits one of these, say so plainly, give exact steps, and wait. This
+  is the one legitimate "pause and check in" case under the operating model
+  above — it isn't hesitation, it's a wall only a human can cross.
 
-**C's authority is a process decision, not a credential grant.** C can decide
-who *should* own a branch and say so on a PR — that does not and cannot
-change what an agent's sandbox will actually let it push to. Found live on
-#1: C assigned Agent A a branch it did not create its session against;
-Agent A's sandbox refused the direct push. The fix was the same one the
-"unowned branch" rule below already describes — Agent A pushed to its own
-branch and opened a PR into the assigned one instead.
+Since A and B don't exist anymore, the multi-agent process below —
+nudge-then-escalate for a stalled agent, the approval-in-comment workaround
+for reviews that can't be recorded on a shared account, "which lane does
+this belong to" — is inert. Skip it unless Spencer reinstates multiple
+agents, in which case it's the starting point to revive, not rewrite from
+scratch.
 
-A human (Spencer) can act in any lane at any time, and his word overrides
-any of the above.
+---
 
-**"Merging is a human action"** (below) means: not A, not B, on their own
-initiative — a PR sitting approved and green is the system working, not a
-stall, and neither author nor reviewer resolves that by merging. Merges
-happen via Spencer directly, or via C acting on the standing delegation
-above. If a merge shows up on a PR neither A nor B pushed, check the commit
-message before treating it as a rule violation — it's most likely C or
-Spencer.
+## Historical: the three-lane model (2026-08-15, first ~9 hours)
 
-**An approving review cannot be recorded while all three agents push under one
-account.** GitHub refuses it — `Can not approve your own pull request` —
-because the reviewer *is* the author as far as the API is concerned, and that
-is as true of C's account as of A's and B's: nobody here can leave a review
-GitHub will record on anyone else's work. So the approval lives in a comment:
-"Agent B says approved" is the strongest signal available, and a green check
-plus that comment is what a human — or C, acting on the delegation above —
-should look for before merging. Giving the agents separate accounts is what
-would make a real approving review possible.
+Three autonomous agents worked in this repo. They shared no memory and no
+context. Commits, branches, PR state and PR comments were the only channel
+between them, so anything not written down did not happen — same principle
+the current operating model above still runs on.
 
-## Rules
+### Lanes
 
-- Never push to `main`. All work lands through a PR — except C's merge
-  commits, which land PRs onto `main` by design; see "Merging is a human
-  action" above.
+**Agent A — author.** Wrote code, committed, pushed to feature branches,
+opened PRs and kept them updated. Did not review its own PRs, approve them,
+or merge. Pushed only to a branch it owned — not just a rule, usually a
+sandbox restriction: an agent's environment typically only permits `git
+push` to the one branch its own session was created against.
+
+**Agent B — reviewer.** Reviewed open PRs, left review comments, approved or
+requested changes. Reviewing was B's default mode, not a prohibition on
+writing code — B could author a fix when it was small and clearly correct.
+Did not push to a branch it didn't own, did not merge.
+
+**Agent C — coordinator.** Did not write or review application code. Read
+open PRs, commits, and A's/B's logged comments each session; translated
+Spencer's plain-language feedback into concrete direction; made the call
+when A and B disagreed, were blocked, or surfaced a process decision, rather
+than defaulting to asking Spencer.
+
+**When to escalate to Spencer, in his own words (2026-08-15):** "Nudge me
+for human level coordination, major design choice, overarching direction
+clarification and things that need thumbs [i.e. his explicit sign-off]."
+This guidance carries forward unchanged to the current solo model above. He
+also confirmed the graduated response for a stalled agent: nudge directly
+first, escalate to Spencer only if that doesn't land. Routine status doesn't
+need his sign-off — tell him because he's a stakeholder, not because it's a
+decision point.
+
+C held a standing delegation to merge PRs once A had addressed review
+feedback, CI was green, and B had recorded approval-in-comment.
+
+**C's authority was a process decision, not a credential grant.** C could
+decide who *should* own a branch and say so on a PR — that didn't and
+couldn't change what an agent's sandbox would actually let it push to.
+Found live on #1: C assigned Agent A a branch it didn't create its session
+against; Agent A's sandbox refused the direct push. Same shape as the
+current hard limits above (workflow dispatch, secrets) — authority granted
+in a comment doesn't override a permission boundary enforced elsewhere.
+
+**"Merging is a human action"** meant: not A, not B, on their own
+initiative. Merges happened via Spencer directly, or via C acting on the
+standing delegation.
+
+**An approving review couldn't be recorded while all three agents pushed
+under one account.** GitHub refuses it — `Can not approve your own pull
+request`. So approval lived in a comment: "Agent B says approved" was the
+strongest signal available.
+
+### Rules that were specific to multiple agents sharing this repo
+
+- Never push to `main` without going through a PR — except C's merge
+  commits, which land PRs onto `main` by design.
 - One branch per piece of work, named `claude/<topic>-<suffix>`.
-- Open PRs as drafts; mark ready when the work is complete and CI is green.
-- Do not touch a branch belonging to another agent's open PR. If it needs a
-  change, say so in a review comment and let its author push.
-- If a branch has no owner — no agent claims it, and its PR is stalled — do not
-  adopt it silently. Either agent may open a PR *into* that branch with the fix,
-  so the change is reviewable and the branch stays untouched. **Treat this as
-  the default mechanism, not a fallback**: even when C or a human assigns a
-  branch to you by name, try the push and expect it may be refused by your own
-  sandbox — that assignment is a process decision about who *should* own the
-  work, not a credential grant to push somewhere your session wasn't created
-  against. If the push fails, open a PR into the assigned branch instead and
-  say so; don't treat it as a blocker needing a human, it's the normal path.
+- Open PRs as drafts; mark ready when CI is green.
+- Don't touch a branch belonging to another agent's open PR — open a PR
+  *into* it instead. This applied even when C or a human assigned a branch
+  by name: try the push, expect it may be refused by your own sandbox, open
+  a PR into the assigned branch if so. Not a blocker needing a human — the
+  normal path.
 
-## Before starting anything
+### Logging discipline (still active, not retired)
 
-1. List open PRs and check each one's head commit, CI status and review state.
-2. List open issues. C uses issues to record direction from Spencer that
-   doesn't belong on any single PR — treat one addressed to your lane the
-   same as a PR comment: a message, not background reading.
-3. Read the most recent comments on any PR or issue you are involved in.
-   Treat them as messages addressed to you.
-4. Address outstanding review comments before starting new work.
+Every working session ends with a PR or issue comment recording what
+changed, the current state, and what comes next. Write it for a reader with
+no prior context, because that is who reads it — this applies to C solo
+exactly as it applied to three agents.
 
-## Responding to review feedback
-
-Answer every review comment: either push a fix, or reply saying why you are not
-(you disagree, or it is out of scope). Silence is not an answer. When a comment
-is ambiguous, ask in a reply rather than guessing at intent.
-
-## Logging
-
-Every working session ends with a PR or issue comment recording what changed,
-the current state, and what comes next — for example "pushed fix for X, ready
-for re-review" or "blocked on Y, needs human input". Write it for a reader with
-no prior context, because that is who reads it.
+---
 
 ## CI
 
