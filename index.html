@@ -556,7 +556,11 @@
   // The series are five times the size of everything else, so they load only
   // when a matrix actually needs them. A script tag rather than fetch(), so
   // this still works when index.html is opened straight off the filesystem.
-  var loadingReturns = false;
+  // Callers that arrive while the script is in flight queue up. Dropping them
+  // instead would strand whichever one asked second on "loading…" forever,
+  // which the restore path reaches: renderPairs() and openDetail() both ask
+  // within a couple of frames of each other.
+  var waitingForReturns = [];
   function haveReturns() {
     // returns.js declares `const RETURNS`, and a top-level const is a global
     // lexical binding, never a property of window — so test the name itself.
@@ -564,12 +568,17 @@
   }
   function withReturns(done) {
     if (haveReturns()) return done(true);
-    if (loadingReturns) return;
-    loadingReturns = true;
+    waitingForReturns.push(done);
+    if (waitingForReturns.length > 1) return;      // load already in flight
     var el = document.createElement('script');
     el.src = 'returns.js';
-    el.onload = function () { loadingReturns = false; done(true); };
-    el.onerror = function () { loadingReturns = false; done(false); };
+    function finish(ok) {
+      var queued = waitingForReturns;
+      waitingForReturns = [];
+      queued.forEach(function (fn) { fn(ok); });
+    }
+    el.onload = function () { finish(true); };
+    el.onerror = function () { finish(false); };
     document.head.appendChild(el);
   }
 
@@ -644,9 +653,15 @@
 
     var stats = [
       ['Market cap', cap(s.marketCap)],
-      ['Exchange', esc(s.exchange)],
-      ['Last close', '$' + s.lastClose.toFixed(2) + ' <span style="color:var(--muted)">' + s.lastDate + '</span>']
+      ['Exchange', esc(s.exchange)]
     ];
+    // build.py leaves lastClose null for a name it never managed to fetch --
+    // the documented quota-wall outcome. Reading .toFixed off that threw before
+    // the panel was ever shown, so the row just did nothing when tapped.
+    if (s.lastClose !== null) {
+      stats.push(['Last close', '$' + s.lastClose.toFixed(2) +
+        ' <span style="color:var(--muted)">' + s.lastDate + '</span>']);
+    }
     if (s.score !== null) {
       stats.push(
         ['hr'],
