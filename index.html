@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>12-1 Score</title>
+<style>
+  body {
+    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    color: #1a1a1a;
+    background: #fff;
+    max-width: 720px;
+    margin: 3rem auto;
+    padding: 0 1.25rem;
+  }
+  h1 { font-size: 1.4rem; margin: 0 0 .25rem; }
+  p.meta { color: #666; font-size: .85rem; margin: 0 0 1.5rem; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { padding: .5rem .6rem; border-bottom: 1px solid #e5e5e5; }
+  th {
+    text-align: right;
+    font-size: .75rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: #666;
+    border-bottom: 2px solid #1a1a1a;
+    white-space: nowrap;
+  }
+  td { text-align: right; font-variant-numeric: tabular-nums; }
+  th:nth-child(-n+2), td:nth-child(-n+2) { text-align: left; }
+  td.ticker { font-weight: 600; }
+  td.name { color: #666; font-size: .85rem; }
+  td.score { font-weight: 600; }
+  .pos { color: #157347; }
+  .neg { color: #b02a37; }
+  footer { color: #888; font-size: .8rem; margin-top: 1.5rem; }
+</style>
+</head>
+<body>
+
+<h1>12&ndash;1 Momentum Score</h1>
+<p class="meta" id="meta"></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Rank</th>
+      <th>Ticker</th>
+      <th>Score</th>
+      <th>Ann. Return</th>
+      <th>Ann. Volatility</th>
+    </tr>
+  </thead>
+  <tbody id="rows"></tbody>
+</table>
+
+<footer id="note"></footer>
+
+<script src="scores.js"></script>
+<script>
+  var pct = function (x) {
+    return (x * 100).toFixed(1) + '%';
+  };
+
+  // The proof-of-concept view: the largest names by market cap, ranked by score.
+  var shown = REPORT.universe.slice(0, REPORT.displayCount).sort(function (a, b) {
+    if (a.score === null) return 1;
+    if (b.score === null) return -1;
+    return b.score - a.score;
+  });
+
+  document.getElementById('meta').textContent =
+    REPORT.displayCount + ' largest US-traded common stocks of ' + REPORT.universe.length +
+    ' tracked · ' + REPORT.lookback + '-day window ending ' + REPORT.windowEnd +
+    ', most recent ' + REPORT.skip + ' trading days excluded · built ' + REPORT.generated;
+
+  document.getElementById('rows').innerHTML = shown.map(function (s, i) {
+    if (s.score === null) {
+      return '<tr><td>&mdash;</td><td class="ticker">' + s.symbol + '</td>' +
+             '<td colspan="3" class="name">insufficient price history</td></tr>';
+    }
+    return '<tr>' +
+      '<td>' + (i + 1) + '</td>' +
+      '<td class="ticker">' + s.symbol + '</td>' +
+      '<td class="score ' + (s.score >= 0 ? 'pos' : 'neg') + '">' + s.score.toFixed(2) + '</td>' +
+      '<td class="' + (s.annReturn >= 0 ? 'pos' : 'neg') + '">' + pct(s.annReturn) + '</td>' +
+      '<td>' + pct(s.annVol) + '</td>' +
+      '</tr>';
+  }).join('');
+
+  document.getElementById('note').textContent =
+    'Score = mean daily log return ÷ daily volatility × √252. ' +
+    'Annualized return = mean daily log return × 252. ' +
+    'Annualized volatility = daily volatility × √252.';
+</script>
+
+</body>
+</html>

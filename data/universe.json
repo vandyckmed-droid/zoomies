@@ -1,0 +1,305 @@
+{
+ "asOf": "2026-08-15",
+ "stocks": [
+  {
+   "symbol": "NVDA",
+   "name": "NVIDIA Corporation",
+   "marketCap": 5453600360000,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "AAPL",
+   "name": "Apple Inc.",
+   "marketCap": 4493302821080,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "GOOGL",
+   "name": "Alphabet Inc.",
+   "marketCap": 4186120293827,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "MSFT",
+   "name": "Microsoft Corporation",
+   "marketCap": 3678617470000,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "AMZN",
+   "name": "Amazon.com, Inc.",
+   "marketCap": 2825352315000,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "TSM",
+   "name": "Taiwan Semiconductor Manufacturing Company Limited",
+   "marketCap": 2211255748000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "AVGO",
+   "name": "Broadcom Inc.",
+   "marketCap": 1869681364200,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "SPCX",
+   "name": "Space Exploration Technologies Corp.",
+   "marketCap": 1830621161880,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "META",
+   "name": "Meta Platforms, Inc.",
+   "marketCap": 1502634953315,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "TSLA",
+   "name": "Tesla, Inc.",
+   "marketCap": 1351811586544,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "SKHY",
+   "name": "SK hynix Inc.",
+   "marketCap": 1180701640200,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "LLY",
+   "name": "Eli Lilly and Company",
+   "marketCap": 1111405058560,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "MU",
+   "name": "Micron Technology, Inc.",
+   "marketCap": 1097383087400,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "BRK-B",
+   "name": "Berkshire Hathaway Inc.",
+   "marketCap": 1087118917488,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "JPM",
+   "name": "JPMorgan Chase & Co.",
+   "marketCap": 972233408400,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "WMT",
+   "name": "Walmart Inc.",
+   "marketCap": 917327881600,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "AMD",
+   "name": "Advanced Micro Devices, Inc.",
+   "marketCap": 838764334000,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "ASML",
+   "name": "ASML Holding N.V.",
+   "marketCap": 710741608843,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "V",
+   "name": "Visa Inc.",
+   "marketCap": 679885241886,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "XOM",
+   "name": "Exxon Mobil Corporation",
+   "marketCap": 663486601400,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "JNJ",
+   "name": "Johnson & Johnson",
+   "marketCap": 627417052606,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "INTC",
+   "name": "Intel Corp.",
+   "marketCap": 517009974068,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "MA",
+   "name": "Mastercard Incorporated",
+   "marketCap": 499287824440,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "BAC",
+   "name": "Bank of America Corporation",
+   "marketCap": 457659089100,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ABBV",
+   "name": "AbbVie Inc.",
+   "marketCap": 440726469198,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "CSCO",
+   "name": "Cisco Systems, Inc.",
+   "marketCap": 440179423387,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "ORCL",
+   "name": "Oracle Corporation",
+   "marketCap": 432992250400,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "COST",
+   "name": "Costco Wholesale Corporation",
+   "marketCap": 426227666900,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "LRCX",
+   "name": "Lam Research Corporation",
+   "marketCap": 415639445200,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "AMAT",
+   "name": "Applied Materials, Inc.",
+   "marketCap": 402680125620,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "PLTR",
+   "name": "Palantir Technologies Inc.",
+   "marketCap": 399608022800,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "CVX",
+   "name": "Chevron Corporation",
+   "marketCap": 398339916000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "CAT",
+   "name": "Caterpillar Inc.",
+   "marketCap": 394567835090,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "GE",
+   "name": "GE Aerospace",
+   "marketCap": 382217278539,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "KO",
+   "name": "The Coca-Cola Company",
+   "marketCap": 377376567001,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "UNH",
+   "name": "UnitedHealth Group Incorporated",
+   "marketCap": 364828851419,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "HSBC",
+   "name": "HSBC Holdings plc",
+   "marketCap": 356697168800,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "PG",
+   "name": "The Procter & Gamble Company",
+   "marketCap": 343625551843,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "MS",
+   "name": "Morgan Stanley",
+   "marketCap": 342821808000,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "HD",
+   "name": "The Home Depot, Inc.",
+   "marketCap": 337883066620,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "MRK",
+   "name": "Merck & Co., Inc.",
+   "marketCap": 335500348800,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "DELL",
+   "name": "Dell Technologies Inc.",
+   "marketCap": 326233565636,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "NFLX",
+   "name": "Netflix, Inc.",
+   "marketCap": 325453550322,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "PANW",
+   "name": "Palo Alto Networks, Inc.",
+   "marketCap": 313180050000,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "GS",
+   "name": "The Goldman Sachs Group, Inc.",
+   "marketCap": 306636175940,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "RY",
+   "name": "Royal Bank of Canada",
+   "marketCap": 300970756800,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "RTX",
+   "name": "RTX Corporation",
+   "marketCap": 300509623780,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ARM",
+   "name": "Arm Holdings plc American Depositary Shares",
+   "marketCap": 298441520121,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "PM",
+   "name": "Philip Morris International Inc.",
+   "marketCap": 296743757900,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "BABA",
+   "name": "Alibaba Group Holding Limited",
+   "marketCap": 296588955758,
+   "exchange": "NYSE"
+  }
+ ]
+}
