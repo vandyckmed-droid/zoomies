@@ -4,6 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>12-1 Score</title>
+<script>
+  // Stamp the saved theme before first paint, so an explicit choice that
+  // disagrees with the system setting does not flash the wrong colours.
+  try {
+    var t = JSON.parse(localStorage.getItem('zoomies.view') || '{}').theme;
+    if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+  } catch (e) {}
+</script>
 <style>
   /* Light is the base palette; the two blocks below restate only the tokens,
      so every rule further down works in either theme. */
@@ -63,7 +71,24 @@
     padding: 2rem 1.25rem 4rem;
     -webkit-text-size-adjust: 100%;
   }
+  .head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
   h1 { font-size: 1.4rem; margin: 0 0 .25rem; }
+  #theme {
+    font: inherit;
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--muted);
+    background: none;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: .45rem .8rem;
+    cursor: pointer;
+    white-space: nowrap;
+    -webkit-appearance: none;
+  }
+  #theme:hover { color: var(--fg); border-color: var(--field); }
+  #theme:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
   p.meta { color: var(--muted); font-size: .85rem; margin: 0 0 1.25rem; }
 
   /* Search sits above the sticky header and stays put with it. */
@@ -189,7 +214,10 @@
 </head>
 <body>
 
-<h1>12&ndash;1 Momentum Score</h1>
+<header class="head">
+  <h1>12&ndash;1 Momentum Score</h1>
+  <button id="theme" aria-label="Colour theme">auto</button>
+</header>
 <p class="meta" id="meta"></p>
 
 <div class="bar">
@@ -232,14 +260,23 @@
   // Each column's first click sorts the way you would expect it to.
   var FIRST_DIR = { rank: 1, symbol: 1, score: -1, annReturn: -1, annVol: -1 };
 
-  var view = { key: 'rank', dir: 1, q: '' };
+  // Everything the page remembers between visits.
+  var view = { key: 'rank', dir: 1, q: '', scroll: 0, open: null, theme: 'auto' };
   try {
     var saved = JSON.parse(localStorage.getItem(STORE_KEY));
-    if (saved && FIRST_DIR[saved.key]) view = saved;
+    if (saved && FIRST_DIR[saved.key]) {
+      for (var k in view) if (saved[k] !== undefined) view[k] = saved[k];
+    }
   } catch (e) { /* first visit, or storage blocked */ }
 
   function save() {
     try { localStorage.setItem(STORE_KEY, JSON.stringify(view)); } catch (e) {}
+  }
+
+  var saveTimer = null;
+  function saveSoon() {                        // scrolling fires constantly
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(save, 250);
   }
 
   function esc(s) {
@@ -308,7 +345,7 @@
 
   var overlay = document.getElementById('overlay');
 
-  function openDetail(symbol) {
+  function openDetail(symbol, focus) {
     var s = stocks.filter(function (x) { return x.symbol === symbol; })[0];
     if (!s) return;
 
@@ -343,10 +380,16 @@
       return row[0] === 'hr' ? '<hr>' : '<dt>' + row[0] + '</dt><dd>' + row[1] + '</dd>';
     }).join('');
     overlay.hidden = false;
-    document.getElementById('ov-close').focus();
+    view.open = symbol;
+    save();
+    if (focus !== false) document.getElementById('ov-close').focus();
   }
 
-  function closeDetail() { overlay.hidden = true; }
+  function closeDetail() {
+    overlay.hidden = true;
+    view.open = null;
+    save();
+  }
 
   // --- wiring --------------------------------------------------------------
 
@@ -396,8 +439,55 @@
     'Score = mean daily log return ÷ daily volatility × √252. ' +
     'Tap any row for detail, any column heading to sort.';
 
+  // --- theme ---------------------------------------------------------------
+  // auto follows the device; light and dark are explicit and stick.
+  var THEMES = ['auto', 'light', 'dark'];
+  var themeButton = document.getElementById('theme');
+
+  function applyTheme() {
+    if (view.theme === 'auto') document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme', view.theme);
+    themeButton.textContent = view.theme;
+  }
+  themeButton.addEventListener('click', function () {
+    view.theme = THEMES[(THEMES.indexOf(view.theme) + 1) % THEMES.length];
+    save();
+    applyTheme();
+  });
+
+  // --- restore where you left off -----------------------------------------
+
+  var restoring = true;
+  window.addEventListener('scroll', function () {
+    if (restoring) return;
+    view.scroll = Math.round(window.scrollY);
+    saveSoon();
+  }, { passive: true });
+
+  // iOS discards backgrounded tabs without firing unload, so flush on hide.
+  // Read the live position rather than trusting the last scroll event, which
+  // may not have fired yet when the app is backgrounded.
+  function flush() {
+    if (!restoring) view.scroll = Math.round(window.scrollY);
+    save();
+  }
+  window.addEventListener('pagehide', flush);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'hidden') flush();
+  });
+
+  applyTheme();
   render();
   syncStickyOffset();
+
+  // Two frames: one for the table to lay out, one for the sticky offset.
+  requestAnimationFrame(function () {
+    requestAnimationFrame(function () {
+      window.scrollTo(0, view.scroll || 0);
+      if (view.open) openDetail(view.open, false);
+      restoring = false;
+    });
+  });
 })();
 </script>
 

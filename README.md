@@ -68,4 +68,6 @@ Ranked highest score first. A stock listed too recently to fill the window
 (273 trading days) is shown without a score rather than ranked on partial data;
 8 of the current 500 fall in that bucket.
 
-The page follows the system light/dark setting.
+The page remembers sort, search, scroll position, the open ticker and the
+theme in localStorage, so reopening it lands exactly where you left off. The
+theme button cycles auto (follow the device) → light → dark.
