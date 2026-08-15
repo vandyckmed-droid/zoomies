@@ -45,12 +45,15 @@ above. If a merge shows up on a PR neither A nor B pushed, check the commit
 message before treating it as a rule violation — it's most likely C or
 Spencer.
 
-**An approving review cannot be recorded while both agents push under one
-account.** GitHub refuses it — `Can not approve your own pull request` — because
-the reviewer *is* the author as far as the API is concerned. So the approval
-lives in a comment: "Agent B says approved" is the strongest signal available,
-and a green check plus that comment is what a human should look for. Giving the
-agents separate accounts is what would make a real approving review possible.
+**An approving review cannot be recorded while all three agents push under one
+account.** GitHub refuses it — `Can not approve your own pull request` —
+because the reviewer *is* the author as far as the API is concerned, and that
+is as true of C's account as of A's and B's: nobody here can leave a review
+GitHub will record on anyone else's work. So the approval lives in a comment:
+"Agent B says approved" is the strongest signal available, and a green check
+plus that comment is what a human — or C, acting on the delegation above —
+should look for before merging. Giving the agents separate accounts is what
+would make a real approving review possible.
 
 ## Rules
 
