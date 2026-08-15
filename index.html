@@ -5,35 +5,145 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>12-1 Score</title>
 <style>
+  :root {
+    --line: #e5e5e5;
+    --muted: #666;
+    --pos: #157347;
+    --neg: #b02a37;
+    --sorted: #f6f8fa;
+  }
+  * { box-sizing: border-box; }
   body {
     font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
     color: #1a1a1a;
     background: #fff;
     max-width: 720px;
-    margin: 3rem auto;
-    padding: 0 1.25rem;
+    margin: 0 auto;
+    padding: 2rem 1.25rem 4rem;
+    -webkit-text-size-adjust: 100%;
   }
   h1 { font-size: 1.4rem; margin: 0 0 .25rem; }
-  p.meta { color: #666; font-size: .85rem; margin: 0 0 1.5rem; }
+  p.meta { color: var(--muted); font-size: .85rem; margin: 0 0 1.25rem; }
+
+  /* Search sits above the sticky header and stays put with it. */
+  .bar {
+    position: sticky;
+    top: 0;
+    background: #fff;
+    padding: .75rem 0 .5rem;
+    z-index: 3;
+  }
+  #search {
+    width: 100%;
+    font: inherit;
+    padding: .6rem .75rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    -webkit-appearance: none;
+  }
+  #search:focus { outline: 2px solid #1a1a1a; outline-offset: -1px; border-color: #1a1a1a; }
+  #count { color: var(--muted); font-size: .8rem; padding: .4rem 0 0; }
+
   table { border-collapse: collapse; width: 100%; }
-  th, td { padding: .5rem .6rem; border-bottom: 1px solid #e5e5e5; }
+  th, td { padding: .55rem .6rem; border-bottom: 1px solid var(--line); }
   th {
+    position: sticky;
+    top: var(--bar-h, 5.5rem);   /* measured from the search bar above it */
+    background: #fff;
+    z-index: 2;
     text-align: right;
     font-size: .75rem;
     text-transform: uppercase;
     letter-spacing: .04em;
-    color: #666;
-    border-bottom: 2px solid #1a1a1a;
+    color: var(--muted);
     white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    box-shadow: inset 0 -2px 0 #1a1a1a;
   }
-  td { text-align: right; font-variant-numeric: tabular-nums; }
+  th:hover { color: #1a1a1a; }
+  th .arrow { font-size: .7em; opacity: .55; }
   th:nth-child(-n+2), td:nth-child(-n+2) { text-align: left; }
+  td { text-align: right; font-variant-numeric: tabular-nums; }
   td.ticker { font-weight: 600; }
-  td.name { color: #666; font-size: .85rem; }
+  td.rank { color: var(--muted); width: 3rem; }
   td.score { font-weight: 600; }
-  .pos { color: #157347; }
-  .neg { color: #b02a37; }
+  td.note { color: var(--muted); font-size: .85rem; text-align: right; }
+  .pos { color: var(--pos); }
+  .neg { color: var(--neg); }
+
+  tbody tr { cursor: pointer; }
+  tbody tr:hover { background: #fafafa; }
+  tbody tr:focus-visible { outline: 2px solid #1a1a1a; outline-offset: -2px; }
+
+  /* Highlight whichever column is driving the sort. */
+  table[data-sort="rank"]      td:nth-child(1),
+  table[data-sort="symbol"]    td:nth-child(2),
+  table[data-sort="score"]     td:nth-child(3),
+  table[data-sort="annReturn"] td:nth-child(4),
+  table[data-sort="annVol"]    td:nth-child(5) { background: var(--sorted); }
+  table[data-sort="rank"]      th:nth-child(1),
+  table[data-sort="symbol"]    th:nth-child(2),
+  table[data-sort="score"]     th:nth-child(3),
+  table[data-sort="annReturn"] th:nth-child(4),
+  table[data-sort="annVol"]    th:nth-child(5) { color: #1a1a1a; }
+
+  #empty { color: var(--muted); padding: 1.5rem .6rem; display: none; }
   footer { color: #888; font-size: .8rem; margin-top: 1.5rem; }
+
+  /* Detail overlay */
+  #overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .35);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 10;
+    padding: 1rem;
+  }
+  #overlay[hidden] { display: none; }
+  .card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 1.25rem;
+    width: 100%;
+    max-width: 420px;
+    max-height: 85vh;
+    overflow-y: auto;
+    position: relative;
+  }
+  .card h2 { font-size: 1.15rem; margin: 0; }
+  .card .sub { color: var(--muted); font-size: .85rem; margin: .15rem 0 1rem; }
+  #ov-close {
+    position: absolute;
+    top: .5rem;
+    right: .5rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1.4rem;
+    line-height: 1;
+    background: none;
+    border: 0;
+    color: var(--muted);
+    cursor: pointer;
+  }
+  dl { display: grid; grid-template-columns: auto auto; gap: .45rem 1rem; margin: 0; }
+  dt { color: var(--muted); font-size: .85rem; }
+  dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+  dl hr { grid-column: 1 / -1; border: 0; border-top: 1px solid var(--line); margin: .2rem 0; }
+
+  @media (min-width: 560px) { #overlay { align-items: center; } }
+
+  @media (max-width: 559px) {
+    body { padding: 1.25rem .75rem 3rem; }
+    th, td { padding: .8rem .4rem; }   /* taller rows = easier tap targets */
+    th { font-size: .68rem; letter-spacing: .02em; }
+    .long { display: none; }           /* "Ann. Return" -> "Return" */
+    td.rank { width: 2.2rem; }
+    td, th { font-size: .95rem; }
+  }
 </style>
 </head>
 <body>
@@ -41,57 +151,213 @@
 <h1>12&ndash;1 Momentum Score</h1>
 <p class="meta" id="meta"></p>
 
-<table>
+<div class="bar">
+  <input id="search" type="search" placeholder="Search ticker or company" autocomplete="off"
+         autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="Search ticker or company">
+  <div id="count"></div>
+</div>
+
+<table id="table">
   <thead>
     <tr>
-      <th>Rank</th>
-      <th>Ticker</th>
-      <th>Score</th>
-      <th>Ann. Return</th>
-      <th>Ann. Volatility</th>
+      <th data-key="rank">Rank<span class="arrow"></span></th>
+      <th data-key="symbol">Ticker<span class="arrow"></span></th>
+      <th data-key="score">Score<span class="arrow"></span></th>
+      <th data-key="annReturn"><span class="long">Ann. </span>Return<span class="arrow"></span></th>
+      <th data-key="annVol"><span class="long">Ann. </span>Vol<span class="arrow"></span></th>
     </tr>
   </thead>
   <tbody id="rows"></tbody>
 </table>
+<div id="empty">No stocks match that search.</div>
 
 <footer id="note"></footer>
 
+<div id="overlay" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="ov-title">
+    <button id="ov-close" aria-label="Close">&times;</button>
+    <h2 id="ov-title"></h2>
+    <p class="sub" id="ov-sub"></p>
+    <dl id="ov-stats"></dl>
+  </div>
+</div>
+
 <script src="scores.js"></script>
 <script>
-  var pct = function (x) {
-    return (x * 100).toFixed(1) + '%';
-  };
+(function () {
+  'use strict';
 
-  // The proof-of-concept view: the largest names by market cap, ranked by score.
-  var shown = REPORT.universe.slice(0, REPORT.displayCount).sort(function (a, b) {
+  var STORE_KEY = 'zoomies.view';
+  // Each column's first click sorts the way you would expect it to.
+  var FIRST_DIR = { rank: 1, symbol: 1, score: -1, annReturn: -1, annVol: -1 };
+
+  var view = { key: 'rank', dir: 1, q: '' };
+  try {
+    var saved = JSON.parse(localStorage.getItem(STORE_KEY));
+    if (saved && FIRST_DIR[saved.key]) view = saved;
+  } catch (e) { /* first visit, or storage blocked */ }
+
+  function save() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(view)); } catch (e) {}
+  }
+
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+  function pct(x) { return x === null ? '—' : (x * 100).toFixed(1) + '%'; }
+  function signed(x) { return '<span class="' + (x >= 0 ? 'pos' : 'neg') + '">' + pct(x) + '</span>'; }
+  function cap(x) {
+    return x >= 1e12 ? '$' + (x / 1e12).toFixed(2) + 'T' : '$' + (x / 1e9).toFixed(0) + 'B';
+  }
+
+  // The displayed slice: the largest names by market cap. Ranks come from the
+  // score, so a stock keeps its rank no matter how the table is sorted.
+  var stocks = REPORT.universe.slice(0, REPORT.displayCount);
+  stocks.slice().sort(function (a, b) {
     if (a.score === null) return 1;
     if (b.score === null) return -1;
     return b.score - a.score;
+  }).forEach(function (s, i) { s.rank = s.score === null ? null : i + 1; });
+
+  function compare(a, b) {
+    var x = a[view.key], y = b[view.key];
+    if (x === null && y === null) return 0;
+    if (x === null) return 1;              // unscored names always sit last
+    if (y === null) return -1;
+    if (x < y) return -view.dir;
+    if (x > y) return view.dir;
+    return 0;
+  }
+
+  function render() {
+    var q = view.q.trim().toLowerCase();
+    var shown = stocks.filter(function (s) {
+      return !q || s.symbol.toLowerCase().indexOf(q) === 0 ||
+             s.symbol.toLowerCase().indexOf(q) > -1 || s.name.toLowerCase().indexOf(q) > -1;
+    }).sort(compare);
+
+    document.getElementById('table').setAttribute('data-sort', view.key);
+    document.querySelectorAll('th').forEach(function (th) {
+      var on = th.dataset.key === view.key;
+      th.querySelector('.arrow').textContent = on ? (view.dir === 1 ? ' ↑' : ' ↓') : '';
+      th.setAttribute('aria-sort', on ? (view.dir === 1 ? 'ascending' : 'descending') : 'none');
+    });
+
+    document.getElementById('rows').innerHTML = shown.map(function (s) {
+      var cells = s.score === null
+        ? '<td class="note" colspan="3">insufficient price history</td>'
+        : '<td class="score ' + (s.score >= 0 ? 'pos' : 'neg') + '">' + s.score.toFixed(2) + '</td>' +
+          '<td>' + signed(s.annReturn) + '</td>' +
+          '<td>' + pct(s.annVol) + '</td>';
+      return '<tr tabindex="0" data-symbol="' + esc(s.symbol) + '">' +
+        '<td class="rank">' + (s.rank === null ? '—' : s.rank) + '</td>' +
+        '<td class="ticker">' + esc(s.symbol) + '</td>' + cells + '</tr>';
+    }).join('');
+
+    document.getElementById('empty').style.display = shown.length ? 'none' : 'block';
+    document.getElementById('count').textContent =
+      shown.length === stocks.length
+        ? stocks.length + ' of ' + REPORT.universe.length + ' tracked stocks'
+        : shown.length + ' of ' + stocks.length + ' shown';
+  }
+
+  // --- detail overlay ------------------------------------------------------
+
+  var overlay = document.getElementById('overlay');
+
+  function openDetail(symbol) {
+    var s = stocks.filter(function (x) { return x.symbol === symbol; })[0];
+    if (!s) return;
+
+    var stats = [
+      ['Market cap', cap(s.marketCap)],
+      ['Exchange', esc(s.exchange)],
+      ['Last close', '$' + s.lastClose.toFixed(2) + ' <span style="color:var(--muted)">' + s.lastDate + '</span>']
+    ];
+    if (s.score !== null) {
+      stats.push(
+        ['hr'],
+        ['Score', s.score.toFixed(3)],
+        ['Annualized return', signed(s.annReturn)],
+        ['Annualized volatility', pct(s.annVol)],
+        ['hr'],
+        ['Mean daily log return', (s.meanDaily * 100).toFixed(3) + '%'],
+        ['Daily volatility', (s.dailyVol * 100).toFixed(2) + '%'],
+        ['Return over window', signed(s.windowReturn)],
+        ['Return over skipped ' + REPORT.skip + 'd', signed(s.skipReturn)],
+        ['hr'],
+        ['12–1 window', s.windowStart + ' → ' + s.windowEnd]
+      );
+    } else {
+      stats.push(['hr'], ['Score', 'not enough history for a ' +
+        (REPORT.lookback + REPORT.skip) + '-day window']);
+    }
+    stats.push(['Days cached', s.historyDays]);
+
+    document.getElementById('ov-title').textContent = s.symbol;
+    document.getElementById('ov-sub').textContent = s.name;
+    document.getElementById('ov-stats').innerHTML = stats.map(function (row) {
+      return row[0] === 'hr' ? '<hr>' : '<dt>' + row[0] + '</dt><dd>' + row[1] + '</dd>';
+    }).join('');
+    overlay.hidden = false;
+    document.getElementById('ov-close').focus();
+  }
+
+  function closeDetail() { overlay.hidden = true; }
+
+  // --- wiring --------------------------------------------------------------
+
+  document.querySelectorAll('th').forEach(function (th) {
+    th.addEventListener('click', function () {
+      var key = th.dataset.key;
+      view.dir = view.key === key ? -view.dir : FIRST_DIR[key];
+      view.key = key;
+      save();
+      render();
+    });
   });
+
+  var search = document.getElementById('search');
+  search.value = view.q;
+  search.addEventListener('input', function () {
+    view.q = search.value;
+    save();
+    render();
+  });
+
+  document.getElementById('rows').addEventListener('click', function (e) {
+    var tr = e.target.closest('tr');
+    if (tr) openDetail(tr.dataset.symbol);
+  });
+  document.getElementById('rows').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && e.target.dataset.symbol) openDetail(e.target.dataset.symbol);
+  });
+  document.getElementById('ov-close').addEventListener('click', closeDetail);
+  overlay.addEventListener('click', function (e) { if (e.target === overlay) closeDetail(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeDetail(); });
+
+  // Park the sticky column headings directly below the sticky search bar,
+  // whose height depends on font size and how the count line wraps.
+  function syncStickyOffset() {
+    var h = document.querySelector('.bar').getBoundingClientRect().height;
+    document.documentElement.style.setProperty('--bar-h', Math.round(h) + 'px');
+  }
+  window.addEventListener('resize', syncStickyOffset);
+  window.addEventListener('orientationchange', syncStickyOffset);
 
   document.getElementById('meta').textContent =
     REPORT.displayCount + ' largest US-traded common stocks of ' + REPORT.universe.length +
     ' tracked · ' + REPORT.lookback + '-day window ending ' + REPORT.windowEnd +
     ', most recent ' + REPORT.skip + ' trading days excluded · built ' + REPORT.generated;
-
-  document.getElementById('rows').innerHTML = shown.map(function (s, i) {
-    if (s.score === null) {
-      return '<tr><td>&mdash;</td><td class="ticker">' + s.symbol + '</td>' +
-             '<td colspan="3" class="name">insufficient price history</td></tr>';
-    }
-    return '<tr>' +
-      '<td>' + (i + 1) + '</td>' +
-      '<td class="ticker">' + s.symbol + '</td>' +
-      '<td class="score ' + (s.score >= 0 ? 'pos' : 'neg') + '">' + s.score.toFixed(2) + '</td>' +
-      '<td class="' + (s.annReturn >= 0 ? 'pos' : 'neg') + '">' + pct(s.annReturn) + '</td>' +
-      '<td>' + pct(s.annVol) + '</td>' +
-      '</tr>';
-  }).join('');
-
   document.getElementById('note').textContent =
     'Score = mean daily log return ÷ daily volatility × √252. ' +
-    'Annualized return = mean daily log return × 252. ' +
-    'Annualized volatility = daily volatility × √252.';
+    'Tap any row for detail, any column heading to sort.';
+
+  render();
+  syncStickyOffset();
+})();
 </script>
 
 </body>

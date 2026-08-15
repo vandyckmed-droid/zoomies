@@ -206,6 +206,10 @@ def score(prices):
         "score": mean / vol * math.sqrt(252),
         "annReturn": mean * 252,
         "annVol": vol * math.sqrt(252),
+        "meanDaily": mean,
+        "dailyVol": vol,
+        "windowReturn": math.expm1(sum(window)),
+        "skipReturn": math.expm1(sum(returns[-SKIP:])),
         "windowStart": dates[0],
         "windowEnd": dates[-1],
         "days": len(window),
@@ -223,14 +227,23 @@ def main():
     for stock in universe:
         prices = update_prices(stock["symbol"])
         result = score(prices) if prices else None
-        rows.append({
+        row = {
             "symbol": stock["symbol"],
             "name": stock["name"],
+            "exchange": stock["exchange"],
             "marketCap": stock["marketCap"],
-            "score": result["score"] if result else None,
-            "annReturn": result["annReturn"] if result else None,
-            "annVol": result["annVol"] if result else None,
-        })
+            "lastClose": prices[max(prices)] if prices else None,
+            "lastDate": max(prices) if prices else None,
+            "historyDays": len(prices),
+            "score": None,
+            "annReturn": None,
+            "annVol": None,
+        }
+        # Extra detail for the per-stock panel in index.html.
+        for field in ("score", "annReturn", "annVol", "meanDaily", "dailyVol",
+                      "windowReturn", "skipReturn", "windowStart", "windowEnd"):
+            row[field] = result[field] if result else None
+        rows.append(row)
         if result and not window:
             window = (result["windowStart"], result["windowEnd"])
 
