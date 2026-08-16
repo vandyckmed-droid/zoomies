@@ -442,7 +442,7 @@
   // Everything the page remembers between visits.
   var view = { key: 'rank', dir: 1, q: '', scroll: 0, open: null, theme: 'auto',
               watch: [], onlyWatch: false, pairsMode: 'correlation',
-              minScore: '', maxVol: '', maxDD: '', sector: '' };
+              minScore: '1', maxVol: '', maxDD: '', sector: '' };
   try {
     var saved = JSON.parse(localStorage.getItem(STORE_KEY));
     if (saved) {
@@ -1037,11 +1037,12 @@
   });
 
   document.getElementById('clear-filters').addEventListener('click', function () {
-    view.q = view.minScore = view.maxVol = view.maxDD = view.sector = '';
+    view.q = view.maxVol = view.maxDD = view.sector = '';
+    view.minScore = '1';
     view.onlyWatch = false;
     document.getElementById('search').value = '';
     Object.keys(FILTER_FIELD).forEach(function (id) {
-      document.getElementById(id).value = '';
+      document.getElementById(id).value = id === 'f-score' ? '1' : '';
     });
     save();
     render();

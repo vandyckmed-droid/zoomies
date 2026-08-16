@@ -74,9 +74,15 @@ class BrowserTest(unittest.TestCase):
         return page
 
     def test_cold_load_renders_every_row_without_error(self):
+        # Fresh load defaults MIN SCORE to 1, which filters out stocks with score < 1
         page = self.page()
         rows = page.eval_on_selector_all("#rows tr", "e => e.length")
-        self.assertEqual(rows, len(self.report["universe"]))
+        # Count expected rows: all stocks with score >= 1, plus stocks with null score that pass the filter
+        # (unscored names have null score and are filtered out when minScore is not null)
+        expected = sum(1 for s in self.report["universe"] if s["score"] is None or s["score"] >= 1)
+        # But unscored names are actually excluded by the filter logic when minScore is set
+        expected = sum(1 for s in self.report["universe"] if s["score"] is not None and s["score"] >= 1)
+        self.assertEqual(rows, expected)
         self.assertEqual(page.errors, [])
 
     def test_restore_path_resolves_the_correlation_panel(self):
@@ -576,6 +582,54 @@ class BrowserTest(unittest.TestCase):
             h = page.eval_on_selector("#rows tr:first-child", "e => e.getBoundingClientRect().height")
             self.assertGreaterEqual(h, 44, "row tap target dropped below 44px at %dpx wide" % width)
             self.assertEqual(page.errors, [])
+
+    def test_fresh_visit_defaults_min_score_to_one(self):
+        """A fresh visit without saved preferences should default the MIN SCORE
+        filter to "1" to reduce the number of rows shown on first load.
+        """
+        page = self.page()
+        self.assertEqual(page.input_value("#f-score"), "1")
+        self.assertEqual(page.errors, [])
+
+    def test_saved_min_score_preference_takes_precedence(self):
+        """A saved MIN SCORE preference should override the default when
+        the page reloads. Include other fields in saved state to mimic
+        a realistic saved view object.
+        """
+        ctx = self.browser.new_context(viewport={"width": 1280, "height": 900})
+        self.addCleanup(ctx.close)
+        saved = json.dumps({
+            "key": "rank", "dir": 1, "minScore": "2.5",
+            "maxVol": "", "maxDD": "", "sector": ""
+        })
+        ctx.add_init_script("localStorage.setItem('zoomies.view', %s)" % json.dumps(saved))
+        page = ctx.new_page()
+        page.errors = []
+        page.on("pageerror", lambda e: page.errors.append(str(e)))
+        page.goto(SITE)
+        page.wait_for_selector("#rows tr")
+
+        # The saved preference should take precedence over the default
+        self.assertEqual(page.input_value("#f-score"), "2.5")
+        self.assertEqual(page.errors, [])
+
+    def test_clear_filters_resets_min_score_to_one(self):
+        """Clearing filters should reset MIN SCORE to the default of "1",
+        not to empty.
+        """
+        page = self.page()
+        # Set MIN SCORE to a different value
+        page.fill("#f-score", "3")
+        page.wait_for_timeout(200)
+        self.assertEqual(page.input_value("#f-score"), "3")
+
+        # Clear filters
+        page.click("#clear-filters")
+        page.wait_for_timeout(200)
+
+        # MIN SCORE should be reset to "1", not empty
+        self.assertEqual(page.input_value("#f-score"), "1")
+        self.assertEqual(page.errors, [])
 
 
 if __name__ == "__main__":
