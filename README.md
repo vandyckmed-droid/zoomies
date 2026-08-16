@@ -227,23 +227,26 @@ own fairness, not for how rank is displayed generally. `rank_by_score()`'s
 cohort-exclusion behavior has a direct unit test in `tests/test_build.py`,
 independent of the browser suite.
 
-The detail panel shows both cohort ranks the change is actually computed
-from — `63D rank: #5 → #2` — rather than just the historical end next to a
-number that would not match if recomputed against the ordinary `Rank`
-shown above it. Displaying `#5` alone next to a `+3` that a reader would
-naturally (and wrongly) recompute against a `Rank` from a different
-population made a correct number look wrong.
+The detail panel shows this as a single compact line rather than three
+separate stats: `Rank #5 (+3 in 3m)`. `3m` is a concise, approximate label
+for the underlying 63-trading-session calculation — not a literal three
+calendar months, and not something the 63 in the maths ever changes to
+match; the number next to it already states the change precisely, so the
+label only needs to be readable at a glance. Positive is green, negative
+is red, and exactly zero is muted rather than colored either way. When
+there is no valid 63-session comparison, the parenthetical is omitted
+outright, not replaced with a placeholder — `Rank #94` alone.
 
 Positive means the name's rank improved (a lower rank number) over the
-window; negative means it got worse. `#412 → #73` is `+339`; `#18 → #190`
-is `−172`. A name too newly qualified to have had a valid score 63 sessions
-back — or, in principle, one where the price cache itself does not yet
-reach back that far — gets no historical rank and no rank change, *for
-either side of the comparison*: it is excluded from the cohort entirely,
-not just left with a null `historicalRank63d`. The detail panel says so
-plainly ("not enough history 63 sessions ago") rather than showing a blank
-or a misleading zero, regardless of how highly that name currently ranks
-overall. `build.py` checks at startup whether `HISTORY_DAYS` can even reach
+window; negative means it got worse: historical rank `412`, current
+(comparable) rank `73` → `+339`. A name too newly qualified to have had a
+valid score 63 sessions back — or, in principle, one where the price cache
+itself does not yet reach back that far — gets no historical rank and no
+rank change, *for either side of the comparison*: it is excluded from the
+cohort entirely, not just left with a null `historicalRank63d`. The detail
+panel reflects this by omitting the parenthetical rather than showing a
+blank or a misleading zero, regardless of how highly that name currently
+ranks overall. `build.py` checks at startup whether `HISTORY_DAYS` can even reach
 `LOOKBACK + SKIP + 63` days back and refuses to run rather than silently
 shipping a rank change nobody should trust if not — at the shipped
 defaults (252 + 21 + 63 = 336 against ~521 reachable trading days) this has
@@ -256,15 +259,14 @@ recomputation across many dates — is what keeps the cost small: about
 nullable integer per row). Percentiles cost nothing extra either way, since
 they are derived client-side from data already shipped.
 
-63D rank change is also a sortable column in the main table, surfacing the
-biggest 63-day climbers or decliners across the whole universe. The column
-itself hides at phone width, same as max drawdown, but sorting by it is the
-main point of the feature (not just a detail worth losing on the primary
-device) — a compact **63D** button next to the row count stays reachable
-at every width and triggers the identical sort the hidden header would.
-Percentiles are detail-panel-only: four more numeric columns would not
-stay clean at phone width, so they were left out of the table rather than
-forced in.
+Both percentiles and 63D rank change are **detail-panel-only** — neither
+has a main-table column or a dedicated sort control. An earlier version
+added both a `63D` table column and an always-visible sort button so
+biggest-climber/decliner discovery worked at every screen width. Removed:
+the extra chrome competed with the ranked table itself, the primary
+scanning interface, for information that reads more naturally once you're
+already looking at one ticker. The underlying calculation, cohort logic
+and payload are unchanged — only how the number is surfaced.
 
 ## Filtering
 

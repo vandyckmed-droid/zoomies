@@ -387,96 +387,77 @@ class BrowserTest(unittest.TestCase):
             "  if (els[i].tagName === 'DT') out[els[i].textContent.trim()] = els[i+1].textContent.trim(); "
             "} return out; }")
 
-    def test_63d_rank_change_sorts_with_nulls_last(self):
-        """Also the regression guard for the cohort bug: Z sits at rank #1
-        overall with no historical data, yet A/B/C/D's rank changes below
-        (+3, 0, 0, -2) are exactly what they'd be without Z in the universe
-        at all -- if the cohort restriction ever regresses, Z's presence
-        will shift every one of those by one and this will fail.
+    def _open_by_symbol(self, page, symbol):
+        """Opens a fixture row by its exact data-symbol attribute, not the
+        search box: every synthetic name in this fixture ends in "Corp",
+        which contains the letter "c" -- searching "C" (row C's own ticker)
+        matches every row's name too, silently opening whichever one sorts
+        first instead of row C. data-symbol has no such collision.
         """
-        page = self._page_with_rank_change_fixture()
-        page.click('th[data-key="rankChange63d"]')
-        page.wait_for_timeout(200)
-        order = page.eval_on_selector_all(
-            "#rows tr", "e => e.map(r => r.querySelector('td.ticker').textContent)")
-        cells = page.eval_on_selector_all(
-            "#rows tr", "e => e.map(r => r.querySelector('td.r63').textContent)")
-        self.assertEqual(order, ["B", "A", "C", "D", "Z", "E"],
-                          "first click should sort biggest climbers first, nulls last")
-        self.assertEqual(cells, ["+3", "0", "0", "-2", "—", "—"])
-
-        page.click('th[data-key="rankChange63d"]')   # second click: ascending
-        page.wait_for_timeout(200)
-        order2 = page.eval_on_selector_all(
-            "#rows tr", "e => e.map(r => r.querySelector('td.ticker').textContent)")
-        self.assertEqual(order2, ["D", "A", "C", "B", "Z", "E"],
-                          "ascending should still keep the nulls (Z, E) last, not first")
-        self.assertEqual(page.errors, [])
-
-    def test_sort_63d_button_matches_the_hidden_header_at_phone_width(self):
-        """The 63D header hides below 560px (same as max drawdown), but
-        sorting by it -- biggest climbers/decliners -- is the point of the
-        feature, not just a detail worth losing on the primary device. The
-        always-visible button must trigger the identical sort.
-        """
-        page = self.page(width=375, height=780)
-        self.assertFalse(page.is_visible('th[data-key="rankChange63d"]'))
-        self.assertTrue(page.is_visible("#sort-63d"))
-
-        page.click("#sort-63d")
-        page.wait_for_timeout(200)
-        self.assertEqual(page.get_attribute("#sort-63d", "aria-pressed"), "true")
-        self.assertEqual(page.get_attribute("#table", "data-sort"), "rankChange63d")
-        self.assertLessEqual(page.evaluate("document.documentElement.scrollWidth"), 375)
-        self.assertEqual(page.errors, [])
-
-    def test_detail_panel_shows_rank_63d_change_and_percentiles(self):
-        page = self._page_with_rank_change_fixture()
-
-        page.fill("#search", "B")
-        page.wait_for_timeout(200)
-        page.click("#rows tr:first-child td.ticker")
+        page.click('tr[data-symbol="%s"] td.ticker' % symbol)
         page.wait_for_selector("#overlay:not([hidden])")
-        stats = self._stats_map(page)
-        self.assertEqual(stats["Rank"], "#3")
-        # #5 -> #2, not #5 -> (ordinary Rank #3): the change is computed
-        # from the comparable-cohort current rank, so the panel must show
-        # that rank explicitly or "+3" looks wrong next to "#5" and "#3".
-        self.assertEqual(stats["63D rank"], "#5 → #2")
-        self.assertEqual(stats["63D change"], "+3")
+        return self._stats_map(page)
+
+    def test_detail_panel_collapses_rank_and_63d_change_into_one_line(self):
+        """Also the regression guard for the cohort bug (PR #16/#17's
+        review): Z sits at rank #1 overall with no historical data, yet
+        A/B/C/D's rank changes below (0, +3, 0, -2) are exactly what they'd
+        be without Z in the universe at all -- if the cohort restriction
+        ever regresses, Z's presence will shift every one of those by one.
+        """
+        page = self._page_with_rank_change_fixture()
+
+        def rank_cell(symbol):
+            page.click('tr[data-symbol="%s"] td.ticker' % symbol)
+            page.wait_for_selector("#overlay:not([hidden])")
+            cell = page.eval_on_selector_all(
+                "#ov-stats > *",
+                "els => { for (var i = 0; i < els.length; i++) { "
+                "  if (els[i].tagName === 'DT' && els[i].textContent.trim() === 'Rank') { "
+                "    var dd = els[i+1], span = dd.querySelector('span'); "
+                "    return {text: dd.textContent.trim(), "
+                "            cls: span ? span.className : null, "
+                "            style: span ? span.getAttribute('style') : null}; "
+                "  } } return null; }")
+            page.click("#ov-close")
+            return cell
+
+        self.assertEqual(rank_cell("A"),
+                          {"text": "#2 (0 in 3m)", "cls": "", "style": "color:var(--muted)"},
+                          "zero movement should be muted, not colored")
+        self.assertEqual(rank_cell("B"),
+                          {"text": "#3 (+3 in 3m)", "cls": "pos", "style": None},
+                          "positive movement should be green")
+        self.assertEqual(rank_cell("C"), {"text": "#4 (0 in 3m)", "cls": "", "style": "color:var(--muted)"})
+        self.assertEqual(rank_cell("D"),
+                          {"text": "#5 (-2 in 3m)", "cls": "neg", "style": None},
+                          "negative movement should be red")
+
+        # Z and E both have no historicalRank63d (Z: high current rank but
+        # no history; E: low rank, no history) -- the parenthetical must be
+        # omitted entirely, not replaced with a placeholder message.
+        self.assertEqual(rank_cell("Z"), {"text": "#1", "cls": None, "style": None})
+        self.assertEqual(rank_cell("E"), {"text": "#6", "cls": None, "style": None})
+        self.assertEqual(page.errors, [])
+
+    def test_63d_column_and_sort_button_are_gone(self):
+        """The main table and its always-visible sort control were removed
+        in favor of the collapsed detail-panel line above -- regression
+        guard against either coming back as UI chrome.
+        """
+        page = self.page()
+        self.assertEqual(page.eval_on_selector_all('th[data-key="rankChange63d"]', "e => e.length"), 0)
+        self.assertEqual(page.eval_on_selector_all("#sort-63d", "e => e.length"), 0)
+        self.assertEqual(page.eval_on_selector_all("td.r63", "e => e.length"), 0)
+        self.assertEqual(page.errors, [])
+
+    def test_detail_panel_percentiles_unaffected_by_the_63d_simplification(self):
+        page = self._page_with_rank_change_fixture()
+        stats = self._open_by_symbol(page, "B")
         self.assertEqual(stats["Score percentile"], "60th (higher = stronger)")
         self.assertEqual(stats["Return percentile"], "60th (higher = stronger)")
         self.assertEqual(stats["Volatility percentile"], "40th (higher = more volatile)")
         self.assertEqual(stats["Drawdown percentile"], "60th (higher = shallower)")
-        page.click("#ov-close")
-
-        # E has no historicalRank63d -- not enough history 63 sessions back
-        # (a recently-qualified name, or a cache too young to reach that
-        # far). This must say so plainly, not show a blank or "#null" row.
-        page.fill("#search", "E")
-        page.wait_for_timeout(200)
-        page.click("#rows tr:first-child td.ticker")
-        page.wait_for_selector("#overlay:not([hidden])")
-        stats_e = self._stats_map(page)
-        self.assertEqual(stats_e["Rank"], "#6")
-        self.assertNotIn("63D rank", stats_e)
-        self.assertEqual(stats_e["63D change"], "not enough history 63 sessions ago")
-        self.assertEqual(stats_e["Score percentile"], "0th (higher = stronger)")
-        self.assertEqual(stats_e["Volatility percentile"], "100th (higher = more volatile)")
-        self.assertEqual(stats_e["Drawdown percentile"], "0th (higher = shallower)")
-        page.click("#ov-close")
-
-        # Z: highest-scoring name in the fixture (global Rank #1) but no
-        # historical data -- the exact scenario the cohort bug hid behind
-        # (the fixture used to only put the no-history name at the bottom).
-        page.fill("#search", "Z")
-        page.wait_for_timeout(200)
-        page.click("#rows tr:first-child td.ticker")
-        page.wait_for_selector("#overlay:not([hidden])")
-        stats_z = self._stats_map(page)
-        self.assertEqual(stats_z["Rank"], "#1")
-        self.assertNotIn("63D rank", stats_z)
-        self.assertEqual(stats_z["63D change"], "not enough history 63 sessions ago")
         self.assertEqual(page.errors, [])
 
     def test_search_survives_a_reload(self):
