@@ -274,6 +274,54 @@ class BrowserTest(unittest.TestCase):
                           len(self.report["universe"]))
         self.assertEqual(page.errors, [])
 
+    def test_saved_view_survives_an_obsolete_sort_key(self):
+        """The exact regression this PR fixed: the restore logic used to be
+        gated entirely on the saved sort key having a FIRST_DIR entry, so a
+        saved key from a since-removed column (rankChange63d, retired by
+        this PR) discarded not just the sort but theme, watchlist and
+        filters too -- everything, on a single unrelated field going stale.
+        Likely to recur whenever another sortable field is retired, so this
+        seeds a realistic full saved state and checks each piece survives
+        independently of the sort falling back.
+
+        Seeded via context.add_init_script(), not page.evaluate() + reload():
+        the latter sets localStorage on an *already-loaded* page, and reload()
+        races that page's own pagehide/visibilitychange flush -- which fires
+        during navigation and silently overwrites the seed with whatever
+        (default) state was already in memory before it ever gets read back.
+        add_init_script runs before the page's own scripts on every
+        navigation, so there is nothing left to race.
+        """
+        symbol = self.report["universe"][0]["symbol"]
+        saved = json.dumps({
+            "key": "rankChange63d", "dir": -1, "theme": "dark",
+            # A deliberately generous ceiling: this only needs to prove the
+            # filter value itself survives, not stay realistic -- an actual
+            # 30% cap could filter the watched symbol's row out of the table
+            # entirely depending on its real volatility, hiding its star
+            # button and breaking the watchlist assertion below for a
+            # reason that has nothing to do with what this test checks.
+            "watch": [symbol], "maxVol": "500",
+        })
+        ctx = self.browser.new_context(viewport={"width": 1280, "height": 900})
+        self.addCleanup(ctx.close)
+        ctx.add_init_script("localStorage.setItem('zoomies.view', %s)" % json.dumps(saved))
+        page = ctx.new_page()
+        page.errors = []
+        page.on("pageerror", lambda e: page.errors.append(str(e)))
+        page.goto(SITE)
+        page.wait_for_selector("#rows tr")
+
+        self.assertEqual(page.get_attribute("#table", "data-sort"), "rank",
+                          "an unrecognized saved sort key should fall back to rank")
+        # #theme is text-transform: uppercase in CSS -- inner_text renders that.
+        self.assertEqual(page.inner_text("#theme"), "DARK")
+        self.assertEqual(page.input_value("#f-vol"), "500")
+        self.assertEqual(
+            page.get_attribute('.star[data-star="%s"]' % symbol, "aria-pressed"), "true",
+            "the watchlist entry should survive an obsolete sort key too")
+        self.assertEqual(page.errors, [])
+
     def _page_with_generated(self, generated):
         """A page whose REPORT.generated is a controlled date rather than
         whatever the committed scores.js happens to carry -- the staleness
