@@ -1,58 +1,83 @@
-# Working agreement
+# Workflow and Authority
 
-**Document routing:** For context and decision-making, refer to:
+**Document hierarchy:** For context and decision-making, refer to:
 - **Current system truth**: [README.md](README.md) — what Zoomies actually does and how it works.
 - **Durable product intent**: [DESIGN.md](DESIGN.md) — product and design principles.
 - **Workflow and execution**: Continue reading this document for the working agreement and collaboration rules.
 
 ---
 
-## Current operating model: continuous two-agent workflow
+## Two-agent workflow
 
-Two roles:
+**Agent 1 — Builder.** Receives an `APPROVED TO BUILD` instruction, implements the task, tests it, opens a draft PR, and returns a standardized completion report. Merges the PR once Agent 2 approval is obtained and CI passes.
 
-**Agent 1 — Builder and Planner.**
+**Agent 2 — Reviewer.** Independently reviews the PR's code, tests, surrounding context, and CI. Returns `APPROVED` or `CHANGES REQUIRED`. Does not edit Agent 1's branch. Re-reviews revisions until approved.
 
-1. **Complete.** After every approved PR is merged, confirm the change is live.
-2. **Assess.** Review the current state and identify the single best next step.
-3. **Propose.** Present that next step briefly. Do not begin work yet. Spencer may route the proposal through Agent 2's preliminary review (see below) before responding.
-4. **Wait.** Spencer responds one of three ways: *Approved*, *Skip*, or *Feedback*.
-5. **Act.** Once approved: create a branch, implement, test, commit, push, open a **draft** PR — without pausing for routine decisions in between.
-6. **Handoff.** Send Spencer the PR link and a concise summary. Do not merge.
-7. **Revise.** Address every material Agent 2 finding on the *same* branch, push, and return the updated PR for re-review — do not open a new PR per round of feedback.
-8. **Merge.** Only after both Agent 2 approves *and* Spencer authorizes the merge. Neither alone is sufficient.
-9. **Continue.** Confirm the result is live, then return to step 2 (Assess) and propose the next best step.
+---
 
-**User-directed work.** Spencer may directly define or select the next feature himself, skipping Agent 1's proposal entirely. When he does this explicitly — stating the feature outright rather than reacting to a proposal Agent 1 made — that instruction is itself the authorization to proceed straight to step 5 (Act). Everything after that point is unchanged: normal engineering judgment, testing, the draft-PR workflow, and Agent 2's review all still apply.
+## Approval and execution
 
-**Agent 2 — Reviewer.** Independently reviews the PR, the surrounding code, tests, and CI. Returns *Approved* or *Changes needed*. Does not edit Agent 1's branch and does not merge. Re-reviews revisions until approved.
+**APPROVED TO BUILD**
 
-**Agent 2 — Preliminary review.** A separate decision layer upstream of the PR review, that runs on a *proposal*, not a diff. After Agent 1 proposes its next best step but before Spencer responds, Spencer may optionally route the proposal to Agent 2 first. When he does, Agent 2:
+Agent 2 marks a task `APPROVED TO BUILD` when it is ready for implementation. Spencer delivers this instruction to Agent 1. That delivery constitutes Spencer's approval and Agent 1's authorization to proceed. No additional confirmation is required.
 
-- Evaluates the proposal against the product as a whole, not just the proposal's own internal logic.
-- Judges whether it is genuinely the best next step available right now.
-- Weighs whether the current foundation should be preserved, refined, or reconsidered.
-- Does not manufacture disagreement or novelty for its own sake.
-- Surfaces a larger overhaul or a different direction only when it looks materially better.
+**Implementation**
 
-Returns exactly one verdict: **Endorse**, **Refine**, or **Rethink**. Spencer then answers Agent 1 as usual — *Approved*, *Skip*, or feedback — per step 4.
+Agent 1:
+1. Creates a branch
+2. Implements the bounded task using normal engineering judgment
+3. Tests locally and verifies CI passes
+4. Opens a draft PR
+5. Returns the standardized completion report (see below) to Spencer
+6. Addresses every material Agent 2 finding on the same branch
+7. Pushes revisions and re-returns the report after each iteration
 
-This preliminary review is independent of Agent 2's technical PR review: a proposal can be endorsed here and still come back "Changes needed" once the PR exists.
+**Agent 2 review**
 
-**Interim mechanics:** Agent 2 does not yet have GitHub write access, so Spencer copies its review findings into the PR thread and relays Agent 1's responses back for re-review. Treat a "Verdict: Changes needed" message from Spencer as Agent 2's review being relayed, not as Spencer's own finding.
+Agent 2 independently reviews the actual PR, tests, code, and CI. Returns `APPROVED` or `CHANGES REQUIRED`. Agent 1 revises until approved.
 
-**Hard rules:**
-- One task per PR.
-- Never push feature work directly to `main` — every change goes through a branch and a PR, no exception for "it's small."
-- Only Spencer's explicit *Approved* authorizes starting a proposed task — or his relay of a positive Agent 2 preliminary verdict. Silence, a question, or a "sounds good" that isn't literally one of those is not authorization to act.
+**Merge**
 
-**Known hard limits — not choices, and not things to route around:**
+Once Agent 2 review is `APPROVED` AND required CI checks pass, Agent 1 merges automatically. No additional Spencer or Agent 2 authorization is required at merge time.
+
+Failed CI or merge conflicts block merging until resolved. If resolving a blocker materially changes the implementation, Agent 1 returns the PR to Agent 2 for re-review before merging.
+
+**Next work**
+
+Merging one PR does not authorize Agent 1 to invent or choose the next feature. Agent 1 may propose a next best step to Spencer, but must not build until receiving another `APPROVED TO BUILD` instruction.
+
+---
+
+## Standard return format
+
+Use this format when returning a PR for review:
+
+```
+PR #<number> READY FOR AGENT 2
+- URL: <PR URL>
+- Changed: <1–2 sentence summary>
+- Tests: <local test result>
+- CI: <green / running / failed>
+- Notes: <material issue or "None">
+```
+
+---
+
+## Hard rules
+
+- **One task per PR.** Every PR addresses a single `APPROVED TO BUILD` task.
+- **Never push to main directly.** All work goes through a branch and PR, no exception for size or urgency.
+- **Bounded task only.** Agent 1 implements the specific task described in `APPROVED TO BUILD`, not adjacent improvements, refactoring, or design changes not explicitly included in the approval.
+
+---
+
+## Known hard limits — not choices, and not things to route around
 
 - **Agent 1's GitHub token cannot dispatch `workflow_dispatch` runs.** Attempting one fails with `403: Resource not accessible by integration`. Any on-demand workflow (`rebuild.yml` is the current example) needs Spencer to tap "Run workflow" himself — Actions → the workflow name → Run workflow.
 - **Agent 1 cannot set or read repository secrets.** An API key belongs in Settings → Secrets and variables → Actions, entered by Spencer directly — never relayed through chat.
 - When Agent 1 hits one of these, say so plainly, give exact steps, and wait.
 
-**Logging discipline:** Every working session ends with a PR or issue comment recording what changed, the current state, and what comes next. Write it for a reader with no prior context.
+**Logging discipline:** Use the standard return format when submitting a PR for Agent 2 review. Write it for a reader with no prior context. After merging, confirm the change is live before proposing the next best step.
 
 ---
 
