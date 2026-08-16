@@ -158,6 +158,42 @@ class BrowserTest(unittest.TestCase):
         self.assertEqual(page.eval_on_selector_all("#matrix td", "e => e.length"), 4)
         self.assertEqual(page.errors, [])
 
+    def test_one_missing_shard_does_not_hide_the_other_pairs(self):
+        """A 404 on one starred name's shard used to take out the whole
+        matrix, not just that name -- withReturnsForAll's completion callback
+        was gated on every symbol succeeding, so one failure meant the two
+        names that DID load never got shown either. The single bulk file
+        never had this failure mode: a name missing from RETURNS just got
+        filtered out, and valid pairs still rendered. Force a 404 by deleting
+        one starred name's shard, since every name in the committed data
+        happens to have one.
+        """
+        work = pathlib.Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, work, True)
+        shutil.copy(ROOT / "index.html", work / "index.html")
+        shutil.copy(ROOT / "scores.js", work / "scores.js")
+        shutil.copytree(ROOT / "data" / "returns", work / "data" / "returns")
+
+        a, b, victim = (self.report["universe"][i]["symbol"] for i in (0, 1, 2))
+        (work / "data" / "returns" / (victim + ".js")).unlink()
+
+        page = self.page(url="file://%s/index.html" % work)
+        page.click('.star[data-star="%s"]' % a)
+        page.click('.star[data-star="%s"]' % b)
+        page.click('.star[data-star="%s"]' % victim)
+        page.wait_for_function(
+            "!document.getElementById('pairs-note').textContent.includes('Loading')",
+            timeout=10000)
+
+        note = page.inner_text("#pairs-note")
+        self.assertNotIn("unavailable", note.lower(),
+                          "two valid names should still show pair stats, not an error")
+        cells = page.eval_on_selector_all("#matrix td", "e => e.length")
+        self.assertEqual(cells, 4, "a and b should form a 2x2 matrix, excluding the victim")
+        headers = page.eval_on_selector_all("#matrix th", "e => e.map(x => x.textContent)")
+        self.assertNotIn(victim, headers[1:], "the missing-shard name should not appear as a column")
+        self.assertEqual(page.errors, [])
+
     def test_filters_round_trip_and_clear(self):
         page = self.page()
         total = page.eval_on_selector_all("#rows tr", "e => e.length")

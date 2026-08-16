@@ -127,9 +127,13 @@ instead; they load the single combined `returns.js` once, the first time any
 detail panel opens. That was tried the sharded way too — fetching ~1,000
 individual files for this measured about 20x slower than one combined file,
 even with zero real network latency, so it stayed bulk-loaded deliberately,
-not by oversight. Both loaders write onto the same in-memory table, so
-whichever runs first, the other needs no further fetches — opening a detail
-panel once effectively pre-loads the pair matrix for the rest of the session.
+not by oversight. Both loaders write onto the same in-memory table, so the
+benefit runs one direction: once `returns.js` has loaded — opening any detail
+panel — every ticker's series is already present, and the pair matrix needs
+no further fetches for the rest of the session. It does not run the other
+way — starring names first loads only those tickers' shards, which is not
+enough for the correlation lists, so opening a detail panel afterward still
+triggers the bulk load.
 
 Series are stored as integers scaled by 1e6 to keep both formats small;
 correlation is unaffected by the scaling and covariance divides it back out.

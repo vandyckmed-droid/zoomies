@@ -594,11 +594,22 @@
   // renderPairs() and openDetail() both ask within a couple of frames of
   // each other.
   var returnsCallbacks = {};
+  // A symbol that 404s settles permanently, same as one that loads: retrying
+  // it every render would otherwise loop forever, since a failed fetch never
+  // makes haveReturnsFor() true. Caught by actually running the partial-
+  // failure case (star three names, one with no shard) in a browser, where
+  // it hammered the missing file with thousands of requests in a few seconds
+  // instead of showing the two names that did load.
+  var returnsFailed = {};
   function haveReturnsFor(sym) {
     return RETURNS.hasOwnProperty(sym);
   }
+  function returnsSettled(sym) {
+    return haveReturnsFor(sym) || returnsFailed.hasOwnProperty(sym);
+  }
   function withReturnsFor(sym, done) {
     if (haveReturnsFor(sym)) return done(true);
+    if (returnsFailed[sym]) return done(false);
     if (returnsCallbacks[sym]) { returnsCallbacks[sym].push(done); return; }
     returnsCallbacks[sym] = [done];
     var el = document.createElement('script');
@@ -607,6 +618,7 @@
     // requests a URL that does not exist on disk.
     el.src = 'data/returns/' + encodeURIComponent(sym.replace(/\//g, '_')) + '.js';
     function finish(ok) {
+      if (!ok) returnsFailed[sym] = true;
       var queued = returnsCallbacks[sym];
       delete returnsCallbacks[sym];
       queued.forEach(function (fn) { fn(ok); });
@@ -621,7 +633,7 @@
   // one has settled, success or failure -- never partially, so the caller
   // can rely on RETURNS holding whichever of them actually loaded.
   function withReturnsForAll(symbols, done) {
-    var missing = symbols.filter(function (s) { return !haveReturnsFor(s); });
+    var missing = symbols.filter(function (s) { return !returnsSettled(s); });
     if (!missing.length) return done();
     var remaining = missing.length;
     missing.forEach(function (s) {
@@ -678,17 +690,17 @@
     section.hidden = false;
 
     var symbols = picked.map(function (s) { return s.symbol; });
-    if (symbols.some(function (s) { return !haveReturnsFor(s); })) {
+    if (symbols.some(function (s) { return !returnsSettled(s); })) {
       document.getElementById('matrix').innerHTML = '';
       document.getElementById('pairs-note').textContent = 'Loading return series…';
-      withReturnsForAll(symbols, function () {
-        if (symbols.every(function (s) { return haveReturnsFor(s); })) {
-          renderPairs();
-        } else {
-          document.getElementById('pairs-note').textContent =
-            'Could not load one or more return series, so pair statistics are unavailable.';
-        }
-      });
+      // Re-render once every shard has settled, success or failure -- do not
+      // gate on all of them succeeding. A 404 is normal for a starred name
+      // with no return data (unscored, or fell out of the universe), and one
+      // missing shard should not hide the matrix for the names that did
+      // load. The filter below already excludes whichever symbols are still
+      // missing from RETURNS after this; that is what makes partial success
+      // work, the same way it did with the single bulk file.
+      withReturnsForAll(symbols, renderPairs);
       return;
     }
 
