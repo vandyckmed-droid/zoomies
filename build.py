@@ -350,6 +350,22 @@ def score_asof(prices, asof):
     return score({d: p for d, p in prices.items() if d <= asof})
 
 
+def rank_by_score(scores, cohort=None):
+    """1-based rank by descending score, among names that have one.
+
+    Restricted to `cohort` when given -- a name whose score is present but
+    who isn't in the cohort gets no rank at all, not just a low one. This is
+    the one place a rank-change comparison's population is decided, so it is
+    factored out and unit-tested directly (see tests/test_build.py) rather
+    than trusted to a full build.py run: reconstructing a realistic price
+    cache just to exercise this logic would be slower and far more fragile
+    than the maths it is actually guarding.
+    """
+    pool = scores if cohort is None else {s: v for s, v in scores.items() if s in cohort}
+    ranked = sorted((s for s, v in pool.items() if v is not None), key=lambda s: -pool[s])
+    return {s: i for i, s in enumerate(ranked, 1)}
+
+
 def historical_endpoint(market_prices, days_back):
     """The trading date `days_back` sessions before the most recent one, from
     the benchmark's own calendar -- so every stock's historical snapshot is
@@ -573,13 +589,18 @@ def main():
     # and one that is newly tracked is ranked on its own historical score
     # like everyone else. This is what keeps the 63D change a comparison
     # against a fixed cohort rather than one polluted by universe drift.
-    historical_ranks = {}
-    if historical_date:
-        by_hist_score = sorted(
-            (sym for sym, v in hist_scores.items() if v is not None),
-            key=lambda sym: -hist_scores[sym],
-        )
-        historical_ranks = {sym: i for i, sym in enumerate(by_hist_score, 1)}
+    #
+    # Also requires a valid *current* score, not just a valid historical one:
+    # index.html's comparable-cohort current rank already excludes a name
+    # with no score today (it can't be ranked by something it doesn't have),
+    # so giving such a name a historicalRank63d slot here would occupy a
+    # rank number on this side of the comparison while being entirely
+    # absent from the other -- the same population mismatch the cohort
+    # restriction exists to prevent, just triggered from the opposite
+    # direction (current score missing rather than historical score
+    # missing). Both sides of the comparison need the same population.
+    currently_scored = set(row["symbol"] for row in rows if row["score"] is not None)
+    historical_ranks = rank_by_score(hist_scores, cohort=currently_scored) if historical_date else {}
     for row in rows:
         row["historicalRank63d"] = historical_ranks.get(row["symbol"])
 

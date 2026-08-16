@@ -241,7 +241,11 @@ operating model above, solo or two-agent.
 | Test          | `python -m unittest discover -s tests` when a `tests/` directory exists. |
 
 The test step is skipped while no `tests/` directory exists, so adding one is
-enough to turn it on — no workflow change needed.
+enough to turn it on — no workflow change needed. Active as of `tests/`
+being added for `build.py`'s own unit-testable logic (e.g. `rank_by_score`)
+that doesn't need a browser or a price cache to exercise. `index.html`'s
+behavior is still covered separately, by the browser job — see "Not
+covered" below.
 
 Both file checks read the list from `git ls-files`, so they cover what is
 committed and an untracked scratch file cannot fail a local run in a way CI
@@ -253,6 +257,7 @@ Reproduce the whole run locally with:
 pip install ruff==0.15.8
 ruff check . && python -m compileall -q . && python .github/scripts/check_json.py
 for f in $(git ls-files '*.js'); do node --check "$f"; done
+python -m unittest discover -s tests -v
 ```
 
 **Not covered:** `index.html` is 876 lines of behavioural JS that nothing here

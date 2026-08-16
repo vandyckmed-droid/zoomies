@@ -510,16 +510,18 @@
   }).forEach(function (s, i) { s.rank = s.score === null ? null : i + 1; });
 
   // 63-trading-day rank change: build.py ships historicalRank63d (this
-  // name's rank, among the displayed cohort, as of RANK_CHANGE_DAYS_BACK
-  // sessions ago -- see the README). The comparison needs a *current* rank
-  // over that exact same cohort, not the overall s.rank above: s.rank
-  // includes every currently scored name, so a recent IPO with no 63D
-  // history (historicalRank63d null) would still occupy a rank slot and
-  // shift every other name's current rank down by one -- an apparent rank
-  // change that is purely that IPO's presence, not a real momentum shift.
-  // Restricting both ends of the comparison to names that have a valid
-  // historicalRank63d is what keeps this a fixed-cohort comparison, the
-  // same principle build.py already applies against universe drift.
+  // name's rank, among the tracked/comparable cohort -- every name with
+  // both a valid score today and a valid score RANK_CHANGE_DAYS_BACK
+  // sessions ago, see the README -- as of that earlier date). The
+  // comparison needs a *current* rank over that exact same cohort, not the
+  // overall s.rank above: s.rank includes every currently scored name, so
+  // a recent IPO with no 63D history (historicalRank63d null) would still
+  // occupy a rank slot and shift every other name's current rank down by
+  // one -- an apparent rank change that is purely that IPO's presence, not
+  // a real momentum shift. Restricting both ends of the comparison to
+  // names that have a valid historicalRank63d is what keeps this a
+  // fixed-cohort comparison, the same principle build.py already applies
+  // against universe drift.
   var comparable = stocks.filter(function (s) {
     return s.historicalRank63d !== null && s.score !== null;
   });
