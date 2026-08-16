@@ -9,6 +9,7 @@ const REPORT = {
  "benchmark": "SPY",
  "minOverlap": 120,
  "returnScale": 1000000,
+ "scoreHistoryPoints": 30,
  "universe": [
   {
    "symbol": "NVDA",

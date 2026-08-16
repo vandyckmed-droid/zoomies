@@ -6,10 +6,13 @@ This repo doubles as the cache: the downloaded price history lives in `data/`,
 so later sessions only fetch the trading days they are missing. A rerun that is
 already up to date makes no API calls at all and rewrites no files.
 
-Rebuilding all 1,000 names from scratch takes a few minutes; after that a rerun
-takes about a second. If the API plan's quota runs out mid-build, the run keeps
-going from cache and says how many names are still missing — rerun later and it
-picks up where it stopped.
+Rebuilding all 1,000 names from scratch takes a few minutes; after that, a
+rerun that finds no new prices still takes on the order of 15–20 seconds —
+every name's 30-day score history (see "Score trend" below) is recomputed
+from cache on every run, not just whether new prices exist. If the API
+plan's quota runs out mid-build, the run keeps going from cache and says how
+many names are still missing — rerun later and it picks up where it
+stopped.
 
 ## Run
 
@@ -68,6 +71,7 @@ they are instant and client-side.
 | `scores.js`         | Generated table data, loaded by `index.html`.               |
 | `data/returns/*.js` | One return series per ticker, fetched only for starred names — the pair matrix. |
 | `returns.js`        | All return series in one file, loaded once for the correlation lists. |
+| `data/history/*.js` | One score/rank trend per ticker, fetched on demand for the detail panel's sparkline. |
 | `index.html`        | The ranking table.                                          |
 
 ## Universe
@@ -145,6 +149,30 @@ triggers the bulk load.
 Series are stored as integers scaled by 1e6 to keep both formats small;
 correlation is unaffected by the scaling and covariance divides it back out.
 
+## Score trend
+
+The detail panel also sparklines a name's score over its last 30 tracked
+sessions, with a summary line like `30D: #18 → #1` comparing its rank at the
+start of that window to now.
+
+This is backfilled from the price cache on every run, not accumulated one
+day at a time — the 30 snapshot dates are the benchmark's own last 30
+trading dates, and each name's score at each of those dates is recomputed
+from cached prices trimmed to that date, the same maths `score()` already
+uses for the live number. That means the feature has a full window from the
+first run after it shipped, not one that fills in gradually over the next
+month, and a weekend/holiday rebuild reproduces the same trailing window
+rather than needing to dedupe a duplicate snapshot.
+
+Ranks are cross-sectional: every tracked name is scored at the *same*
+snapshot date before any of them are ranked, so a name's rank move reflects
+the whole universe moving together, not each name being compared against a
+slightly different date because its own price data has a gap.
+
+Like the pair matrix, this loads one small file per ticker fetched only for
+whichever name the detail panel is open on, not bundled into `scores.js` —
+opening one panel does not download 1,000 tickers' worth of trend data.
+
 ## Filtering
 
 Filters sit above the table: a minimum score, a maximum annualized
@@ -161,11 +189,6 @@ universe, so it changes as the tracked names change. A name FMP does not
 tag with a sector has none to filter by and is simply excluded from every
 sector option, the same way an unscored name is excluded from the score and
 volatility filters.
-
-The field exists in `build.py` and `index.html` now, but the currently
-committed `data/universe.json` predates it and has no sector values yet —
-the filter will show no options until the next `--refresh-universe` rebuild
-picks the field up.
 
 ## State
 

@@ -13,6 +13,10 @@ Writes:
                           the pair matrix -- see write_return_shards.
     returns.js           all return series in one file, for the correlation
                           lists -- see write_returns.
+    data/history/*.js    one score/rank trend per ticker, fetched on demand
+                          for the detail panel's sparkline -- see
+                          write_history_shards. Backfilled from the price
+                          cache on every run, not accumulated over time.
 """
 
 import csv
@@ -42,6 +46,7 @@ LOOKBACK = int(os.environ.get("LOOKBACK") or 252)   # trading days in the window
 SKIP = int(os.environ.get("SKIP") or 21)            # most recent days excluded
 HISTORY_DAYS = 730      # calendar days of prices to keep (~2 years)
 UNIVERSE_MAX_AGE = 7    # days before the universe is rebuilt
+SCORE_HISTORY_POINTS = 30   # trading-day snapshots kept for the trend sparkline
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 PRICE_DIR = os.path.join(ROOT, "data", "prices")
@@ -49,6 +54,7 @@ UNIVERSE_FILE = os.path.join(ROOT, "data", "universe.json")
 OUTPUT_FILE = os.path.join(ROOT, "scores.js")
 RETURNS_FILE = os.path.join(ROOT, "returns.js")   # all series, for correlation lists
 RETURNS_DIR = os.path.join(ROOT, "data", "returns")
+SCORE_HISTORY_DIR = os.path.join(ROOT, "data", "history")
 
 US_EXCHANGES = {"NASDAQ", "NYSE", "AMEX"}
 
@@ -339,6 +345,67 @@ def score(prices):
     })
 
 
+def score_asof(prices, asof):
+    """What score() would have returned using only prices through asof.
+
+    Reuses score()'s own window/mean/stdev logic on a trimmed copy of the
+    series rather than re-deriving it -- the scoring maths has exactly one
+    implementation, so a historical snapshot can never silently drift from
+    what the live score does.
+    """
+    return score({d: p for d, p in prices.items() if d <= asof})
+
+
+def score_history_dates(market_prices, n=SCORE_HISTORY_POINTS):
+    """The last n trading dates, from the benchmark's own calendar.
+
+    Every stock's historical score is trimmed to the same one of these dates
+    (see score_asof), so the whole universe is ranked against a common
+    endpoint at each snapshot -- not each stock's own last-traded day, which
+    could otherwise drift a day or two apart between names with gappy data.
+    """
+    return sorted(log_returns(market_prices))[-n:]
+
+
+def history_shard_path(symbol):
+    return os.path.join(SCORE_HISTORY_DIR, "%s.js" % symbol.replace("/", "_"))
+
+
+def write_history_shards(dates, scores, ranks):
+    """One small file per ticker: [date, score, rank] for each snapshot date
+    it had a valid score on, oldest first. Fetched on demand for the detail
+    panel's sparkline, same shard-per-ticker shape as write_return_shards
+    and for the same reason -- a page load only ever looks at one or two of
+    these, not all 1,000.
+
+    Written fresh from the price cache on every run rather than appended to
+    over time: recomputing the same fixed trailing window is simpler than
+    incremental-append-with-dedup, and it means the very first run after
+    this shipped already has a full window, not one accumulated a day at a
+    time over the next month.
+    """
+    os.makedirs(SCORE_HISTORY_DIR, exist_ok=True)
+    kept = set()
+    for sym, by_date in scores.items():
+        points = [[d, by_date[d], ranks[d].get(sym)] for d in dates if by_date[d] is not None]
+        path = history_shard_path(sym)
+        with open(path, "w") as fh:
+            fh.write("HISTORY[%s]=%s;\n" % (json.dumps(sym), json.dumps(points, separators=(",", ":"))))
+        kept.add(os.path.basename(path))
+
+    removed = 0
+    if os.path.isdir(SCORE_HISTORY_DIR):
+        for name in os.listdir(SCORE_HISTORY_DIR):
+            if name.endswith(".js") and name not in kept:
+                os.remove(os.path.join(SCORE_HISTORY_DIR, name))
+                removed += 1
+
+    total_bytes = sum(os.path.getsize(history_shard_path(sym)) for sym in scores)
+    print("Wrote %d history shards to data/history/: %.0f KB total%s"
+          % (len(scores), total_bytes / 1024,
+             ", removed %d stale" % removed if removed else ""))
+
+
 def return_shard_path(symbol):
     return os.path.join(RETURNS_DIR, "%s.js" % symbol.replace("/", "_"))
 
@@ -448,9 +515,11 @@ def main():
     axis = market_window(market_prices)                  # shared date axis
     market = align(log_returns(market_prices), axis)
     print("  axis: %d days, %s to %s" % (len(axis), axis[0], axis[-1]))
+    history_dates = score_history_dates(market_prices)
 
     print("Updating prices for %d names..." % len(universe))
     rows, window, limited, series = [], None, None, {}
+    history_scores = {}
     stalled = []
     for i, stock in enumerate(universe, 1):
         if offline or limited:
@@ -505,9 +574,30 @@ def main():
             series[stock["symbol"]] = [
                 None if r is None else int(round(r * RETURN_SCALE)) for r in aligned
             ]
+
+        # Trend sparkline data: this name's score as of each of the last
+        # SCORE_HISTORY_POINTS trading dates, purely from cached prices --
+        # no extra requests. Ranked cross-sectionally once every name has
+        # been scored, below.
+        history_scores[stock["symbol"]] = {
+            d: (score_asof(prices, d) or {}).get("score") if prices else None
+            for d in history_dates
+        }
+
         rows.append(row)
         if result and not window:
             window = (result["windowStart"], result["windowEnd"])
+
+    # Rank each snapshot date across the whole universe at once, the same
+    # market-date endpoint for every name -- not each name's own last
+    # trading day, which lets a fair "how did this stock's rank move" hold.
+    history_ranks = {}
+    for d in history_dates:
+        by_score = sorted(
+            (sym for sym, by_date in history_scores.items() if by_date[d] is not None),
+            key=lambda sym: -history_scores[sym][d],
+        )
+        history_ranks[d] = {sym: i for i, sym in enumerate(by_score, 1)}
 
     scored = sum(1 for r in rows if r["score"] is not None)
     report = {
@@ -520,6 +610,7 @@ def main():
         "benchmark": BENCHMARK,
         "minOverlap": MIN_OVERLAP,
         "returnScale": RETURN_SCALE,
+        "scoreHistoryPoints": SCORE_HISTORY_POINTS,
         "universe": rows,
     }
     with open(OUTPUT_FILE, "w") as fh:
@@ -528,6 +619,7 @@ def main():
 
     write_return_shards(series)
     write_returns(series)
+    write_history_shards(history_dates, history_scores, history_ranks)
     print("Wrote scores.js: %d of %d names scored, window %s to %s"
           % (scored, len(rows), report["windowStart"], report["windowEnd"]))
     if limited:

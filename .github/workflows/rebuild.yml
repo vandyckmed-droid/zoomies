@@ -86,6 +86,7 @@ jobs:
           node --check scores.js
           node --check returns.js
           for f in data/returns/*.js; do node --check "$f"; done
+          for f in data/history/*.js; do node --check "$f"; done
           python .github/scripts/check_json.py
 
       - name: Commit

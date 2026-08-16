@@ -265,6 +265,33 @@
   #matrix td.self { color: var(--muted); }
   .pnote { color: var(--muted); font-size: .8rem; margin: .7rem 0 0; }
 
+  /* Score trend sparkline in the detail panel */
+  #ov-history h3 {
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--muted);
+    font-weight: 400;
+    margin: 1.1rem 0 .4rem;
+  }
+  .spark {
+    width: 100%;
+    height: 2.25rem;
+    display: block;
+    overflow: visible;
+  }
+  .spark polyline {
+    fill: none;
+    stroke: var(--fg);
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
+  }
+  .spark-rank {
+    color: var(--muted);
+    font-size: .8rem;
+    margin: .3rem 0 0;
+  }
+
   /* Most / least correlated lists in the detail panel */
   #ov-corr h3 {
     font-size: .72rem;
@@ -426,6 +453,7 @@
     <h2 id="ov-title"></h2>
     <p class="sub" id="ov-sub"></p>
     <dl id="ov-stats"></dl>
+    <div id="ov-history"></div>
     <div id="ov-corr"></div>
   </div>
 </div>
@@ -694,6 +722,47 @@
     document.head.appendChild(el);
   }
 
+  // 3. Score/rank trend for the detail panel's sparkline: one small file per
+  // ticker, fetched only for whichever name the panel is currently open on
+  // -- same shard-per-ticker shape as the pair matrix above, and the same
+  // reason (a page load never looks at more than one or two of these).
+  //
+  // A deliberately separate object and loading-state track from RETURNS,
+  // even though both are per-ticker shards under data/<dir>/<symbol>.js:
+  // history and returns answer different questions (score trend vs. daily
+  // return series) and a caller asking about one should never have to know
+  // or care whether the other has loaded, failed, or is in flight.
+  window.HISTORY = {};
+  var historyCallbacks = {};
+  var historyFailed = {};
+  function haveHistoryFor(sym) {
+    return HISTORY.hasOwnProperty(sym);
+  }
+  function historySettled(sym) {
+    return haveHistoryFor(sym) || historyFailed.hasOwnProperty(sym);
+  }
+  function withHistoryFor(sym, done) {
+    if (haveHistoryFor(sym)) return done(true);
+    if (historyFailed[sym]) return done(false);
+    if (historyCallbacks[sym]) { historyCallbacks[sym].push(done); return; }
+    historyCallbacks[sym] = [done];
+    var el = document.createElement('script');
+    el.src = 'data/history/' + encodeURIComponent(sym.replace(/\//g, '_')) + '.js';
+    function finish(ok) {
+      if (!ok) historyFailed[sym] = true;
+      var queued = historyCallbacks[sym];
+      delete historyCallbacks[sym];
+      queued.forEach(function (fn) { fn(ok); });
+    }
+    el.onload = function () { finish(true); };
+    // build.py writes a shard (possibly an empty array) for every currently
+    // tracked name, so a 404 here means this symbol fell out of the universe
+    // entirely since the page loaded -- handled the same way as a shard that
+    // loaded but had nothing in it.
+    el.onerror = function () { finish(false); };
+    document.head.appendChild(el);
+  }
+
   function tint(corr) {
     var alpha = (Math.min(Math.abs(corr), 1) * 0.3).toFixed(3);
     return 'background:rgba(var(--' + (corr >= 0 ? 'pos' : 'neg') + '-rgb),' + alpha + ')';
@@ -823,6 +892,7 @@
     overlay.hidden = false;
     view.open = symbol;
     save();
+    renderHistory(symbol);
     renderCorrelations(symbol);
     document.querySelector('.card').scrollTop = 0;
     if (focus !== false) document.getElementById('ov-close').focus();
@@ -870,6 +940,44 @@
     }
     box.innerHTML = list('Most correlated', scored.slice(0, 5)) +
                     list('Least correlated', scored.slice(-5).reverse());
+  }
+
+  // How this name's score has moved over its last few tracked sessions --
+  // backfilled from the price cache on every build, so this has a full
+  // window from the first run, not one accumulated a day at a time.
+  function renderHistory(symbol) {
+    var box = document.getElementById('ov-history');
+    if (!historySettled(symbol)) {
+      box.innerHTML = '';
+      withHistoryFor(symbol, function () {
+        if (view.open === symbol) renderHistory(symbol);
+      });
+      return;
+    }
+    var points = HISTORY[symbol];
+    if (!points || points.length < 2) { box.innerHTML = ''; return; }
+    finishHistory(points, box);
+  }
+
+  function finishHistory(points, box) {
+    var scores = points.map(function (p) { return p[1]; });
+    var lo = Math.min.apply(null, scores), hi = Math.max.apply(null, scores);
+    var span = hi - lo || 1;               // flat line: avoid a divide by zero
+    var w = 240, h = 36, pad = 2;
+    var coords = points.map(function (p, i) {
+      var x = pad + (w - 2 * pad) * (i / (points.length - 1));
+      var y = pad + (h - 2 * pad) * (1 - (p[1] - lo) / span);
+      return x.toFixed(1) + ',' + y.toFixed(1);
+    }).join(' ');
+
+    var firstRank = points[0][2], lastRank = points[points.length - 1][2];
+    var rankLine = (firstRank === null || lastRank === null) ? '' :
+      points.length + 'D: #' + firstRank + ' → #' + lastRank;
+
+    box.innerHTML = '<h3>Score trend</h3>' +
+      '<svg viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" class="spark">' +
+      '<polyline points="' + coords + '"></polyline></svg>' +
+      (rankLine ? '<p class="spark-rank">' + esc(rankLine) + '</p>' : '');
   }
 
   function closeDetail() {
