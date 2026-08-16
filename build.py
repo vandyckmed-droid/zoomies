@@ -42,6 +42,7 @@ LOOKBACK = int(os.environ.get("LOOKBACK") or 252)   # trading days in the window
 SKIP = int(os.environ.get("SKIP") or 21)            # most recent days excluded
 HISTORY_DAYS = 730      # calendar days of prices to keep (~2 years)
 UNIVERSE_MAX_AGE = 7    # days before the universe is rebuilt
+RANK_CHANGE_DAYS_BACK = 63   # trading days back for the 63D rank-change snapshot
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 PRICE_DIR = os.path.join(ROOT, "data", "prices")
@@ -339,6 +340,33 @@ def score(prices):
     })
 
 
+def score_asof(prices, asof):
+    """What score() would have returned using only prices through asof.
+
+    Reuses score()'s own window/mean/stdev logic on a trimmed copy of the
+    series rather than re-deriving it -- the scoring maths has exactly one
+    implementation, so a historical snapshot can never silently drift from
+    what the live score does.
+    """
+    return score({d: p for d, p in prices.items() if d <= asof})
+
+
+def historical_endpoint(market_prices, days_back):
+    """The trading date `days_back` sessions before the most recent one, from
+    the benchmark's own calendar -- so every stock's historical snapshot is
+    trimmed to the same one date, not each stock's own last-traded day.
+
+    None if the benchmark's own cache does not yet reach back that far. That
+    is a young-cache state, not a misconfiguration -- main()'s reachability
+    check below is what catches a genuine config error (RANK_CHANGE_DAYS_BACK
+    set larger than HISTORY_DAYS could ever support).
+    """
+    days = sorted(log_returns(market_prices))
+    if len(days) <= days_back:
+        return None
+    return days[-(days_back + 1)]
+
+
 def return_shard_path(symbol):
     return os.path.join(RETURNS_DIR, "%s.js" % symbol.replace("/", "_"))
 
@@ -426,6 +454,17 @@ def main():
     if LOOKBACK + SKIP > reachable - 20:
         sys.exit("LOOKBACK+SKIP is %d days, but HISTORY_DAYS=%d only reaches ~%d"
                  % (LOOKBACK + SKIP, HISTORY_DAYS, reachable))
+    # Same check, extended by the 63-day rank-change snapshot: that needs a
+    # full LOOKBACK+SKIP window ending RANK_CHANGE_DAYS_BACK sessions before
+    # today's, not just today's own window. Fail loudly here rather than
+    # silently shipping a rank change nobody can trust -- see
+    # historical_endpoint() for the distinct young-cache case, which is not
+    # a config error and degrades to "unavailable" instead of exiting.
+    if LOOKBACK + SKIP + RANK_CHANGE_DAYS_BACK > reachable - 20:
+        sys.exit("LOOKBACK+SKIP+RANK_CHANGE_DAYS_BACK is %d days, but HISTORY_DAYS=%d "
+                 "only reaches ~%d -- the 63-day rank change cannot be reconstructed "
+                 "correctly at this configuration"
+                 % (LOOKBACK + SKIP + RANK_CHANGE_DAYS_BACK, HISTORY_DAYS, reachable))
     print("Window: %d-day lookback, %d skipped, %d names"
           % (LOOKBACK, SKIP, UNIVERSE_SIZE))
 
@@ -448,9 +487,19 @@ def main():
     axis = market_window(market_prices)                  # shared date axis
     market = align(log_returns(market_prices), axis)
     print("  axis: %d days, %s to %s" % (len(axis), axis[0], axis[-1]))
+    historical_date = historical_endpoint(market_prices, RANK_CHANGE_DAYS_BACK)
+    if historical_date:
+        print("  63D rank-change endpoint: %s" % historical_date)
+    else:
+        # Not a config error -- reachability was already checked above.
+        # A cache too young to hold RANK_CHANGE_DAYS_BACK sessions yet fixes
+        # itself as it fills in, so this is informational, not fatal.
+        print("  63D rank change unavailable: cache does not yet reach back "
+              "%d trading days" % RANK_CHANGE_DAYS_BACK)
 
     print("Updating prices for %d names..." % len(universe))
     rows, window, limited, series = [], None, None, {}
+    hist_scores = {}
     stalled = []
     for i, stock in enumerate(universe, 1):
         if offline or limited:
@@ -488,6 +537,7 @@ def main():
             "annReturn": None,
             "annVol": None,
             "maxDrawdown": None,
+            "historicalRank63d": None,   # filled in after every name is scored, below
         }
         # Extra detail for the per-stock panel in index.html.
         for field in ("score", "annReturn", "annVol", "maxDrawdown",
@@ -505,9 +555,34 @@ def main():
             series[stock["symbol"]] = [
                 None if r is None else int(round(r * RETURN_SCALE)) for r in aligned
             ]
+
+        # This name's score exactly RANK_CHANGE_DAYS_BACK trading sessions ago
+        # -- one extra snapshot, not a repeated recomputation across time.
+        # Ranked cross-sectionally once every name has one, below.
+        hist_scores[stock["symbol"]] = (
+            (score_asof(prices, historical_date) or {}).get("score")
+            if prices and historical_date else None
+        )
+
         rows.append(row)
         if result and not window:
             window = (result["windowStart"], result["windowEnd"])
+
+    # Rank the historical snapshot against today's tracked cohort, not
+    # whatever the universe looked like RANK_CHANGE_DAYS_BACK sessions ago --
+    # a name that has since dropped out of the universe contributes nothing,
+    # and one that is newly tracked is ranked on its own historical score
+    # like everyone else. This is what keeps the 63D change a comparison
+    # against a fixed cohort rather than one polluted by universe drift.
+    historical_ranks = {}
+    if historical_date:
+        by_hist_score = sorted(
+            (sym for sym, v in hist_scores.items() if v is not None),
+            key=lambda sym: -hist_scores[sym],
+        )
+        historical_ranks = {sym: i for i, sym in enumerate(by_hist_score, 1)}
+    for row in rows:
+        row["historicalRank63d"] = historical_ranks.get(row["symbol"])
 
     scored = sum(1 for r in rows if r["score"] is not None)
     report = {
@@ -520,6 +595,8 @@ def main():
         "benchmark": BENCHMARK,
         "minOverlap": MIN_OVERLAP,
         "returnScale": RETURN_SCALE,
+        "rankChangeDaysBack": RANK_CHANGE_DAYS_BACK,
+        "rankChangeDate": historical_date,
         "universe": rows,
     }
     with open(OUTPUT_FILE, "w") as fh:
