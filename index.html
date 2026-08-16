@@ -100,6 +100,13 @@
   #only-watch[aria-pressed="true"] { color: var(--fg); border-color: var(--field); }
   #only-watch:disabled { opacity: .45; cursor: default; }
   p.meta { color: var(--muted); font-size: .85rem; margin: 0 0 1.25rem; }
+  p.stale {
+    color: var(--neg);
+    font-size: .8rem;
+    font-weight: 600;
+    margin: -.75rem 0 1.25rem;
+  }
+  p.stale[hidden] { display: none; }
 
   /* Search sits above the sticky header and stays put with it. */
   .bar {
@@ -364,6 +371,7 @@
   <button id="theme" aria-label="Colour theme">auto</button>
 </header>
 <p class="meta" id="meta"></p>
+<p class="stale" id="stale" hidden></p>
 
 <div class="bar">
   <input id="search" type="search" placeholder="Search ticker or company" autocomplete="off"
@@ -973,6 +981,22 @@
         REPORT.universe.length + ' tracked') +
     ' · ' + REPORT.lookback + '-day window ending ' + REPORT.windowEnd +
     ', most recent ' + REPORT.skip + ' trading days excluded · built ' + REPORT.generated;
+
+  // The nightly rebuild stamps REPORT.generated on every successful run, even
+  // one that finds no new prices -- so its age is a reliable "is the
+  // automation still running" signal, not just a timestamp. Two days catches
+  // a missed or failing cron without flagging the normal 0-1 day drift
+  // between a healthy 06:00 UTC build and whenever this page loads.
+  var STALE_DAYS = 2;
+  var builtMs = Date.parse(REPORT.generated + 'T00:00:00Z');
+  var ageDays = Math.floor((Date.now() - builtMs) / 86400000);
+  if (ageDays >= STALE_DAYS) {
+    var stale = document.getElementById('stale');
+    stale.textContent = '⚠ Data is ' + ageDays + ' days old (last built ' +
+      REPORT.generated + ') -- the nightly rebuild may have missed a run.';
+    stale.hidden = false;
+  }
+
   document.getElementById('note').textContent =
     'Score = mean daily log return ÷ daily volatility × √252. ' +
     'Beta, alpha and R² are against ' + REPORT.benchmark + '. ' +
