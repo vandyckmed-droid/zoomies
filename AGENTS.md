@@ -17,7 +17,9 @@ review):
    live — same "session isn't done until it's on the page" bar as before.
 2. **Assess.** Review the current state and identify the single best next
    step.
-3. **Propose.** Present that next step briefly. Do not begin work yet.
+3. **Propose.** Present that next step briefly. Do not begin work yet. Spencer
+   may route the proposal through Agent 2's preliminary review (see below)
+   before responding — treat that as part of step 4, not a signal to act.
 4. **Wait.** Spencer responds one of three ways:
    - *Approved* — proceed.
    - *Skip* — do not act; propose the next-best alternative.
@@ -36,6 +38,40 @@ review):
 **Agent 2 — Reviewer.** Independently reviews the PR, the surrounding code,
 tests, and CI. Returns *Approved* or *Changes needed*. Does not edit Agent
 1's branch and does not merge. Re-reviews revisions until approved.
+
+**Agent 2 — Preliminary review (added 2026-08-16).** A separate decision
+layer, upstream of the PR review above, that runs on a *proposal*, not a
+diff. After Agent 1 proposes its next best step (step 3) but before Spencer
+responds (step 4), Spencer may optionally route the proposal to Agent 2
+first. When he does, Agent 2:
+
+- Evaluates the proposal against the product as a whole, not just the
+  proposal's own internal logic.
+- Judges whether it is genuinely the best next step available right now.
+- Weighs whether the current foundation should be preserved, refined, or
+  reconsidered — rather than assuming the proposal's framing is the only
+  frame.
+- Does not manufacture disagreement or novelty for its own sake; agreeing
+  the proposal is right is a valid, expected outcome, not a failure to add
+  value.
+- Surfaces a larger overhaul or a different direction only when it looks
+  materially better, not merely different.
+
+Returns exactly one verdict:
+- **Endorse** — the proposal is the best next step.
+- **Refine** — the direction is sound but should be adjusted before
+  approval.
+- **Rethink** — a different direction is materially stronger.
+
+Spencer then answers Agent 1 as usual — *Approved*, *Skip*, or feedback —
+per step 4. Agent 1 still does not begin implementation until that explicit
+*Approved* lands; an *Endorse* from Agent 2 is input to Spencer's decision,
+not itself authorization to act.
+
+This preliminary review is independent of Agent 2's technical PR review
+above: a proposal can be endorsed here and still come back "Changes needed"
+once the PR exists, and skipping preliminary review on any given proposal
+does not skip the PR review later.
 
 **Interim mechanics:** Agent 2 does not yet have GitHub write access, so
 Spencer copies its review findings into the PR thread and relays Agent 1's
