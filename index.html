@@ -500,9 +500,9 @@
     return x >= 1e12 ? '$' + (x / 1e12).toFixed(2) + 'T' : '$' + (x / 1e9).toFixed(0) + 'B';
   }
 
-  // The displayed slice: the largest names by market cap. Ranks come from the
-  // score, so a stock keeps its rank no matter how the table is sorted.
-  var stocks = REPORT.universe.slice(0, REPORT.displayCount);
+  // Every tracked name. Ranks come from the score, so a stock keeps its
+  // rank no matter how the table is sorted.
+  var stocks = REPORT.universe;
   stocks.slice().sort(function (a, b) {
     if (a.score === null) return 1;
     if (b.score === null) return -1;
@@ -1099,10 +1099,7 @@
   window.addEventListener('orientationchange', syncStickyOffset);
 
   document.getElementById('meta').textContent =
-    (REPORT.displayCount >= REPORT.universe.length
-      ? REPORT.universe.length + ' largest US-traded common stocks'
-      : REPORT.displayCount + ' largest US-traded common stocks of ' +
-        REPORT.universe.length + ' tracked') +
+    REPORT.universe.length + ' largest US-traded common stocks' +
     ' · ' + REPORT.lookback + '-day window ending ' + REPORT.windowEnd +
     ', most recent ' + REPORT.skip + ' trading days excluded · built ' + REPORT.generated;
 

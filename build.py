@@ -34,7 +34,6 @@ API_KEY = os.environ.get("API_KEY", "")
 # Overridable from the environment so the rebuild workflow can pass a size in
 # without editing the file -- see .github/workflows/rebuild.yml.
 UNIVERSE_SIZE = int(os.environ.get("UNIVERSE_SIZE") or 1000)   # names to track
-DISPLAY_COUNT = int(os.environ.get("DISPLAY_COUNT") or UNIVERSE_SIZE)  # names shown
 BENCHMARK = "SPY"       # market proxy for beta, alpha and R squared
 RETURN_SCALE = 1000000  # return series are stored as scaled integers
 MIN_OVERLAP = 120       # aligned days needed before a regression is meaningful
@@ -574,21 +573,10 @@ def main():
     # and one that is newly tracked is ranked on its own historical score
     # like everyone else. This is what keeps the 63D change a comparison
     # against a fixed cohort rather than one polluted by universe drift.
-    #
-    # Restricted to the *displayed* cohort (rows[:DISPLAY_COUNT]), not every
-    # tracked name: index.html's own current-rank concept -- and the
-    # cohort-restricted comparison rank it derives for the 63D change (see
-    # the README) -- is scoped to REPORT.universe.slice(0, displayCount).
-    # Ranking historicalRank63d over the full tracked universe instead would
-    # put the two ends of the comparison on different population sizes
-    # whenever DISPLAY_COUNT < UNIVERSE_SIZE, making the rank change
-    # mathematically incomparable rather than merely noisy.
-    displayed_symbols = set(r["symbol"] for r in rows[:DISPLAY_COUNT])
     historical_ranks = {}
     if historical_date:
         by_hist_score = sorted(
-            (sym for sym, v in hist_scores.items()
-             if v is not None and sym in displayed_symbols),
+            (sym for sym, v in hist_scores.items() if v is not None),
             key=lambda sym: -hist_scores[sym],
         )
         historical_ranks = {sym: i for i, sym in enumerate(by_hist_score, 1)}
@@ -602,7 +590,6 @@ def main():
         "windowEnd": window[1] if window else None,
         "lookback": LOOKBACK,
         "skip": SKIP,
-        "displayCount": DISPLAY_COUNT,
         "benchmark": BENCHMARK,
         "minOverlap": MIN_OVERLAP,
         "returnScale": RETURN_SCALE,
