@@ -573,28 +573,86 @@
     return { corr: sxy / Math.sqrt(sxx * syy), cov: (sxy / (n - 1)) / scale * 252, n: n };
   }
 
-  // The series are five times the size of everything else, so they load only
-  // when a matrix actually needs them. A script tag rather than fetch(), so
-  // this still works when index.html is opened straight off the filesystem.
-  // Callers that arrive while the script is in flight queue up. Dropping them
-  // instead would strand whichever one asked second on "loading…" forever,
-  // which the restore path reaches: renderPairs() and openDetail() both ask
-  // within a couple of frames of each other.
-  var waitingForReturns = [];
-  function haveReturns() {
-    // returns.js declares `const RETURNS`, and a top-level const is a global
-    // lexical binding, never a property of window — so test the name itself.
-    return typeof RETURNS !== 'undefined';
+  // Return series load two ways, because the two features that need them
+  // have opposite shapes of need. Both write onto this one shared object,
+  // so whichever loads first, the other still works unchanged.
+  //
+  // It has to hang off `window` explicitly, not a plain `var`: a dynamically
+  // injected <script> tag runs as an independent top-level script, outside
+  // this IIFE's closure, so a `var` here would be invisible to it -- caught
+  // by actually running this in a browser, where every shard failed with
+  // "RETURNS is not defined".
+  window.RETURNS = {};
+
+  // 1. The pair matrix needs only the starred names -- typically under ten
+  // -- so it fetches one small file per ticker from data/returns/<sym>.js.
+  // A script tag rather than fetch(), so this still works when index.html
+  // is opened straight off the filesystem. Callers that arrive while a
+  // symbol's shard is already in flight queue up rather than triggering a
+  // second fetch. Dropping them instead would strand whichever one asked
+  // second on "loading…" forever, which the restore path reaches:
+  // renderPairs() and openDetail() both ask within a couple of frames of
+  // each other.
+  var returnsCallbacks = {};
+  function haveReturnsFor(sym) {
+    return RETURNS.hasOwnProperty(sym);
   }
-  function withReturns(done) {
-    if (haveReturns()) return done(true);
-    waitingForReturns.push(done);
-    if (waitingForReturns.length > 1) return;      // load already in flight
+  function withReturnsFor(sym, done) {
+    if (haveReturnsFor(sym)) return done(true);
+    if (returnsCallbacks[sym]) { returnsCallbacks[sym].push(done); return; }
+    returnsCallbacks[sym] = [done];
+    var el = document.createElement('script');
+    // build.py's shard filenames replace "/" with "_", same as it already
+    // does for price CSVs -- match that here or a symbol containing "/"
+    // requests a URL that does not exist on disk.
+    el.src = 'data/returns/' + encodeURIComponent(sym.replace(/\//g, '_')) + '.js';
+    function finish(ok) {
+      var queued = returnsCallbacks[sym];
+      delete returnsCallbacks[sym];
+      queued.forEach(function (fn) { fn(ok); });
+    }
+    el.onload = function () { finish(true); };
+    // A 404 here is normal, not a failure: build.py only writes a shard for
+    // a name that had aligned return data, so an unscored name has none.
+    el.onerror = function () { finish(false); };
+    document.head.appendChild(el);
+  }
+  // Loads several tickers' shards in parallel and calls done() once every
+  // one has settled, success or failure -- never partially, so the caller
+  // can rely on RETURNS holding whichever of them actually loaded.
+  function withReturnsForAll(symbols, done) {
+    var missing = symbols.filter(function (s) { return !haveReturnsFor(s); });
+    if (!missing.length) return done();
+    var remaining = missing.length;
+    missing.forEach(function (s) {
+      withReturnsFor(s, function () {
+        if (--remaining === 0) done();
+      });
+    });
+  }
+
+  // 2. The correlation lists compare one stock against every other
+  // displayed name, so there is no small subset to fetch instead -- they
+  // load the one combined returns.js, once, the first time any detail panel
+  // opens. This is deliberate, not an oversight: fetching ~1,000 individual
+  // shards for this measured about 20x slower than one combined file, even
+  // over localhost with zero real network latency, because per-request
+  // overhead dominates at that count. A phone on a real connection would be
+  // worse, not better. returns.js merges onto the same RETURNS object the
+  // shards use (`Object.assign(RETURNS, {...})` -- see build.py), so after
+  // it loads once, the pair matrix above needs no further fetches either.
+  var haveBulkReturns = false;
+  var waitingForBulkReturns = [];
+  function withBulkReturns(done) {
+    if (haveBulkReturns) return done(true);
+    waitingForBulkReturns.push(done);
+    if (waitingForBulkReturns.length > 1) return;      // load already in flight
     var el = document.createElement('script');
     el.src = 'returns.js';
     function finish(ok) {
-      var queued = waitingForReturns;
-      waitingForReturns = [];
+      haveBulkReturns = ok;
+      var queued = waitingForBulkReturns;
+      waitingForBulkReturns = [];
       queued.forEach(function (fn) { fn(ok); });
     }
     el.onload = function () { finish(true); };
@@ -619,13 +677,17 @@
     }
     section.hidden = false;
 
-    if (!haveReturns()) {
+    var symbols = picked.map(function (s) { return s.symbol; });
+    if (symbols.some(function (s) { return !haveReturnsFor(s); })) {
       document.getElementById('matrix').innerHTML = '';
       document.getElementById('pairs-note').textContent = 'Loading return series…';
-      withReturns(function (ok) {
-        if (ok) renderPairs();
-        else document.getElementById('pairs-note').textContent =
-          'Could not load returns.js, so pair statistics are unavailable.';
+      withReturnsForAll(symbols, function () {
+        if (symbols.every(function (s) { return haveReturnsFor(s); })) {
+          renderPairs();
+        } else {
+          document.getElementById('pairs-note').textContent =
+            'Could not load one or more return series, so pair statistics are unavailable.';
+        }
       });
       return;
     }
@@ -732,12 +794,14 @@
   }
 
   // The five names this stock moves with most, and the five it moves with
-  // least. Computed against every tracked name, not just the visible ones.
+  // least. Computed against every displayed name, not just the visible ones
+  // in the current filter -- so it needs the bulk-loaded returns.js, not
+  // the per-ticker shards. See the note above withBulkReturns for why.
   function renderCorrelations(symbol) {
     var box = document.getElementById('ov-corr');
-    if (!haveReturns()) {
+    if (!haveBulkReturns) {
       box.innerHTML = '<h3>Correlations</h3><div class="crow">loading…</div>';
-      withReturns(function (ok) {
+      withBulkReturns(function (ok) {
         if (view.open === symbol) {
           if (ok) renderCorrelations(symbol);
           else box.innerHTML = '<h3>Correlations</h3><div class="crow">unavailable</div>';
@@ -747,7 +811,10 @@
     }
     var mine = RETURNS[symbol];
     if (!mine) { box.innerHTML = ''; return; }
+    finishCorrelations(symbol, mine, box);
+  }
 
+  function finishCorrelations(symbol, mine, box) {
     var scored = [];
     stocks.forEach(function (other) {
       if (other.symbol === symbol || !RETURNS[other.symbol]) return;

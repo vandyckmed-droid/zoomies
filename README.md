@@ -59,7 +59,8 @@ they are instant and client-side.
 | `data/prices/*.csv` | Cached daily adjusted closes, ~2 years per ticker.          |
 | `data/prices/SPY.csv`| The benchmark series for beta, alpha and R².                |
 | `scores.js`         | Generated table data, loaded by `index.html`.               |
-| `returns.js`        | Generated return series, loaded only for pair statistics.   |
+| `data/returns/*.js` | One return series per ticker, fetched only for starred names — the pair matrix. |
+| `returns.js`        | All return series in one file, loaded once for the correlation lists. |
 | `index.html`        | The ranking table.                                          |
 
 ## Universe
@@ -114,13 +115,23 @@ The detail panel also lists the five names a stock is most correlated with and
 the five it is least correlated with, ranked across every tracked name.
 
 Starring names adds them to a watchlist, which drives a pair matrix below the
-table showing correlation or annualized covariance of daily log returns. The
-matrix is computed in the browser from the aligned return series in
-`returns.js`, so any combination works without a rebuild.
+table showing correlation or annualized covariance of daily log returns.
 
-That file is five times the size of everything else, so `index.html` requests
-it only when a matrix first needs it — the initial load is `scores.js` alone.
-The series are stored as integers scaled by 1e6 to keep the file small;
+Return series load two different ways, because the two features that need
+them have opposite shapes of need. The pair matrix only ever needs the
+starred names — typically under ten — so `index.html` fetches one small file
+per ticker from `data/returns/<symbol>.js` on demand, and starring two names
+downloads only those two files. The correlation lists compare one stock
+against every other displayed name, so there is no small subset to fetch
+instead; they load the single combined `returns.js` once, the first time any
+detail panel opens. That was tried the sharded way too — fetching ~1,000
+individual files for this measured about 20x slower than one combined file,
+even with zero real network latency, so it stayed bulk-loaded deliberately,
+not by oversight. Both loaders write onto the same in-memory table, so
+whichever runs first, the other needs no further fetches — opening a detail
+panel once effectively pre-loads the pair matrix for the rest of the session.
+
+Series are stored as integers scaled by 1e6 to keep both formats small;
 correlation is unaffected by the scaling and covariance divides it back out.
 
 ## Filtering

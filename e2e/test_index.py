@@ -81,9 +81,12 @@ class BrowserTest(unittest.TestCase):
     def test_restore_path_resolves_the_correlation_panel(self):
         """The dropped-callback race, which shipped once.
 
-        renderPairs() and openDetail() both ask for returns.js within a couple
-        of frames of a reload. If the second caller's callback is dropped, the
-        panel sits on "loading..." forever with no error shown.
+        renderPairs() (per-ticker shards) and openDetail() -> renderCorrelations()
+        (bulk returns.js) both ask for their return data within a couple of
+        frames of a reload -- two independent loaders now, not one, so this is
+        also the regression test for the hybrid design not reintroducing the
+        original bug in a new shape. If either caller's callback is dropped,
+        its panel sits on "loading..." forever with no error shown.
         """
         page = self.page()
         page.click('.star[data-star="%s"]' % self.report["universe"][0]["symbol"])
@@ -95,13 +98,64 @@ class BrowserTest(unittest.TestCase):
         page.reload()
         page.wait_for_selector("#rows tr")
         page.wait_for_selector("#overlay:not([hidden])", timeout=10000)
-        page.wait_for_timeout(2000)          # returns.js is ~700 KB
+        page.wait_for_timeout(1000)          # returns.js is ~1.4 MB
 
         corr = page.inner_text("#ov-corr")
         self.assertNotIn("loading", corr.lower(), "correlation panel never resolved")
         note = page.inner_text("#pairs-note")
         self.assertNotIn("Loading", note, "pair matrix never resolved")
         self.assertGreater(page.eval_on_selector_all("#matrix td", "e => e.length"), 0)
+        self.assertEqual(page.errors, [])
+
+    def test_pair_matrix_fetches_only_starred_shards(self):
+        """The whole point of sharding: starring 2 names should not download
+        the other 998+ tracked series, only theirs. This is the regression
+        guard for that specific claim -- catches a future change that
+        accidentally widens the fetch back out (e.g. reverting to a bulk
+        load, or fetching more than what is starred).
+        """
+        page = self.page()
+        requests = []
+        page.on("request", lambda req: requests.append(req.url)
+                if "/data/returns/" in req.url or req.url.endswith("returns.js") else None)
+
+        a, b = self.report["universe"][0]["symbol"], self.report["universe"][1]["symbol"]
+        page.click('.star[data-star="%s"]' % a)
+        page.click('.star[data-star="%s"]' % b)
+        page.wait_for_function(
+            "!document.getElementById('pairs-note').textContent.includes('Loading')",
+            timeout=10000)
+
+        self.assertEqual(len(requests), 2,
+                          "starring 2 names should fetch exactly 2 shards, not %r" % requests)
+        fetched = set(u.rsplit("/", 1)[-1] for u in requests)
+        self.assertEqual(fetched, {a + ".js", b + ".js"})
+        self.assertEqual(page.eval_on_selector_all("#matrix td", "e => e.length"), 4)
+        self.assertEqual(page.errors, [])
+
+    def test_bulk_load_warms_the_pair_matrix_for_free(self):
+        """returns.js and the shards merge onto the same RETURNS object, so
+        once a detail panel has bulk-loaded it, starring names afterward
+        should need zero further requests -- the two loaders are meant to
+        share data, not duplicate it.
+        """
+        page = self.page()
+        page.click("#rows tr:first-child td.ticker")
+        page.wait_for_selector("#overlay:not([hidden])")
+        page.wait_for_function(
+            "!document.getElementById('ov-corr').innerText.toLowerCase().includes('loading')",
+            timeout=15000)
+        page.click("#ov-close")
+
+        requests = []
+        page.on("request", lambda req: requests.append(req.url)
+                if "/data/returns/" in req.url or req.url.endswith("returns.js") else None)
+        page.click('.star[data-star="%s"]' % self.report["universe"][0]["symbol"])
+        page.click('.star[data-star="%s"]' % self.report["universe"][1]["symbol"])
+        page.wait_for_timeout(300)
+
+        self.assertEqual(requests, [], "starring after a bulk load should fetch nothing new")
+        self.assertEqual(page.eval_on_selector_all("#matrix td", "e => e.length"), 4)
         self.assertEqual(page.errors, [])
 
     def test_filters_round_trip_and_clear(self):
