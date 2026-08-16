@@ -142,6 +142,13 @@ def build_universe():
             "name": r["companyName"],
             "marketCap": r["marketCap"],
             "exchange": r["exchangeShortName"],
+            # Already in the screener response, at no extra request cost --
+            # unlike everything else in this file, this is read but never
+            # scored on; it only ever drives the client-side sector filter.
+            # .get(), not [...]: don't let a row FMP happens not to tag with
+            # a sector take down the whole universe build over one field
+            # nothing here depends on.
+            "sector": r.get("sector") or None,
         }
         for r in kept[:UNIVERSE_SIZE]
     ]
@@ -472,6 +479,7 @@ def main():
             "symbol": stock["symbol"],
             "name": stock["name"],
             "exchange": stock["exchange"],
+            "sector": stock.get("sector"),
             "marketCap": stock["marketCap"],
             "lastClose": prices[max(prices)] if prices else None,
             "lastDate": max(prices) if prices else None,
