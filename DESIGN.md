@@ -8,7 +8,7 @@ These principles guide decisions without prescribing the current UI. Tables, car
 
 - **Phone-first.** The default experience is optimized for mobile devices. Desktop is an enhancement.
 - **Minimal, dense, sharp, calm, legible.** Every element serves a purpose. UI chrome is subordinate to information. The interface is precise and assertive without being aggressive.
-- **Ranking is the primary product.** All other presentations are secondary.
+- **Ranking is the primary product.** Tables, cards, and other views are presentation mechanisms that serve the ranking and may coexist or evolve.
 - **Ticker is identity.** The ticker symbol is the primary identifier and visual anchor.
 - **Core hierarchy: Return + volatility → score → rank.** This is the product's mathematical heart.
 - **Primary information dominates; chrome stays subordinate.** Navigation and decoration are minimized.

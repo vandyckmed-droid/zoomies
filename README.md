@@ -79,7 +79,7 @@ The detail panel shows each name's rank, how that rank has moved over the last 6
 
 **63-day rank change** uses data from 63 trading sessions ago: `build.py` reconstructs what every name's score *would have been* from the cached price series using the exact same `score()` maths as the live number. Ranking is against **today's tracked cohort** — every name in `REPORT.universe` — not whatever the universe looked like 63 sessions ago. The detail panel shows this as a compact line: `Rank #5 (+3 in 3m)`. Positive means the name's rank improved (a lower rank number) over the window; negative means it got worse.
 
-Both percentiles and 63D rank change are **detail-panel-only** — neither has a main-table column. The primary scanning interface is the ranked table itself.
+Both percentiles and 63D rank change are **detail-panel-only** — neither has a main-table column.
 
 ## Filtering
 
