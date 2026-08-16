@@ -35,6 +35,20 @@ review):
 9. **Continue.** Confirm the result is live, then return to step 2 (Assess)
    and propose the next best step.
 
+**User-directed work (added 2026-08-16).** Steps 2–4 above are the default
+path — Agent 1 proposes, Spencer answers — but not the only valid one.
+Spencer may instead directly define or select the next feature himself,
+skipping Agent 1's proposal entirely. When he does this explicitly — stating
+the feature outright rather than reacting to a proposal Agent 1 made — that
+instruction is itself the authorization to proceed straight to step 5
+(Act), the same as an *Approved* would be. Agent 1 does not need to
+re-propose the feature back to him for confirmation first. Everything after
+that point is unchanged: normal engineering judgment, testing, the draft-PR
+workflow, and Agent 2's review (both layers, preliminary if Spencer routes
+it there and the technical PR review always) all still apply — this path
+only replaces *how the task gets chosen*, not how it gets built, reviewed,
+or merged.
+
 **Agent 2 — Reviewer.** Independently reviews the PR, the surrounding code,
 tests, and CI. Returns *Approved* or *Changes needed*. Does not edit Agent
 1's branch and does not merge. Re-reviews revisions until approved.
