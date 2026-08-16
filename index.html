@@ -646,7 +646,12 @@
     var body = picked.map(function (row) {
       return '<tr><th class="rowhead">' + esc(row.symbol) + '</th>' + picked.map(function (col) {
         if (row === col) {
-          return '<td class="self">' + (cov ? (row.annVol * row.annVol).toFixed(3) : '1.00') + '</td>';
+          // row.annVol is null for a name with no score, and null * null is
+          // 0 in JS -- rendering a confident "0.000" variance for a stock
+          // that actually has no data. Same null-coerces-to-0 shape as the
+          // filter-leak bug, just here instead of in a comparison.
+          var variance = row.annVol === null ? '—' : (row.annVol * row.annVol).toFixed(3);
+          return '<td class="self">' + (cov ? variance : '1.00') + '</td>';
         }
         var st = pairStats(RETURNS[row.symbol], RETURNS[col.symbol]);
         if (!st) return '<td class="self">—</td>';
