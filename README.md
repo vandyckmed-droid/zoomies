@@ -2,18 +2,7 @@
 
 A 12–1 momentum ranking of the largest US-traded common stocks.
 
-This repo doubles as the cache: the downloaded price history lives in `data/`,
-so later sessions only fetch the trading days they are missing. A rerun that is
-already up to date makes no API calls at all and rewrites no files.
-
-Rebuilding all 1,000 names from scratch takes a few minutes; after that, a
-rerun that finds no new prices takes a little over a second — one extra
-historical score snapshot per name (see "Percentiles and rank change" below)
-adds roughly 30% versus computing only the live score, measured at 1.44s
-before that feature existed and 1.87s after, both `--offline` on 1,000
-names. If the API plan's quota runs out mid-build, the run keeps going from
-cache and says how many names are still missing — rerun later and it picks
-up where it stopped.
+This repo doubles as the cache: the downloaded price history lives in `data/`, so later sessions only fetch the trading days they are missing. A rerun that is already up to date makes no API calls at all and rewrites no files. Rebuilding all 1,000 names from scratch takes a few minutes; after that, a rerun that finds no new prices takes a little over a second.
 
 ## Run
 
@@ -21,45 +10,21 @@ up where it stopped.
 API_KEY=<financialmodelingprep key> python3 build.py
 ```
 
-Then open `index.html` in a browser. No server, no dependencies — `build.py` uses
-only the Python standard library.
+Then open `index.html` in a browser. No server, no dependencies — `build.py` uses only the Python standard library.
 
-Pass `--refresh-universe` to rebuild the stock list immediately; otherwise it is
-refreshed automatically once a week.
-
-`python3 build.py --offline` recomputes everything from the committed cache with
-no key and no requests — the right thing to run after changing the maths, since
-it makes the result reproducible by anyone without an API key.
+Pass `--refresh-universe` to rebuild the stock list immediately; otherwise it is refreshed automatically once a week. `python3 build.py --offline` recomputes everything from the committed cache with no key and no requests — the right thing to run after changing the maths.
 
 ## Keeping data fresh
 
-`.github/workflows/rebuild.yml` refreshes prices **automatically every night**
-at 06:00 UTC — well after US market close and end-of-day settlement — so the
-ranking never goes stale from nobody remembering to update it. A run that
-finds nothing new (a weekend, a holiday) is a harmless no-op. The nightly
-schedule refreshes prices only; the stock list itself changes on `build.py`'s
-own weekly staleness check, not every night, so the tracked names don't drift
-day to day without an actual rebalance behind it.
+`.github/workflows/rebuild.yml` refreshes prices **automatically every night** at 06:00 UTC — well after US market close — so the ranking never goes stale. The nightly schedule refreshes prices only; the stock list itself changes on `build.py`'s own weekly staleness check, not every night, so the tracked names don't drift day to day without an actual rebalance.
 
-If the automation itself stops running — a failing cron, a lapsed API key —
-nothing else would tell you short of noticing the numbers look wrong. The
-page checks the age of `scores.js`'s `generated` date on load and shows a
-visible warning once it is 2+ days old, since a healthy nightly build never
-gets older than about a day between a 06:00 UTC run and whenever the page is
-opened.
+The page checks the age of `scores.js`'s `generated` date on load and shows a visible warning once it is 2+ days old, since a healthy nightly build never gets older than about a day between a 06:00 UTC run and whenever the page is opened.
 
 ### Rebuilding from a phone, on demand
 
-For anything the nightly schedule doesn't cover — a bigger universe, a
-different scoring window, a new factor — **Actions > Rebuild data > Run
-workflow** does it instead: universe size, lookback and skip are inputs on
-the form, the key comes from the `API_KEY` repository secret, and the
-regenerated files are committed so Pages redeploys. No laptop, and the key
-never reaches the client.
+For anything the nightly schedule doesn't cover — a bigger universe, a different scoring window — **Actions > Rebuild data > Run workflow** does it instead: universe size, lookback and skip are inputs on the form, the key comes from the `API_KEY` repository secret, and the regenerated files are committed so Pages redeploys.
 
-Filters that only threshold on data already in `scores.js` — score, return,
-volatility, drawdown, market cap, beta, alpha, R² — need no rebuild at all;
-they are instant and client-side.
+Filters that only threshold on data already in `scores.js` — score, return, volatility, drawdown, market cap, beta, alpha, R² — are instant and client-side; they need no rebuild at all.
 
 ## Files
 
@@ -71,50 +36,18 @@ they are instant and client-side.
 | `data/prices/SPY.csv`| The benchmark series for beta, alpha and R².                |
 | `scores.js`         | Generated table data, loaded by `index.html`.               |
 | `data/returns/*.js` | One return series per ticker, fetched only for starred names — the pair matrix. |
-| `returns.js`        | All return series in one file, loaded once for the correlation lists. |
+| `returns.js`        | All return series in one file, for the correlation lists.   |
 | `index.html`        | The ranking table.                                          |
 
 ## Universe
 
-The 1,000 largest US-traded common stocks by market cap, from the FMP screener:
+The 1,000 largest US-traded common stocks by market cap, from the FMP screener. ETFs, funds, preferreds, warrants, rights and units are excluded. Only NASDAQ / NYSE / AMEX lines are kept, so foreign cross-listings of the same company drop out. Duplicate share classes are collapsed to the most heavily traded line. US-listed ADRs are included.
 
-- ETFs, funds, preferreds, warrants, rights and units are excluded.
-- Only NASDAQ / NYSE / AMEX lines are kept, so foreign cross-listings of the same
-  company (e.g. `MU.TO`) drop out.
-- Duplicate share classes are collapsed to the most heavily traded line, so
-  `GOOGL` is kept over `GOOG` and `BRK-B` over `BRK-A`.
+`UNIVERSE_SIZE` in `build.py` controls how many are tracked and cached; it reads an environment variable of the same name first, which is how the rebuild workflow passes a size in.
 
-US-listed ADRs (`TSM`, `ASML`, `ARM`, …) are included — they are US-traded common
-equity.
+Sorting or filtering re-renders the whole table, so its cost scales with the number of rows shown. Measured in headless Chromium at a 375px viewport under 4x CPU throttling, a sort takes about 380ms at 500 names and 880ms at 1,000.
 
-`index.html` shows every tracked name. `UNIVERSE_SIZE` in `build.py` controls
-how many are tracked and cached, and reads an environment variable of the same
-name first, which is how the rebuild workflow passes a size in without editing
-the file.
-
-An earlier version let `index.html` show fewer names than `build.py` tracked
-(`DISPLAY_COUNT`), separately from `UNIVERSE_SIZE`. Removed after a
-verification pass found it was never reachable through any real path — not
-the nightly cron, not the on-demand rebuild workflow's inputs, only a raw
-environment variable from a terminal, which this project's whole phone-only
-design exists to avoid needing. The 63-day rank change's cohort logic (see
-below) would otherwise have had to stay reconciled against a configuration
-nothing ever actually set.
-
-Sorting or filtering re-renders the whole table, so its cost scales with the
-number of rows shown. Measured in headless Chromium at a 375px viewport under
-4x CPU throttling — a rough stand-in for a mid-range phone — a sort takes about
-380ms at 500 names and 880ms at 1,000. Past roughly 1,500 it becomes the
-limiting factor, ahead of download size.
-
-Ticker symbols are bolder than the rest of the row (weight 700 vs. the row's
-default), and row padding runs about 9% tighter than it used to, both purely
-cosmetic — the eye anchors on the ticker when scanning a long list quickly,
-and the extra density fits more names above the fold without shrinking text.
-The padding reduction does shrink the row's own tap target slightly, but
-not below comfortable: it stays well above the 44px accessible minimum at
-every phone width (measured, not assumed — see
-`test_row_tap_target_stays_accessible_at_phone_width` in `e2e/`).
+Ticker symbols are bolder than the rest of the row (weight 700 vs. the row's default), and row padding runs about 9% tighter than it used to, both purely cosmetic — the eye anchors on the ticker when scanning a long list quickly. The padding reduction keeps row tap targets well above the 44px accessible minimum at every phone width.
 
 ## Score
 
@@ -130,173 +63,36 @@ Annualized return      = mean × 252
 Annualized volatility  = stdev × √252
 ```
 
-Ranked highest score first. A stock listed too recently to fill the window
-(273 trading days) is shown without a score rather than ranked on partial data
-— 8 names in the last build.
+Ranked highest score first. A stock listed too recently to fill the window (273 trading days) is shown without a score rather than ranked on partial data.
 
 ## Market statistics
 
-Each stock is regressed on `SPY` over the same 12–1 window, on the benchmark's
-trading calendar, giving beta, annualized alpha (no risk-free adjustment) and R².
-A name needs 120 overlapping days before a regression is reported.
+Each stock is regressed on `SPY` over the same 12–1 window, giving beta, annualized alpha (no risk-free adjustment) and R². A name needs 120 overlapping days before a regression is reported. The detail panel also lists the five names a stock is most correlated with and the five it is least correlated with, ranked across every tracked name.
 
-The detail panel also lists the five names a stock is most correlated with and
-the five it is least correlated with, ranked across every tracked name.
-
-Starring names adds them to a watchlist, which drives a pair matrix below the
-table showing correlation or annualized covariance of daily log returns.
-
-Return series load two different ways, because the two features that need
-them have opposite shapes of need. The pair matrix only ever needs the
-starred names — typically under ten — so `index.html` fetches one small file
-per ticker from `data/returns/<symbol>.js` on demand, and starring two names
-downloads only those two files. The correlation lists compare one stock
-against every other displayed name, so there is no small subset to fetch
-instead; they load the single combined `returns.js` once, the first time any
-detail panel opens. That was tried the sharded way too — fetching ~1,000
-individual files for this measured about 20x slower than one combined file,
-even with zero real network latency, so it stayed bulk-loaded deliberately,
-not by oversight. Both loaders write onto the same in-memory table, so the
-benefit runs one direction: once `returns.js` has loaded — opening any detail
-panel — every ticker's series is already present, and the pair matrix needs
-no further fetches for the rest of the session. It does not run the other
-way — starring names first loads only those tickers' shards, which is not
-enough for the correlation lists, so opening a detail panel afterward still
-triggers the bulk load.
-
-Series are stored as integers scaled by 1e6 to keep both formats small;
-correlation is unaffected by the scaling and covariance divides it back out.
+Starring names adds them to a watchlist, which drives a pair matrix below the table showing correlation or annualized covariance of daily log returns.
 
 ## Percentiles and rank change
 
-The detail panel shows each name's rank, how that rank has moved over the
-last 63 trading sessions, and where it sits percentile-wise against the
-rest of the universe on four metrics.
+The detail panel shows each name's rank, how that rank has moved over the last 63 trading sessions, and where it sits percentile-wise against the rest of the universe on four metrics (score, annualized return, annualized volatility, max drawdown).
 
-**Percentiles** (score, annualized return, annualized volatility, max
-drawdown) are computed entirely client-side from fields already in
-`scores.js` — no extra build.py work or payload for this half of the
-feature. Percentile is the tie-aware fraction of the current scored
-universe at or below a name's value on that metric (0–100; ties share the
-average rank). Direction is **not** normalized to mean "higher is always
-better" — it follows each metric's own stored value, and every label says
-so explicitly rather than relying on a remembered convention:
+**Percentiles** are computed entirely client-side from fields already in `scores.js` — no extra build.py work or payload. Percentile is the tie-aware fraction of the current scored universe at or below a name's value on that metric (0–100).
 
-- Score / return: higher percentile = **stronger**.
-- Volatility: higher percentile = **more volatile** (not "stronger" — a
-  high number here is the riskier end, on purpose).
-- Max drawdown: higher percentile = **shallower** (drawdown is stored
-  negative, so a value close to zero — the least damage — sits at the top
-  of the percentile range).
+**63-day rank change** uses data from 63 trading sessions ago: `build.py` reconstructs what every name's score *would have been* from the cached price series using the exact same `score()` maths as the live number. Ranking is against **today's tracked cohort** — every name in `REPORT.universe` — not whatever the universe looked like 63 sessions ago. The detail panel shows this as a compact line: `Rank #5 (+3 in 3m)`. Positive means the name's rank improved (a lower rank number) over the window; negative means it got worse.
 
-**63-day rank change** needs data percentiles don't: what every name's
-score *would have been* 63 trading sessions ago. `build.py` reconstructs
-that from the already-cached price series — no extra API calls — using the
-exact same `score()` maths as the live number, just on a copy of each
-name's prices trimmed to that one earlier date (`score_asof`). That date
-itself is the benchmark's own calendar, 63 sessions back from its most
-recent bar (`historical_endpoint`), so every name is compared at the same
-market-date endpoint rather than each one's own last-traded day — that is
-what keeps the comparison fair when a stock's data has a gap.
-
-Ranking is against **today's tracked cohort** — every name in
-`REPORT.universe` — not whatever the universe looked like 63 sessions ago:
-a name that has since fallen out of the universe contributes nothing to
-the historical ranking, and a newly tracked name is ranked on its own
-historical score alongside everyone currently tracked.
-
-```
-63D rank change = historical rank − current rank
-```
-
-Both ranks here are **restricted to the same comparable cohort — every
-name with both a valid score today and a valid score 63 sessions ago** —
-not `historical rank − s.rank` (the name's ordinary, unrestricted current
-rank). The restriction has to hold in both directions:
-
-- A recently-listed name has *today's* score but no 63-session-old one. If
-  it still occupied a rank slot on the "current" side, every other name's
-  apparent current rank would shift by one purely because that new name
-  exists, not because anything about their own momentum changed.
-- Symmetrically, a name that dropped out of scoring since then (a stale
-  fetch, a data gap) has a 63-session-old score but no current one. If it
-  still occupied a rank slot on the "historical" side, it would shift
-  every other name's *historical* rank number the same way, from the
-  opposite direction.
-
-`build.py`'s `rank_by_score()` ranks strictly within a given cohort — never
-handing out a rank to a name outside it — and `historicalRank63d` is built
-by intersecting names with a valid historical score against names with a
-valid current score before ranking. `index.html` mirrors this with its own
-cohort-restricted current rank (`currentRankFor63d`), computed over exactly
-the same set of names that have a `historicalRank63d`; only that rank feeds
-the subtraction above. The ordinary `Rank` shown elsewhere in the detail
-panel is unaffected — this restriction exists only for the 63D comparison's
-own fairness, not for how rank is displayed generally. `rank_by_score()`'s
-cohort-exclusion behavior has a direct unit test in `tests/test_build.py`,
-independent of the browser suite.
-
-The detail panel shows this as a single compact line rather than three
-separate stats: `Rank #5 (+3 in 3m)`. `3m` is a concise, approximate label
-for the underlying 63-trading-session calculation — not a literal three
-calendar months, and not something the 63 in the maths ever changes to
-match; the number next to it already states the change precisely, so the
-label only needs to be readable at a glance. Positive is green, negative
-is red, and exactly zero is muted rather than colored either way. When
-there is no valid 63-session comparison, the parenthetical is omitted
-outright, not replaced with a placeholder — `Rank #94` alone.
-
-Positive means the name's rank improved (a lower rank number) over the
-window; negative means it got worse: historical rank `412`, current
-(comparable) rank `73` → `+339`. A name too newly qualified to have had a
-valid score 63 sessions back — or, in principle, one where the price cache
-itself does not yet reach back that far — gets no historical rank and no
-rank change, *for either side of the comparison*: it is excluded from the
-cohort entirely, not just left with a null `historicalRank63d`. The detail
-panel reflects this by omitting the parenthetical rather than showing a
-blank or a misleading zero, regardless of how highly that name currently
-ranks overall. `build.py` checks at startup whether `HISTORY_DAYS` can even reach
-`LOOKBACK + SKIP + 63` days back and refuses to run rather than silently
-shipping a rank change nobody should trust if not — at the shipped
-defaults (252 + 21 + 63 = 336 against ~521 reachable trading days) this has
-a wide margin and should not come up in practice.
-
-This one extra historical snapshot per name — not a repeated
-recomputation across many dates — is what keeps the cost small: about
-+30% on an otherwise-instant `--offline` rerun (1.44s → 1.87s measured on
-1,000 names) and about 29 KB added to `scores.js` (728 KB → 757 KB, one
-nullable integer per row). Percentiles cost nothing extra either way, since
-they are derived client-side from data already shipped.
-
-Both percentiles and 63D rank change are **detail-panel-only** — neither
-has a main-table column or a dedicated sort control. An earlier version
-added both a `63D` table column and an always-visible sort button so
-biggest-climber/decliner discovery worked at every screen width. Removed:
-the extra chrome competed with the ranked table itself, the primary
-scanning interface, for information that reads more naturally once you're
-already looking at one ticker. The underlying calculation, cohort logic
-and payload are unchanged — only how the number is surfaced.
+Both percentiles and 63D rank change are **detail-panel-only** — neither has a main-table column.
 
 ## Filtering
 
-Filters sit above the table: a minimum score, a maximum annualized
-volatility, a maximum drawdown, a sector, and watchlist-only. They combine
-with the search box, and a clear link appears whenever any of them is
-active. Columns sort on rank, ticker, score, return, volatility and market
-cap.
+Filters sit above the table: a minimum score, a maximum annualized volatility, a maximum drawdown, a sector, and watchlist-only. Columns sort on rank, ticker, score, return, volatility and market cap.
 
-Sector comes straight from the FMP screener response used to build the
-universe, at no extra request cost, and is otherwise unused by the scoring
-math — it only drives this filter and a line in the detail panel. The
-options list is whatever sectors are actually present in the current
-universe, so it changes as the tracked names change. A name FMP does not
-tag with a sector has none to filter by and is simply excluded from every
-sector option, the same way an unscored name is excluded from the score and
-volatility filters.
+Sector comes straight from the FMP screener response at no extra request cost, and is otherwise unused by the scoring math. The options list is whatever sectors are actually present in the current universe, so it changes as the tracked names change.
 
 ## State
 
-The page remembers sort, search, scroll position, the open ticker, the theme,
-the watchlist, the filters and the pair mode in localStorage, so reopening it lands exactly
-where you left off. The theme button cycles auto (follow the device) →
-light → dark.
+The page remembers sort, search, scroll position, the open ticker, the theme, the watchlist, the filters and the pair mode in localStorage, so reopening it lands exactly where you left off. The theme button cycles auto (follow the device) → light → dark.
+
+---
+
+See [AGENTS.md](AGENTS.md) for the working agreement and collaboration workflow.
+
+See [DESIGN.md](DESIGN.md) for durable design principles.
