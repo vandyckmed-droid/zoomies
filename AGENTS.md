@@ -64,9 +64,16 @@ Returns exactly one verdict:
 - **Rethink** — a different direction is materially stronger.
 
 Spencer then answers Agent 1 as usual — *Approved*, *Skip*, or feedback —
-per step 4. Agent 1 still does not begin implementation until that explicit
-*Approved* lands; an *Endorse* from Agent 2 is input to Spencer's decision,
-not itself authorization to act.
+per step 4.
+
+**Addendum (2026-08-16):** when Spencer's answer *is* Agent 2's preliminary
+verdict copy-pasted through — an *Endorse*, or a positive verdict he
+describes as "approved" — that relay is itself his authorization to act. It
+does not need a separate confirming *Approved* message, and Agent 1 should
+not stop to ask for one. This does not apply to *Refine* or *Rethink*:
+neither is an authorization signal, so Agent 1 revises the proposal per
+that feedback and re-proposes, still waiting on Spencer's own answer to the
+revised version.
 
 This preliminary review is independent of Agent 2's technical PR review
 above: a proposal can be endorsed here and still come back "Changes needed"
@@ -83,9 +90,11 @@ respond to it exactly as step 7 describes.
 - One task per PR.
 - Never push feature work directly to `main` — every change goes through a
   branch and a PR, no exception for "it's small."
-- Only Spencer's explicit *Approved* authorizes starting a proposed task.
-  Silence, a question, or a "sounds good" that isn't literally approval is
-  not authorization to act — ask if genuinely unclear rather than assume.
+- Only Spencer's explicit *Approved* authorizes starting a proposed task —
+  or, per the addendum above, his relay of a positive Agent 2 preliminary
+  verdict. Silence, a question, or a "sounds good" that isn't literally one
+  of those is not authorization to act — ask if genuinely unclear rather
+  than assume.
 
 **What still carries over from the solo model below:** the discretion
 boundary for what needs escalation vs. what Agent 1 decides alone; the known
