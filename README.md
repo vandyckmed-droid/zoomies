@@ -27,14 +27,24 @@ refreshed automatically once a week.
 no key and no requests — the right thing to run after changing the maths, since
 it makes the result reproducible by anyone without an API key.
 
-## Rebuilding from a phone
+## Keeping data fresh
 
-The FMP key only exists server-side, so anything needing fresh data — a bigger
-universe, a different scoring window, new factors — cannot be done in the
-browser. **Actions > Rebuild data > Run workflow** does it instead: universe
-size, lookback and skip are inputs on the form, the key comes from the
-`API_KEY` repository secret, and the regenerated files are committed so Pages
-redeploys. No laptop, and the key never reaches the client.
+`.github/workflows/rebuild.yml` refreshes prices **automatically every night**
+at 06:00 UTC — well after US market close and end-of-day settlement — so the
+ranking never goes stale from nobody remembering to update it. A run that
+finds nothing new (a weekend, a holiday) is a harmless no-op. The nightly
+schedule refreshes prices only; the stock list itself changes on `build.py`'s
+own weekly staleness check, not every night, so the tracked names don't drift
+day to day without an actual rebalance behind it.
+
+### Rebuilding from a phone, on demand
+
+For anything the nightly schedule doesn't cover — a bigger universe, a
+different scoring window, a new factor — **Actions > Rebuild data > Run
+workflow** does it instead: universe size, lookback and skip are inputs on
+the form, the key comes from the `API_KEY` repository secret, and the
+regenerated files are committed so Pages redeploys. No laptop, and the key
+never reaches the client.
 
 Filters that only threshold on data already in `scores.js` — score, return,
 volatility, drawdown, market cap, beta, alpha, R² — need no rebuild at all;
