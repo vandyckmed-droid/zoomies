@@ -34,7 +34,6 @@ API_KEY = os.environ.get("API_KEY", "")
 # Overridable from the environment so the rebuild workflow can pass a size in
 # without editing the file -- see .github/workflows/rebuild.yml.
 UNIVERSE_SIZE = int(os.environ.get("UNIVERSE_SIZE") or 1000)   # names to track
-DISPLAY_COUNT = int(os.environ.get("DISPLAY_COUNT") or UNIVERSE_SIZE)  # names shown
 BENCHMARK = "SPY"       # market proxy for beta, alpha and R squared
 RETURN_SCALE = 1000000  # return series are stored as scaled integers
 MIN_OVERLAP = 120       # aligned days needed before a regression is meaningful
@@ -351,6 +350,22 @@ def score_asof(prices, asof):
     return score({d: p for d, p in prices.items() if d <= asof})
 
 
+def rank_by_score(scores, cohort=None):
+    """1-based rank by descending score, among names that have one.
+
+    Restricted to `cohort` when given -- a name whose score is present but
+    who isn't in the cohort gets no rank at all, not just a low one. This is
+    the one place a rank-change comparison's population is decided, so it is
+    factored out and unit-tested directly (see tests/test_build.py) rather
+    than trusted to a full build.py run: reconstructing a realistic price
+    cache just to exercise this logic would be slower and far more fragile
+    than the maths it is actually guarding.
+    """
+    pool = scores if cohort is None else {s: v for s, v in scores.items() if s in cohort}
+    ranked = sorted((s for s, v in pool.items() if v is not None), key=lambda s: -pool[s])
+    return {s: i for i, s in enumerate(ranked, 1)}
+
+
 def historical_endpoint(market_prices, days_back):
     """The trading date `days_back` sessions before the most recent one, from
     the benchmark's own calendar -- so every stock's historical snapshot is
@@ -575,23 +590,17 @@ def main():
     # like everyone else. This is what keeps the 63D change a comparison
     # against a fixed cohort rather than one polluted by universe drift.
     #
-    # Restricted to the *displayed* cohort (rows[:DISPLAY_COUNT]), not every
-    # tracked name: index.html's own current-rank concept -- and the
-    # cohort-restricted comparison rank it derives for the 63D change (see
-    # the README) -- is scoped to REPORT.universe.slice(0, displayCount).
-    # Ranking historicalRank63d over the full tracked universe instead would
-    # put the two ends of the comparison on different population sizes
-    # whenever DISPLAY_COUNT < UNIVERSE_SIZE, making the rank change
-    # mathematically incomparable rather than merely noisy.
-    displayed_symbols = set(r["symbol"] for r in rows[:DISPLAY_COUNT])
-    historical_ranks = {}
-    if historical_date:
-        by_hist_score = sorted(
-            (sym for sym, v in hist_scores.items()
-             if v is not None and sym in displayed_symbols),
-            key=lambda sym: -hist_scores[sym],
-        )
-        historical_ranks = {sym: i for i, sym in enumerate(by_hist_score, 1)}
+    # Also requires a valid *current* score, not just a valid historical one:
+    # index.html's comparable-cohort current rank already excludes a name
+    # with no score today (it can't be ranked by something it doesn't have),
+    # so giving such a name a historicalRank63d slot here would occupy a
+    # rank number on this side of the comparison while being entirely
+    # absent from the other -- the same population mismatch the cohort
+    # restriction exists to prevent, just triggered from the opposite
+    # direction (current score missing rather than historical score
+    # missing). Both sides of the comparison need the same population.
+    currently_scored = set(row["symbol"] for row in rows if row["score"] is not None)
+    historical_ranks = rank_by_score(hist_scores, cohort=currently_scored) if historical_date else {}
     for row in rows:
         row["historicalRank63d"] = historical_ranks.get(row["symbol"])
 
@@ -602,7 +611,6 @@ def main():
         "windowEnd": window[1] if window else None,
         "lookback": LOOKBACK,
         "skip": SKIP,
-        "displayCount": DISPLAY_COUNT,
         "benchmark": BENCHMARK,
         "minOverlap": MIN_OVERLAP,
         "returnScale": RETURN_SCALE,

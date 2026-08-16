@@ -87,10 +87,19 @@ The 1,000 largest US-traded common stocks by market cap, from the FMP screener:
 US-listed ADRs (`TSM`, `ASML`, `ARM`, …) are included — they are US-traded common
 equity.
 
-`index.html` shows every tracked name; `DISPLAY_COUNT` in `build.py` controls
-how many, and `UNIVERSE_SIZE` how many are tracked and cached. Both read an
-environment variable of the same name first, which is how the rebuild workflow
-passes a size in without editing the file.
+`index.html` shows every tracked name. `UNIVERSE_SIZE` in `build.py` controls
+how many are tracked and cached, and reads an environment variable of the same
+name first, which is how the rebuild workflow passes a size in without editing
+the file.
+
+An earlier version let `index.html` show fewer names than `build.py` tracked
+(`DISPLAY_COUNT`), separately from `UNIVERSE_SIZE`. Removed after a
+verification pass found it was never reachable through any real path — not
+the nightly cron, not the on-demand rebuild workflow's inputs, only a raw
+environment variable from a terminal, which this project's whole phone-only
+design exists to avoid needing. The 63-day rank change's cohort logic (see
+below) would otherwise have had to stay reconciled against a configuration
+nothing ever actually set.
 
 Sorting or filtering re-renders the whole table, so its cost scales with the
 number of rows shown. Measured in headless Chromium at a 375px viewport under
@@ -181,34 +190,42 @@ recent bar (`historical_endpoint`), so every name is compared at the same
 market-date endpoint rather than each one's own last-traded day — that is
 what keeps the comparison fair when a stock's data has a gap.
 
-Ranking is against **today's displayed cohort** — `REPORT.universe.slice(0,
-displayCount)`, the same slice `index.html` already treats as "the tracked
-names" everywhere else — not whatever the universe looked like 63 sessions
-ago: a name that has since fallen out of the universe contributes nothing
-to the historical ranking, and a newly tracked name is ranked on its own
-historical score alongside everyone currently tracked. `build.py` restricts
-`historicalRank63d` to that same slice explicitly, rather than the full
-tracked universe, so the two ends of the comparison are never on different
-population sizes even if `DISPLAY_COUNT` is ever configured smaller than
-`UNIVERSE_SIZE`.
+Ranking is against **today's tracked cohort** — every name in
+`REPORT.universe` — not whatever the universe looked like 63 sessions ago:
+a name that has since fallen out of the universe contributes nothing to
+the historical ranking, and a newly tracked name is ranked on its own
+historical score alongside everyone currently tracked.
 
 ```
 63D rank change = historical rank − current rank
 ```
 
-Both ranks here are **restricted to names that have a valid historical
-score** — not `historical rank − s.rank` (the name's ordinary, unrestricted
-current rank). A recently-listed name with no 63-session-old score still
-has *today's* score, so it would otherwise occupy a rank slot in the
-"current" side of the comparison while being entirely absent from the
-"historical" side — shifting every other name's apparent current rank by
-one purely because that new name exists, not because anything about their
-own momentum changed. `index.html` computes a second, cohort-restricted
-current rank (`currentRankFor63d`) over exactly the same set of names that
-have a `historicalRank63d`, and only that rank feeds the subtraction above.
-The ordinary `Rank` shown elsewhere in the detail panel is unaffected —
-this restriction exists only for the 63D comparison's own fairness, not for
-how rank is displayed generally.
+Both ranks here are **restricted to the same comparable cohort — every
+name with both a valid score today and a valid score 63 sessions ago** —
+not `historical rank − s.rank` (the name's ordinary, unrestricted current
+rank). The restriction has to hold in both directions:
+
+- A recently-listed name has *today's* score but no 63-session-old one. If
+  it still occupied a rank slot on the "current" side, every other name's
+  apparent current rank would shift by one purely because that new name
+  exists, not because anything about their own momentum changed.
+- Symmetrically, a name that dropped out of scoring since then (a stale
+  fetch, a data gap) has a 63-session-old score but no current one. If it
+  still occupied a rank slot on the "historical" side, it would shift
+  every other name's *historical* rank number the same way, from the
+  opposite direction.
+
+`build.py`'s `rank_by_score()` ranks strictly within a given cohort — never
+handing out a rank to a name outside it — and `historicalRank63d` is built
+by intersecting names with a valid historical score against names with a
+valid current score before ranking. `index.html` mirrors this with its own
+cohort-restricted current rank (`currentRankFor63d`), computed over exactly
+the same set of names that have a `historicalRank63d`; only that rank feeds
+the subtraction above. The ordinary `Rank` shown elsewhere in the detail
+panel is unaffected — this restriction exists only for the 63D comparison's
+own fairness, not for how rank is displayed generally. `rank_by_score()`'s
+cohort-exclusion behavior has a direct unit test in `tests/test_build.py`,
+independent of the browser suite.
 
 The detail panel shows both cohort ranks the change is actually computed
 from — `63D rank: #5 → #2` — rather than just the historical end next to a
