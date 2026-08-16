@@ -140,10 +140,25 @@ correlation is unaffected by the scaling and covariance divides it back out.
 
 ## Filtering
 
-Three filters sit above the table: a minimum score, a maximum annualized
-volatility, and watchlist-only. They combine with the search box, and a clear
-link appears whenever any of them is active. Columns sort on rank, ticker,
-score, return, volatility and market cap.
+Filters sit above the table: a minimum score, a maximum annualized
+volatility, a maximum drawdown, a sector, and watchlist-only. They combine
+with the search box, and a clear link appears whenever any of them is
+active. Columns sort on rank, ticker, score, return, volatility and market
+cap.
+
+Sector comes straight from the FMP screener response used to build the
+universe, at no extra request cost, and is otherwise unused by the scoring
+math — it only drives this filter and a line in the detail panel. The
+options list is whatever sectors are actually present in the current
+universe, so it changes as the tracked names change. A name FMP does not
+tag with a sector has none to filter by and is simply excluded from every
+sector option, the same way an unscored name is excluded from the score and
+volatility filters.
+
+The field exists in `build.py` and `index.html` now, but the currently
+committed `data/universe.json` predates it and has no sector values yet —
+the filter will show no options until the next `--refresh-universe` rebuild
+picks the field up.
 
 ## State
 
