@@ -111,8 +111,9 @@ Ticker symbols are bolder than the rest of the row (weight 700 vs. the row's
 default), and row padding runs about 9% tighter than it used to, both purely
 cosmetic — the eye anchors on the ticker when scanning a long list quickly,
 and the extra density fits more names above the fold without shrinking text.
-Neither touches the row's own tap target, which stays comfortably above the
-44px accessible minimum at every phone width (measured, not assumed — see
+The padding reduction does shrink the row's own tap target slightly, but
+not below comfortable: it stays well above the 44px accessible minimum at
+every phone width (measured, not assumed — see
 `test_row_tap_target_stays_accessible_at_phone_width` in `e2e/`).
 
 ## Score
