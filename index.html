@@ -174,7 +174,7 @@
   #count { color: var(--muted); font-size: .8rem; }
 
   table { border-collapse: collapse; width: 100%; }
-  th, td { padding: .55rem .6rem; border-bottom: 1px solid var(--line); }
+  th, td { padding: .5rem .55rem; border-bottom: 1px solid var(--line); }
   th {
     position: sticky;
     top: var(--bar-h, 5.5rem);   /* measured from the search bar above it */
@@ -195,7 +195,7 @@
   th .arrow { font-size: .7em; opacity: .55; }
   th:nth-child(-n+2), td:nth-child(-n+2) { text-align: left; }
   td { text-align: right; font-variant-numeric: tabular-nums; }
-  td.ticker { font-weight: 600; }
+  td.ticker { font-weight: 700; }
   td.rank { color: var(--muted); width: 3rem; }
   td.cap { color: var(--muted); }
   td.score { font-weight: 600; }
@@ -334,9 +334,10 @@
 
   @media (max-width: 559px) {
     body { padding: 1.25rem .6rem 3rem; }
-    /* Tall rows for tap targets, tight columns so seven of them fit. Max
-       drawdown is the one that gives way — it stays in the detail panel. */
-    th, td { padding: .8rem .22rem; }
+    /* Tap targets stay >=44px tall even at this reduced padding (measured),
+       tight columns so seven of them fit. Max drawdown is the one that
+       gives way — it stays in the detail panel. */
+    th, td { padding: .73rem .2rem; }
     th { font-size: .62rem; letter-spacing: 0; }
     .long { display: none; }           /* "Ann. Return" -> "Return" */
     th.dd, td.dd { display: none; }
@@ -355,7 +356,7 @@
   /* Narrower phones (SE, mini) need the last few pixels squeezed out. */
   @media (max-width: 389px) {
     body { padding: 1.25rem .35rem 3rem; }
-    th, td { padding: .8rem .15rem; }
+    th, td { padding: .73rem .14rem; }
     td, th { font-size: .8rem; }
     th { font-size: .58rem; }
     td.rank { width: 1.5rem; }

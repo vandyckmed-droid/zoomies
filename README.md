@@ -107,6 +107,14 @@ number of rows shown. Measured in headless Chromium at a 375px viewport under
 380ms at 500 names and 880ms at 1,000. Past roughly 1,500 it becomes the
 limiting factor, ahead of download size.
 
+Ticker symbols are bolder than the rest of the row (weight 700 vs. the row's
+default), and row padding runs about 9% tighter than it used to, both purely
+cosmetic — the eye anchors on the ticker when scanning a long list quickly,
+and the extra density fits more names above the fold without shrinking text.
+Neither touches the row's own tap target, which stays comfortably above the
+44px accessible minimum at every phone width (measured, not assumed — see
+`test_row_tap_target_stays_accessible_at_phone_width` in `e2e/`).
+
 ## Score
 
 For each stock, from adjusted closes:
