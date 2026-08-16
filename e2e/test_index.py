@@ -565,6 +565,18 @@ class BrowserTest(unittest.TestCase):
         self.assertLessEqual(page.evaluate("document.documentElement.scrollWidth"), 375)
         self.assertEqual(page.errors, [])
 
+    def test_row_tap_target_stays_accessible_at_phone_width(self):
+        """Guards the density pass's own stated constraint: row padding was
+        trimmed for scanability, but never below a ~44px tap target -- the
+        row itself is what opens the detail panel, so this is the one
+        measurement that actually matters for that tradeoff, not a hunch.
+        """
+        for width in (390, 375, 320):
+            page = self.page(width=width, height=780)
+            h = page.eval_on_selector("#rows tr:first-child", "e => e.getBoundingClientRect().height")
+            self.assertGreaterEqual(h, 44, "row tap target dropped below 44px at %dpx wide" % width)
+            self.assertEqual(page.errors, [])
+
 
 if __name__ == "__main__":
     unittest.main()
