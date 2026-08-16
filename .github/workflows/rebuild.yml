@@ -1,0 +1,111 @@
+name: Rebuild data
+
+# Two ways this runs: Spencer tapping "Run workflow" (github.com or the
+# mobile app) for an on-demand change -- universe size, scoring window --
+# and a nightly schedule that just refreshes prices. The FMP key stays
+# server-side as a repository secret either way and never reaches the
+# browser.
+#
+# The schedule was deliberately absent until #8 landed: a cron rebuild runs
+# unattended, and before that fix a single ticker returning an unexpected
+# HTTP error aborted the whole run and wrote nothing. Manual dispatch was
+# attended, so a failure got seen; unattended needed the fix first.
+
+on:
+  workflow_dispatch:
+    inputs:
+      universe_size:
+        description: "How many names to track"
+        type: choice
+        default: "1000"
+        options: ["500", "1000", "1500", "2000"]
+      refresh_universe:
+        description: "Rebuild the stock list itself, not just prices"
+        type: boolean
+        default: false
+      lookback:
+        description: "Trading days in the scoring window"
+        default: "252"
+      skip:
+        description: "Most recent trading days excluded"
+        default: "21"
+  schedule:
+    # 06:00 UTC daily -- well after US market close and end-of-day price
+    # settlement, ready before Spencer's morning. Runs every day rather than
+    # trying to match the trading calendar; a weekend/holiday run just finds
+    # nothing new and exits via the "No change" guard in the Commit step
+    # below, so there is no real cost to the extra runs.
+    #
+    # Deliberately never passes refresh_universe: true. Prices should refresh
+    # every night, but the constituent list itself should only change on
+    # build.py's own weekly staleness check (see README), not resample every
+    # single night -- that would let the tracked names drift day to day for
+    # no reason tied to an actual rebalance.
+    - cron: "0 6 * * *"
+
+# Needed to commit the regenerated scores.js / returns.js / data back.
+permissions:
+  contents: write
+
+concurrency:
+  group: rebuild
+  cancel-in-progress: false        # never interrupt a run mid-write
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Rebuild
+        env:
+          API_KEY: ${{ secrets.API_KEY }}
+          # inputs.* is only populated on workflow_dispatch; a schedule run
+          # sees an empty inputs context, so these fall back to build.py's
+          # real defaults explicitly rather than passing through an empty
+          # string for the workflow to interpret.
+          UNIVERSE_SIZE: ${{ inputs.universe_size || '1000' }}
+          LOOKBACK: ${{ inputs.lookback || '252' }}
+          SKIP: ${{ inputs.skip || '21' }}
+        run: |
+          if [ -z "$API_KEY" ]; then
+            echo "::error::API_KEY secret is not set. Add it under"
+            echo "::error::Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+          python build.py ${{ inputs.refresh_universe && '--refresh-universe' || '' }}
+
+      # node --check here as well as in ci.yml: this workflow writes the
+      # generated payloads, so it should refuse to commit one it broke.
+      - name: Check what was generated
+        run: |
+          node --check scores.js
+          node --check returns.js
+          for f in data/returns/*.js; do node --check "$f"; done
+          python .github/scripts/check_json.py
+
+      - name: Commit
+        env:
+          UNIVERSE_SIZE: ${{ inputs.universe_size || '1000' }}
+          LOOKBACK: ${{ inputs.lookback || '252' }}
+          SKIP: ${{ inputs.skip || '21' }}
+          REFRESH_UNIVERSE: ${{ inputs.refresh_universe || false }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # --porcelain, not `git diff`: growing the universe adds new CSVs as
+          # untracked files, which `git diff` does not see.
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "No change -- the cache was already current."
+            exit 0
+          fi
+          git add -A
+          git commit -m "Rebuild data: $UNIVERSE_SIZE names
+
+          Triggered by ${{ github.actor }} via ${{ github.event_name }}.
+          lookback=$LOOKBACK skip=$SKIP refresh_universe=$REFRESH_UNIVERSE"
+          git push
