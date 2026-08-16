@@ -197,7 +197,6 @@
   td { text-align: right; font-variant-numeric: tabular-nums; }
   td.ticker { font-weight: 700; }
   td.rank { color: var(--muted); width: 3rem; }
-  td.cap { color: var(--muted); }
   td.score { font-weight: 600; }
   td.note { color: var(--muted); font-size: .85rem; text-align: right; }
   .pos { color: var(--pos); }
@@ -213,15 +212,13 @@
   table[data-sort="score"]     td:nth-child(3),
   table[data-sort="annReturn"] td:nth-child(4),
   table[data-sort="annVol"]    td:nth-child(5),
-  table[data-sort="maxDrawdown"] td:nth-child(6),
-  table[data-sort="marketCap"]  td:nth-child(7) { background: var(--sorted); }
+  table[data-sort="maxDrawdown"] td:nth-child(6) { background: var(--sorted); }
   table[data-sort="rank"]      th:nth-child(1),
   table[data-sort="symbol"]    th:nth-child(2),
   table[data-sort="score"]     th:nth-child(3),
   table[data-sort="annReturn"] th:nth-child(4),
   table[data-sort="annVol"]    th:nth-child(5),
-  table[data-sort="maxDrawdown"] th:nth-child(6),
-  table[data-sort="marketCap"]  th:nth-child(7) { color: var(--fg); }
+  table[data-sort="maxDrawdown"] th:nth-child(6) { color: var(--fg); }
 
   /* Watchlist star */
   th.watch, td.watch { width: 2.6rem; text-align: center; padding-left: 0; padding-right: .25rem; }
@@ -402,7 +399,6 @@
       <th data-key="annReturn"><span class="long">Ann. </span>Return<span class="arrow"></span></th>
       <th data-key="annVol"><span class="long">Ann. </span>Vol<span class="arrow"></span></th>
       <th class="dd" data-key="maxDrawdown"><span class="long">Max </span>DD<span class="arrow"></span></th>
-      <th data-key="marketCap">Cap<span class="arrow"></span></th>
       <th class="watch" aria-label="Watchlist">&#9734;</th>
     </tr>
   </thead>
@@ -601,13 +597,11 @@
     document.getElementById('rows').innerHTML = shown.map(function (s) {
       var cells = s.score === null
         ? '<td class="note" colspan="3">insufficient price history</td>' +
-          '<td class="dd"></td>' +
-          '<td class="cap">' + capShort(s.marketCap) + '</td>'
+          '<td class="dd"></td>'
         : '<td class="score ' + (s.score >= 0 ? 'pos' : 'neg') + '">' + s.score.toFixed(2) + '</td>' +
           '<td>' + signed(s.annReturn) + '</td>' +
           '<td>' + pct(s.annVol) + '</td>' +
-          '<td class="dd">' + pct(s.maxDrawdown) + '</td>' +
-          '<td class="cap">' + capShort(s.marketCap) + '</td>';
+          '<td class="dd">' + pct(s.maxDrawdown) + '</td>';
       var on = watched(s.symbol);
       return '<tr tabindex="0" data-symbol="' + esc(s.symbol) + '">' +
         '<td class="rank">' + (s.rank === null ? '—' : s.rank) + '</td>' +
