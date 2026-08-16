@@ -37,6 +37,13 @@ schedule refreshes prices only; the stock list itself changes on `build.py`'s
 own weekly staleness check, not every night, so the tracked names don't drift
 day to day without an actual rebalance behind it.
 
+If the automation itself stops running — a failing cron, a lapsed API key —
+nothing else would tell you short of noticing the numbers look wrong. The
+page checks the age of `scores.js`'s `generated` date on load and shows a
+visible warning once it is 2+ days old, since a healthy nightly build never
+gets older than about a day between a 06:00 UTC run and whenever the page is
+opened.
+
 ### Rebuilding from a phone, on demand
 
 For anything the nightly schedule doesn't cover — a bigger universe, a
