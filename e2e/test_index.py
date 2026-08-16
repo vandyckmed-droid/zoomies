@@ -316,18 +316,31 @@ class BrowserTest(unittest.TestCase):
         self.assertEqual(page.errors, [])
 
     def _page_with_rank_change_fixture(self):
-        """A tiny, fully deterministic 5-name universe for the percentile and
+        """A tiny, fully deterministic 6-name universe for the percentile and
         63D rank-change maths. Real committed data's actual rankings are not
         an invariant of the system -- they change on every rebuild -- so
         asserting exact values against it would tie test correctness to
         today's live data rather than the code, the same lesson the
         staleness tests hit earlier.
 
-        Current rank (by score, descending): A=1 B=2 C=3 D=4 E=5.
+        Global current rank (by score, descending): Z=1 A=2 B=3 C=4 D=5 E=6.
         historicalRank63d: A=1 (unchanged) B=5 (was worse, improved: +3)
-        C=3 (unchanged) D=2 (was better, declined: -2) E=None (not enough
-        history 63 sessions back). Score/return/vol/drawdown are evenly
-        spaced so each metric's percentile ladder is exactly 0/25/50/75/100.
+        C=3 (unchanged) D=2 (was better, declined: -2) Z=None, E=None (not
+        enough history 63 sessions back for either).
+
+        Z is deliberately the *highest*-scoring name and has no historical
+        data, same as E at the bottom -- a name freshly qualified for a
+        score has no history regardless of how well it currently scores.
+        This is the regression case for a real bug: 63D rank change must be
+        computed over the cohort that has a valid historicalRank63d, not
+        every currently-scored name. Before that fix, Z's mere presence
+        (occupying rank #1) silently shifted A/B/C/D's *apparent* rank
+        change by one, purely because Z existed, not because any of their
+        own momentum changed. If that regression ever comes back, A/B/C/D's
+        expected values below (0, +3, 0, -2) will drift by exactly one.
+
+        Score/return/vol/drawdown are evenly spaced across all six names so
+        each metric's percentile ladder is exactly 0/20/40/60/80/100.
         """
         work = pathlib.Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, work, True)
@@ -338,6 +351,7 @@ class BrowserTest(unittest.TestCase):
         rep["rankChangeDaysBack"] = 63
         template = rep["universe"][0]
         fixture = [
+            ("Z", 10.0, 0.70, 0.05, -0.02, None),
             ("A", 5.0, 0.50, 0.10, -0.05, 1),
             ("B", 3.0, 0.30, 0.20, -0.10, 5),
             ("C", 1.0, 0.10, 0.30, -0.15, 3),
@@ -375,6 +389,12 @@ class BrowserTest(unittest.TestCase):
             "} return out; }")
 
     def test_63d_rank_change_sorts_with_nulls_last(self):
+        """Also the regression guard for the cohort bug: Z sits at rank #1
+        overall with no historical data, yet A/B/C/D's rank changes below
+        (+3, 0, 0, -2) are exactly what they'd be without Z in the universe
+        at all -- if the cohort restriction ever regresses, Z's presence
+        will shift every one of those by one and this will fail.
+        """
         page = self._page_with_rank_change_fixture()
         page.click('th[data-key="rankChange63d"]')
         page.wait_for_timeout(200)
@@ -382,16 +402,33 @@ class BrowserTest(unittest.TestCase):
             "#rows tr", "e => e.map(r => r.querySelector('td.ticker').textContent)")
         cells = page.eval_on_selector_all(
             "#rows tr", "e => e.map(r => r.querySelector('td.r63').textContent)")
-        self.assertEqual(order, ["B", "A", "C", "D", "E"],
+        self.assertEqual(order, ["B", "A", "C", "D", "Z", "E"],
                           "first click should sort biggest climbers first, nulls last")
-        self.assertEqual(cells, ["+3", "0", "0", "-2", "—"])
+        self.assertEqual(cells, ["+3", "0", "0", "-2", "—", "—"])
 
         page.click('th[data-key="rankChange63d"]')   # second click: ascending
         page.wait_for_timeout(200)
         order2 = page.eval_on_selector_all(
             "#rows tr", "e => e.map(r => r.querySelector('td.ticker').textContent)")
-        self.assertEqual(order2, ["D", "A", "C", "B", "E"],
-                          "ascending should still keep the null (E) last, not first")
+        self.assertEqual(order2, ["D", "A", "C", "B", "Z", "E"],
+                          "ascending should still keep the nulls (Z, E) last, not first")
+        self.assertEqual(page.errors, [])
+
+    def test_sort_63d_button_matches_the_hidden_header_at_phone_width(self):
+        """The 63D header hides below 560px (same as max drawdown), but
+        sorting by it -- biggest climbers/decliners -- is the point of the
+        feature, not just a detail worth losing on the primary device. The
+        always-visible button must trigger the identical sort.
+        """
+        page = self.page(width=375, height=780)
+        self.assertFalse(page.is_visible('th[data-key="rankChange63d"]'))
+        self.assertTrue(page.is_visible("#sort-63d"))
+
+        page.click("#sort-63d")
+        page.wait_for_timeout(200)
+        self.assertEqual(page.get_attribute("#sort-63d", "aria-pressed"), "true")
+        self.assertEqual(page.get_attribute("#table", "data-sort"), "rankChange63d")
+        self.assertLessEqual(page.evaluate("document.documentElement.scrollWidth"), 375)
         self.assertEqual(page.errors, [])
 
     def test_detail_panel_shows_rank_63d_change_and_percentiles(self):
@@ -402,13 +439,13 @@ class BrowserTest(unittest.TestCase):
         page.click("#rows tr:first-child td.ticker")
         page.wait_for_selector("#overlay:not([hidden])")
         stats = self._stats_map(page)
-        self.assertEqual(stats["Rank"], "#2")
+        self.assertEqual(stats["Rank"], "#3")
         self.assertEqual(stats["63D rank"], "#5")
         self.assertEqual(stats["63D change"], "+3")
-        self.assertEqual(stats["Score percentile"], "75th (higher = stronger)")
-        self.assertEqual(stats["Return percentile"], "75th (higher = stronger)")
-        self.assertEqual(stats["Volatility percentile"], "25th (higher = more volatile)")
-        self.assertEqual(stats["Drawdown percentile"], "75th (higher = shallower)")
+        self.assertEqual(stats["Score percentile"], "60th (higher = stronger)")
+        self.assertEqual(stats["Return percentile"], "60th (higher = stronger)")
+        self.assertEqual(stats["Volatility percentile"], "40th (higher = more volatile)")
+        self.assertEqual(stats["Drawdown percentile"], "60th (higher = shallower)")
         page.click("#ov-close")
 
         # E has no historicalRank63d -- not enough history 63 sessions back
@@ -419,12 +456,25 @@ class BrowserTest(unittest.TestCase):
         page.click("#rows tr:first-child td.ticker")
         page.wait_for_selector("#overlay:not([hidden])")
         stats_e = self._stats_map(page)
-        self.assertEqual(stats_e["Rank"], "#5")
+        self.assertEqual(stats_e["Rank"], "#6")
         self.assertNotIn("63D rank", stats_e)
         self.assertEqual(stats_e["63D change"], "not enough history 63 sessions ago")
         self.assertEqual(stats_e["Score percentile"], "0th (higher = stronger)")
         self.assertEqual(stats_e["Volatility percentile"], "100th (higher = more volatile)")
         self.assertEqual(stats_e["Drawdown percentile"], "0th (higher = shallower)")
+        page.click("#ov-close")
+
+        # Z: highest-scoring name in the fixture (global Rank #1) but no
+        # historical data -- the exact scenario the cohort bug hid behind
+        # (the fixture used to only put the no-history name at the bottom).
+        page.fill("#search", "Z")
+        page.wait_for_timeout(200)
+        page.click("#rows tr:first-child td.ticker")
+        page.wait_for_selector("#overlay:not([hidden])")
+        stats_z = self._stats_map(page)
+        self.assertEqual(stats_z["Rank"], "#1")
+        self.assertNotIn("63D rank", stats_z)
+        self.assertEqual(stats_z["63D change"], "not enough history 63 sessions ago")
         self.assertEqual(page.errors, [])
 
     def test_search_survives_a_reload(self):

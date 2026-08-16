@@ -574,10 +574,21 @@ def main():
     # and one that is newly tracked is ranked on its own historical score
     # like everyone else. This is what keeps the 63D change a comparison
     # against a fixed cohort rather than one polluted by universe drift.
+    #
+    # Restricted to the *displayed* cohort (rows[:DISPLAY_COUNT]), not every
+    # tracked name: index.html's own current-rank concept -- and the
+    # cohort-restricted comparison rank it derives for the 63D change (see
+    # the README) -- is scoped to REPORT.universe.slice(0, displayCount).
+    # Ranking historicalRank63d over the full tracked universe instead would
+    # put the two ends of the comparison on different population sizes
+    # whenever DISPLAY_COUNT < UNIVERSE_SIZE, making the rank change
+    # mathematically incomparable rather than merely noisy.
+    displayed_symbols = set(r["symbol"] for r in rows[:DISPLAY_COUNT])
     historical_ranks = {}
     if historical_date:
         by_hist_score = sorted(
-            (sym for sym, v in hist_scores.items() if v is not None),
+            (sym for sym, v in hist_scores.items()
+             if v is not None and sym in displayed_symbols),
             key=lambda sym: -hist_scores[sym],
         )
         historical_ranks = {sym: i for i, sym in enumerate(by_hist_score, 1)}

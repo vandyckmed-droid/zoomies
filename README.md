@@ -181,29 +181,49 @@ recent bar (`historical_endpoint`), so every name is compared at the same
 market-date endpoint rather than each one's own last-traded day — that is
 what keeps the comparison fair when a stock's data has a gap.
 
-Ranking is against **today's tracked cohort**, not whatever the universe
-looked like 63 sessions ago: a name that has since fallen out of the
-universe contributes nothing to the historical ranking, and a newly
-tracked name is ranked on its own historical score alongside everyone
-currently tracked. This avoids the rank change being polluted by universe
-turnover instead of reflecting an actual momentum shift.
+Ranking is against **today's displayed cohort** — `REPORT.universe.slice(0,
+displayCount)`, the same slice `index.html` already treats as "the tracked
+names" everywhere else — not whatever the universe looked like 63 sessions
+ago: a name that has since fallen out of the universe contributes nothing
+to the historical ranking, and a newly tracked name is ranked on its own
+historical score alongside everyone currently tracked. `build.py` restricts
+`historicalRank63d` to that same slice explicitly, rather than the full
+tracked universe, so the two ends of the comparison are never on different
+population sizes even if `DISPLAY_COUNT` is ever configured smaller than
+`UNIVERSE_SIZE`.
 
 ```
 63D rank change = historical rank − current rank
 ```
 
+Both ranks here are **restricted to names that have a valid historical
+score** — not `historical rank − s.rank` (the name's ordinary, unrestricted
+current rank). A recently-listed name with no 63-session-old score still
+has *today's* score, so it would otherwise occupy a rank slot in the
+"current" side of the comparison while being entirely absent from the
+"historical" side — shifting every other name's apparent current rank by
+one purely because that new name exists, not because anything about their
+own momentum changed. `index.html` computes a second, cohort-restricted
+current rank (`currentRankFor63d`) over exactly the same set of names that
+have a `historicalRank63d`, and only that rank feeds the subtraction above.
+The ordinary `Rank` shown elsewhere in the detail panel is unaffected —
+this restriction exists only for the 63D comparison's own fairness, not for
+how rank is displayed generally.
+
 Positive means the name's rank improved (a lower rank number) over the
 window; negative means it got worse. `#412 → #73` is `+339`; `#18 → #190`
 is `−172`. A name too newly qualified to have had a valid score 63 sessions
 back — or, in principle, one where the price cache itself does not yet
-reach back that far — gets no historical rank and no rank change; the
-detail panel says so plainly ("not enough history 63 sessions ago") rather
-than showing a blank or a misleading zero. `build.py` checks at startup
-whether `HISTORY_DAYS` can even reach `LOOKBACK + SKIP + 63` days back and
-refuses to run rather than silently shipping a rank change nobody should
-trust if not — at the shipped defaults (252 + 21 + 63 = 336 against ~521
-reachable trading days) this has a wide margin and should not come up in
-practice.
+reach back that far — gets no historical rank and no rank change, *for
+either side of the comparison*: it is excluded from the cohort entirely,
+not just left with a null `historicalRank63d`. The detail panel says so
+plainly ("not enough history 63 sessions ago") rather than showing a blank
+or a misleading zero, regardless of how highly that name currently ranks
+overall. `build.py` checks at startup whether `HISTORY_DAYS` can even reach
+`LOOKBACK + SKIP + 63` days back and refuses to run rather than silently
+shipping a rank change nobody should trust if not — at the shipped
+defaults (252 + 21 + 63 = 336 against ~521 reachable trading days) this has
+a wide margin and should not come up in practice.
 
 This one extra historical snapshot per name — not a repeated
 recomputation across many dates — is what keeps the cost small: about
@@ -212,12 +232,15 @@ recomputation across many dates — is what keeps the cost small: about
 nullable integer per row). Percentiles cost nothing extra either way, since
 they are derived client-side from data already shipped.
 
-63D rank change is also a sortable column in the main table (hidden at
-phone width, same as max drawdown — both stay reachable from the detail
-panel), so sorting by it surfaces the biggest 63-day climbers or decliners
-across the whole universe. Percentiles are detail-panel-only: four more
-numeric columns would not stay clean at phone width, so they were left out
-of the table rather than forced in.
+63D rank change is also a sortable column in the main table, surfacing the
+biggest 63-day climbers or decliners across the whole universe. The column
+itself hides at phone width, same as max drawdown, but sorting by it is the
+main point of the feature (not just a detail worth losing on the primary
+device) — a compact **63D** button next to the row count stays reachable
+at every width and triggers the identical sort the hidden header would.
+Percentiles are detail-panel-only: four more numeric columns would not
+stay clean at phone width, so they were left out of the table rather than
+forced in.
 
 ## Filtering
 
