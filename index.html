@@ -79,7 +79,7 @@
   }
   .head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
   h1 { font-size: 1.4rem; margin: 0 0 .25rem; }
-  #theme, #only-watch, #pairs-mode, #sort-63d {
+  #theme, #only-watch, #pairs-mode {
     font: inherit;
     font-size: .7rem;
     text-transform: uppercase;
@@ -93,15 +93,11 @@
     white-space: nowrap;
     -webkit-appearance: none;
   }
-  #theme:hover, #only-watch:hover, #pairs-mode:hover, #sort-63d:hover {
-    color: var(--fg); border-color: var(--field);
-  }
-  #theme:focus-visible, #only-watch:focus-visible, #pairs-mode:focus-visible, #sort-63d:focus-visible {
+  #theme:hover, #only-watch:hover, #pairs-mode:hover { color: var(--fg); border-color: var(--field); }
+  #theme:focus-visible, #only-watch:focus-visible, #pairs-mode:focus-visible {
     outline: 2px solid var(--fg); outline-offset: 2px;
   }
-  #only-watch[aria-pressed="true"], #sort-63d[aria-pressed="true"] {
-    color: var(--fg); border-color: var(--field);
-  }
+  #only-watch[aria-pressed="true"] { color: var(--fg); border-color: var(--field); }
   #only-watch:disabled { opacity: .45; cursor: default; }
   p.meta { color: var(--muted); font-size: .85rem; margin: 0 0 1.25rem; }
   p.stale {
@@ -196,7 +192,7 @@
     box-shadow: inset 0 -2px 0 var(--fg);
   }
   th:hover { color: var(--fg); }
-  .arrow { font-size: .7em; opacity: .55; }
+  th .arrow { font-size: .7em; opacity: .55; }
   th:nth-child(-n+2), td:nth-child(-n+2) { text-align: left; }
   td { text-align: right; font-variant-numeric: tabular-nums; }
   td.ticker { font-weight: 600; }
@@ -218,16 +214,14 @@
   table[data-sort="annReturn"] td:nth-child(4),
   table[data-sort="annVol"]    td:nth-child(5),
   table[data-sort="maxDrawdown"] td:nth-child(6),
-  table[data-sort="rankChange63d"] td:nth-child(7),
-  table[data-sort="marketCap"]  td:nth-child(8) { background: var(--sorted); }
+  table[data-sort="marketCap"]  td:nth-child(7) { background: var(--sorted); }
   table[data-sort="rank"]      th:nth-child(1),
   table[data-sort="symbol"]    th:nth-child(2),
   table[data-sort="score"]     th:nth-child(3),
   table[data-sort="annReturn"] th:nth-child(4),
   table[data-sort="annVol"]    th:nth-child(5),
   table[data-sort="maxDrawdown"] th:nth-child(6),
-  table[data-sort="rankChange63d"] th:nth-child(7),
-  table[data-sort="marketCap"]  th:nth-child(8) { color: var(--fg); }
+  table[data-sort="marketCap"]  th:nth-child(7) { color: var(--fg); }
 
   /* Watchlist star */
   th.watch, td.watch { width: 2.6rem; text-align: center; padding-left: 0; padding-right: .25rem; }
@@ -341,12 +335,11 @@
   @media (max-width: 559px) {
     body { padding: 1.25rem .6rem 3rem; }
     /* Tall rows for tap targets, tight columns so seven of them fit. Max
-       drawdown and the 63-day rank change are the two that give way — both
-       stay available in the detail panel. */
+       drawdown is the one that gives way — it stays in the detail panel. */
     th, td { padding: .8rem .22rem; }
     th { font-size: .62rem; letter-spacing: 0; }
     .long { display: none; }           /* "Ann. Return" -> "Return" */
-    th.dd, td.dd, th.r63, td.r63 { display: none; }
+    th.dd, td.dd { display: none; }
     td.rank { width: 1.9rem; }
     td, th { font-size: .88rem; }
     th.watch, td.watch { width: 1.9rem; padding-right: 0; }
@@ -395,12 +388,6 @@
   </div>
   <div class="barrow">
     <span id="count"></span>
-    <!-- The 63D table column hides at phone width (see .r63), same as max
-         drawdown -- but unlike drawdown, sorting on 63D change is the whole
-         point of the feature (biggest climbers/decliners), not just a
-         detail. This stays reachable at every width without needing a
-         ninth always-visible column. -->
-    <button id="sort-63d" aria-pressed="false">63D<span class="arrow"></span></button>
     <button id="clear-filters" hidden>clear</button>
   </div>
 </div>
@@ -414,7 +401,6 @@
       <th data-key="annReturn"><span class="long">Ann. </span>Return<span class="arrow"></span></th>
       <th data-key="annVol"><span class="long">Ann. </span>Vol<span class="arrow"></span></th>
       <th class="dd" data-key="maxDrawdown"><span class="long">Max </span>DD<span class="arrow"></span></th>
-      <th class="r63" data-key="rankChange63d">63D<span class="arrow"></span></th>
       <th data-key="marketCap">Cap<span class="arrow"></span></th>
       <th class="watch" aria-label="Watchlist">&#9734;</th>
     </tr>
@@ -454,7 +440,7 @@
   // Risk columns lead with the risky end, so max drawdown opens deepest first
   // (it is stored negative, hence ascending where Ann. Vol is descending).
   var FIRST_DIR = { rank: 1, symbol: 1, score: -1, annReturn: -1, annVol: -1,
-                    maxDrawdown: 1, rankChange63d: -1, marketCap: -1 };
+                    maxDrawdown: 1, marketCap: -1 };
 
   // Everything the page remembers between visits.
   var view = { key: 'rank', dir: 1, q: '', scroll: 0, open: null, theme: 'auto',
@@ -462,8 +448,14 @@
               minScore: '', maxVol: '', maxDD: '', sector: '' };
   try {
     var saved = JSON.parse(localStorage.getItem(STORE_KEY));
-    if (saved && FIRST_DIR[saved.key]) {
+    if (saved) {
       for (var k in view) if (saved[k] !== undefined) view[k] = saved[k];
+      // A saved sort key from a since-removed column (e.g. the 63D column)
+      // has no FIRST_DIR entry. Fall back to the default sort rather than
+      // discarding every other remembered preference along with it --
+      // theme, watchlist and filters have nothing to do with which column
+      // used to be sortable.
+      if (!FIRST_DIR[view.key]) { view.key = 'rank'; view.dir = 1; }
     }
   } catch (e) { /* first visit, or storage blocked */ }
 
@@ -604,22 +596,16 @@
       th.querySelector('.arrow').textContent = on ? (view.dir === 1 ? ' ↑' : ' ↓') : '';
       th.setAttribute('aria-sort', on ? (view.dir === 1 ? 'ascending' : 'descending') : 'none');
     });
-    var sort63 = document.getElementById('sort-63d');
-    var on63 = view.key === 'rankChange63d';
-    sort63.querySelector('.arrow').textContent = on63 ? (view.dir === 1 ? ' ↑' : ' ↓') : '';
-    sort63.setAttribute('aria-pressed', String(on63));
 
     document.getElementById('rows').innerHTML = shown.map(function (s) {
       var cells = s.score === null
         ? '<td class="note" colspan="3">insufficient price history</td>' +
           '<td class="dd"></td>' +
-          '<td class="r63"></td>' +
           '<td class="cap">' + capShort(s.marketCap) + '</td>'
         : '<td class="score ' + (s.score >= 0 ? 'pos' : 'neg') + '">' + s.score.toFixed(2) + '</td>' +
           '<td>' + signed(s.annReturn) + '</td>' +
           '<td>' + pct(s.annVol) + '</td>' +
           '<td class="dd">' + pct(s.maxDrawdown) + '</td>' +
-          '<td class="r63">' + signedInt(s.rankChange63d) + '</td>' +
           '<td class="cap">' + capShort(s.marketCap) + '</td>';
       var on = watched(s.symbol);
       return '<tr tabindex="0" data-symbol="' + esc(s.symbol) + '">' +
@@ -899,25 +885,23 @@
           ['R²', s.r2.toFixed(2)]);
       }
 
-      stats.push(['hr'], ['Rank', '#' + s.rank]);
-      if (s.historicalRank63d !== null) {
-        // Both ends of this arrow are the comparable-cohort ranks the
-        // change is actually computed from (historicalRank63d minus
-        // currentRankFor63d, both restricted to names with 63D history) --
-        // not the ordinary Rank above, which includes every currently
-        // scored name. Showing only "#5" here next to a "+3" the reader
-        // would (wrongly) recompute against the unrestricted Rank made the
-        // correct number look wrong.
-        stats.push(
-          ['63D rank', '#' + s.historicalRank63d + ' → #' + s.currentRankFor63d],
-          ['63D change', signedInt(s.rankChange63d)]
-        );
-      } else {
-        // Newly qualified since then, or the cache itself does not yet
-        // reach back that far -- either way, say so rather than a blank row.
-        stats.push(['63D change', '<span style="color:var(--muted)">not enough ' +
-          'history ' + REPORT.rankChangeDaysBack + ' sessions ago</span>']);
+      // "3m" is a concise, approximate user-facing label for the underlying
+      // 63-trading-session calculation (see rankChange63d/README) -- not a
+      // literal three calendar months and not read from REPORT, since the
+      // point is a readable label, not the exact figure the number next to
+      // it already states precisely. Omitted entirely (not a placeholder
+      // message) when there's no valid comparison, e.g. a newly qualified
+      // name or a cache too young to reach 63 sessions back -- one line
+      // that sometimes has a parenthetical reads better than a second line
+      // that usually says "not applicable."
+      var rankLine = '#' + s.rank;
+      if (s.rankChange63d !== null) {
+        var chg = s.rankChange63d;
+        var chgClass = chg > 0 ? 'pos' : chg < 0 ? 'neg' : null;
+        rankLine += ' <span' + (chgClass ? ' class="' + chgClass + '"' : ' style="color:var(--muted)"') +
+          '>(' + (chg > 0 ? '+' : '') + chg + ' in 3m)</span>';
       }
+      stats.push(['hr'], ['Rank', rankLine]);
 
       stats.push(
         ['hr'],
@@ -1009,11 +993,6 @@
   }
   document.querySelectorAll('th[data-key]').forEach(function (th) {
     th.addEventListener('click', function () { sortBy(th.dataset.key); });
-  });
-  // The 63D header hides at phone width; this button is the same sort,
-  // reachable at every width -- see the HTML comment above it.
-  document.getElementById('sort-63d').addEventListener('click', function () {
-    sortBy('rankChange63d');
   });
 
   var search = document.getElementById('search');
