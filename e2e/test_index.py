@@ -440,7 +440,10 @@ class BrowserTest(unittest.TestCase):
         page.wait_for_selector("#overlay:not([hidden])")
         stats = self._stats_map(page)
         self.assertEqual(stats["Rank"], "#3")
-        self.assertEqual(stats["63D rank"], "#5")
+        # #5 -> #2, not #5 -> (ordinary Rank #3): the change is computed
+        # from the comparable-cohort current rank, so the panel must show
+        # that rank explicitly or "+3" looks wrong next to "#5" and "#3".
+        self.assertEqual(stats["63D rank"], "#5 → #2")
         self.assertEqual(stats["63D change"], "+3")
         self.assertEqual(stats["Score percentile"], "60th (higher = stronger)")
         self.assertEqual(stats["Return percentile"], "60th (higher = stronger)")

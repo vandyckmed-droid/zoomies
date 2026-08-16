@@ -210,6 +210,13 @@ The ordinary `Rank` shown elsewhere in the detail panel is unaffected —
 this restriction exists only for the 63D comparison's own fairness, not for
 how rank is displayed generally.
 
+The detail panel shows both cohort ranks the change is actually computed
+from — `63D rank: #5 → #2` — rather than just the historical end next to a
+number that would not match if recomputed against the ordinary `Rank`
+shown above it. Displaying `#5` alone next to a `+3` that a reader would
+naturally (and wrongly) recompute against a `Rank` from a different
+population made a correct number look wrong.
+
 Positive means the name's rank improved (a lower rank number) over the
 window; negative means it got worse. `#412 → #73` is `+339`; `#18 → #190`
 is `−172`. A name too newly qualified to have had a valid score 63 sessions

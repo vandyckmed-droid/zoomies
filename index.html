@@ -899,8 +899,15 @@
 
       stats.push(['hr'], ['Rank', '#' + s.rank]);
       if (s.historicalRank63d !== null) {
+        // Both ends of this arrow are the comparable-cohort ranks the
+        // change is actually computed from (historicalRank63d minus
+        // currentRankFor63d, both restricted to names with 63D history) --
+        // not the ordinary Rank above, which includes every currently
+        // scored name. Showing only "#5" here next to a "+3" the reader
+        // would (wrongly) recompute against the unrestricted Rank made the
+        // correct number look wrong.
         stats.push(
-          ['63D rank', '#' + s.historicalRank63d],
+          ['63D rank', '#' + s.historicalRank63d + ' → #' + s.currentRankFor63d],
           ['63D change', signedInt(s.rankChange63d)]
         );
       } else {
