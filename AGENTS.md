@@ -1,36 +1,84 @@
 # Working agreement
 
-**Status (2026-08-15): Agent A and Agent B have been retired.** Spencer
+**Status (2026-08-16): a two-agent workflow (Builder/Planner + Reviewer) is
+now the active process.** Both the solo full-authority model and the
+original three-lane model are historical below — read "Current operating
+model" first; it supersedes the rest wherever they conflict.
+
+## Current operating model (2026-08-16 onward): continuous two-agent workflow
+
+Two roles, most recently exercised on PR #12 (found two real blockers plus a
+minor issue in a PR the solo model had already tested and shipped for
+review):
+
+**Agent 1 — Builder and Planner.** This is Agent C's active role now.
+
+1. **Complete.** After every approved PR is merged, confirm the change is
+   live — same "session isn't done until it's on the page" bar as before.
+2. **Assess.** Review the current state and identify the single best next
+   step.
+3. **Propose.** Present that next step briefly. Do not begin work yet.
+4. **Wait.** Spencer responds one of three ways:
+   - *Approved* — proceed.
+   - *Skip* — do not act; propose the next-best alternative.
+   - *Feedback* — refine the recommendation and propose again.
+5. **Act.** Once approved: create a branch, implement, test, commit, push,
+   open a **draft** PR — without pausing for routine decisions in between.
+6. **Handoff.** Send Spencer the PR link and a concise summary. Do not merge.
+7. **Revise.** Address every material Agent 2 finding on the *same* branch,
+   push, and return the updated PR for re-review — do not open a new PR per
+   round of feedback.
+8. **Merge.** Only after both Agent 2 approves *and* Spencer authorizes the
+   merge. Neither alone is sufficient.
+9. **Continue.** Confirm the result is live, then return to step 2 (Assess)
+   and propose the next best step.
+
+**Agent 2 — Reviewer.** Independently reviews the PR, the surrounding code,
+tests, and CI. Returns *Approved* or *Changes needed*. Does not edit Agent
+1's branch and does not merge. Re-reviews revisions until approved.
+
+**Interim mechanics:** Agent 2 does not yet have GitHub write access, so
+Spencer copies its review findings into the PR thread and relays Agent 1's
+responses back for re-review. Treat a "Verdict: Changes needed" message from
+Spencer as Agent 2's review being relayed, not as Spencer's own finding —
+respond to it exactly as step 7 describes.
+
+**Hard rules:**
+- One task per PR.
+- Never push feature work directly to `main` — every change goes through a
+  branch and a PR, no exception for "it's small."
+- Only Spencer's explicit *Approved* authorizes starting a proposed task.
+  Silence, a question, or a "sounds good" that isn't literally approval is
+  not authorization to act — ask if genuinely unclear rather than assume.
+
+**What still carries over from the solo model below:** the discretion
+boundary for what needs escalation vs. what Agent 1 decides alone; the known
+hard limits (no `workflow_dispatch` access, no repository-secrets access);
+verifying claims by actually running things rather than reading code and
+assuming it works (PR #12's real bugs — the `RETURNS` scoping error, the
+infinite-retry loop — were both caught this way, not by review).
+
+---
+
+## Historical: solo full-authority model (2026-08-15 evening – 2026-08-16)
+
+**Status at the time: Agent A and Agent B had been retired.** Spencer
 deleted both and entrusted Agent C with full authority, solo — author,
-reviewer, and coordinator combined. Everything under "Historical: the
-three-lane model" below describes how this repo got here, not who does what
-now. Read "Current operating model" first; it supersedes the rest wherever
-they conflict.
-
-## Current operating model (2026-08-15 onward)
-
-Agent C is the only agent working this repo. It writes code, reviews it with
-real rigor rather than rubber-stamping its own work, merges, and is
-responsible end-to-end for turning "Spencer said something" into "it's live
-on the page."
+reviewer, and coordinator combined, writing code, reviewing it, merging it,
+and confirming it live, all in one uninterrupted session per piece of
+feedback. Superseded by the two-agent workflow above once a review actually
+caught real, material findings the solo process had missed.
 
 **Session shape, in Spencer's own words:** "Your session begins when I give
 you feedback on the interface and ends after you've taken that feedback all
 the way to the point where it is merged and in the page for me to see the
-change." Concretely:
+change." Concretely: no background monitoring or scheduled PR check-ins; a
+session ran synchronously to completion; don't stop to ask questions at
+decision points that are C's to make, only for money-relevant tradeoffs,
+direction changes, and genuine design choices.
 
-- No background monitoring, no scheduled check-ins on open PRs. A session
-  runs synchronously to completion, not async-and-poll like the three-agent
-  model below did.
-- Don't stop to ask clarifying questions or hesitate at decision points that
-  are C's to make. The discretion boundary is unchanged from before: escalate
-  money-relevant tradeoffs, direction changes, and genuine design choices;
-  decide everything else and log why.
-- A session isn't done at "merged" — it's done at "confirmed live," including
-  triggering any rebuild the change needs, within the limits below.
-
-**Known hard limits — not choices, and not things to route around.** No
-matter how much authority C has, these always need Spencer directly:
+**Known hard limits — not choices, and not things to route around. Still
+true under the two-agent model above:**
 
 - **C's GitHub token cannot dispatch `workflow_dispatch` runs.** Attempting
   one fails with `403: Resource not accessible by integration`. Any
@@ -39,16 +87,7 @@ matter how much authority C has, these always need Spencer directly:
 - **C cannot set or read repository secrets.** An API key belongs in
   Settings → Secrets and variables → Actions, entered by Spencer directly —
   never relayed through chat, never something C holds even temporarily.
-- When C hits one of these, say so plainly, give exact steps, and wait. This
-  is the one legitimate "pause and check in" case under the operating model
-  above — it isn't hesitation, it's a wall only a human can cross.
-
-Since A and B don't exist anymore, the multi-agent process below —
-nudge-then-escalate for a stalled agent, the approval-in-comment workaround
-for reviews that can't be recorded on a shared account, "which lane does
-this belong to" — is inert. Skip it unless Spencer reinstates multiple
-agents, in which case it's the starting point to revive, not rewrite from
-scratch.
+- When C hits one of these, say so plainly, give exact steps, and wait.
 
 ---
 
@@ -57,7 +96,7 @@ scratch.
 Three autonomous agents worked in this repo. They shared no memory and no
 context. Commits, branches, PR state and PR comments were the only channel
 between them, so anything not written down did not happen — same principle
-the current operating model above still runs on.
+every later operating model above still runs on.
 
 ### Lanes
 
@@ -81,10 +120,10 @@ than defaulting to asking Spencer.
 **When to escalate to Spencer, in his own words (2026-08-15):** "Nudge me
 for human level coordination, major design choice, overarching direction
 clarification and things that need thumbs [i.e. his explicit sign-off]."
-This guidance carries forward unchanged to the current solo model above. He
-also confirmed the graduated response for a stalled agent: nudge directly
-first, escalate to Spencer only if that doesn't land. Routine status doesn't
-need his sign-off — tell him because he's a stakeholder, not because it's a
+This guidance carries forward unchanged to every later model above. He also
+confirmed the graduated response for a stalled agent: nudge directly first,
+escalate to Spencer only if that doesn't land. Routine status doesn't need
+his sign-off — tell him because he's a stakeholder, not because it's a
 decision point.
 
 C held a standing delegation to merge PRs once A had addressed review
@@ -94,9 +133,9 @@ feedback, CI was green, and B had recorded approval-in-comment.
 decide who *should* own a branch and say so on a PR — that didn't and
 couldn't change what an agent's sandbox would actually let it push to.
 Found live on #1: C assigned Agent A a branch it didn't create its session
-against; Agent A's sandbox refused the direct push. Same shape as the
-current hard limits above (workflow dispatch, secrets) — authority granted
-in a comment doesn't override a permission boundary enforced elsewhere.
+against; Agent A's sandbox refused the direct push. Same shape as the hard
+limits above (workflow dispatch, secrets) — authority granted in a comment
+doesn't override a permission boundary enforced elsewhere.
 
 **"Merging is a human action"** meant: not A, not B, on their own
 initiative. Merges happened via Spencer directly, or via C acting on the
@@ -105,7 +144,9 @@ standing delegation.
 **An approving review couldn't be recorded while all three agents pushed
 under one account.** GitHub refuses it — `Can not approve your own pull
 request`. So approval lived in a comment: "Agent B says approved" was the
-strongest signal available.
+strongest signal available. Still true under the two-agent model above,
+which is why Agent 2's reviews are relayed by Spencer rather than filed as
+a formal GitHub review.
 
 ### Rules that were specific to multiple agents sharing this repo
 
@@ -123,8 +164,8 @@ strongest signal available.
 
 Every working session ends with a PR or issue comment recording what
 changed, the current state, and what comes next. Write it for a reader with
-no prior context, because that is who reads it — this applies to C solo
-exactly as it applied to three agents.
+no prior context, because that is who reads it — this applies under every
+operating model above, solo or two-agent.
 
 ---
 
