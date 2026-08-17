@@ -95,7 +95,14 @@ class BrowserTest(unittest.TestCase):
         original bug in a new shape. If either caller's callback is dropped,
         its panel sits on "loading..." forever with no error shown.
         """
-        page = self.page()
+        ctx = self.browser.new_context(viewport={"width": 1280, "height": 900})
+        self.addCleanup(ctx.close)
+        ctx.add_init_script("localStorage.setItem('zoomies.view', %s)" % json.dumps({"minScore": ""}))
+        page = ctx.new_page()
+        page.errors = []
+        page.on("pageerror", lambda e: page.errors.append(str(e)))
+        page.goto(SITE)
+        page.wait_for_selector("#rows tr")
         page.click('.star[data-star="%s"]' % self.report["universe"][0]["symbol"])
         page.click('.star[data-star="%s"]' % self.report["universe"][1]["symbol"])
         page.click("#rows tr:first-child td.ticker")
@@ -121,7 +128,14 @@ class BrowserTest(unittest.TestCase):
         accidentally widens the fetch back out (e.g. reverting to a bulk
         load, or fetching more than what is starred).
         """
-        page = self.page()
+        ctx = self.browser.new_context(viewport={"width": 1280, "height": 900})
+        self.addCleanup(ctx.close)
+        ctx.add_init_script("localStorage.setItem('zoomies.view', %s)" % json.dumps({"minScore": ""}))
+        page = ctx.new_page()
+        page.errors = []
+        page.on("pageerror", lambda e: page.errors.append(str(e)))
+        page.goto(SITE)
+        page.wait_for_selector("#rows tr")
         requests = []
         page.on("request", lambda req: requests.append(req.url)
                 if "/data/returns/" in req.url or req.url.endswith("returns.js") else None)
@@ -146,7 +160,14 @@ class BrowserTest(unittest.TestCase):
         should need zero further requests -- the two loaders are meant to
         share data, not duplicate it.
         """
-        page = self.page()
+        ctx = self.browser.new_context(viewport={"width": 1280, "height": 900})
+        self.addCleanup(ctx.close)
+        ctx.add_init_script("localStorage.setItem('zoomies.view', %s)" % json.dumps({"minScore": ""}))
+        page = ctx.new_page()
+        page.errors = []
+        page.on("pageerror", lambda e: page.errors.append(str(e)))
+        page.goto(SITE)
+        page.wait_for_selector("#rows tr")
         page.click("#rows tr:first-child td.ticker")
         page.wait_for_selector("#overlay:not([hidden])")
         page.wait_for_function(
@@ -184,7 +205,14 @@ class BrowserTest(unittest.TestCase):
         a, b, victim = (self.report["universe"][i]["symbol"] for i in (0, 1, 2))
         (work / "data" / "returns" / (victim + ".js")).unlink()
 
-        page = self.page(url="file://%s/index.html" % work)
+        ctx = self.browser.new_context(viewport={"width": 1280, "height": 900})
+        self.addCleanup(ctx.close)
+        ctx.add_init_script("localStorage.setItem('zoomies.view', %s)" % json.dumps({"minScore": ""}))
+        page = ctx.new_page()
+        page.errors = []
+        page.on("pageerror", lambda e: page.errors.append(str(e)))
+        page.goto("file://%s/index.html" % work)
+        page.wait_for_selector("#rows tr")
         page.click('.star[data-star="%s"]' % a)
         page.click('.star[data-star="%s"]' % b)
         page.click('.star[data-star="%s"]' % victim)
@@ -271,7 +299,7 @@ class BrowserTest(unittest.TestCase):
         page = self.page()
         page.evaluate(
             "localStorage.setItem('zoomies.view', "
-            "JSON.stringify({key: 'rank', sector: 'Sector That No Longer Exists'}))")
+            "JSON.stringify({key: 'rank', sector: 'Sector That No Longer Exists', minScore: ''}))")
         page.reload()
         page.wait_for_selector("#rows tr")
 
@@ -307,7 +335,7 @@ class BrowserTest(unittest.TestCase):
             # entirely depending on its real volatility, hiding its star
             # button and breaking the watchlist assertion below for a
             # reason that has nothing to do with what this test checks.
-            "watch": [symbol], "maxVol": "500",
+            "watch": [symbol], "maxVol": "500", "minScore": "",
         })
         ctx = self.browser.new_context(viewport={"width": 1280, "height": 900})
         self.addCleanup(ctx.close)
@@ -515,7 +543,14 @@ class BrowserTest(unittest.TestCase):
         self.assertEqual(page.errors, [])
 
     def test_search_survives_a_reload(self):
-        page = self.page()
+        ctx = self.browser.new_context(viewport={"width": 1280, "height": 900})
+        self.addCleanup(ctx.close)
+        ctx.add_init_script("localStorage.setItem('zoomies.view', %s)" % json.dumps({"minScore": ""}))
+        page = ctx.new_page()
+        page.errors = []
+        page.on("pageerror", lambda e: page.errors.append(str(e)))
+        page.goto(SITE)
+        page.wait_for_selector("#rows tr")
         symbol = self.report["universe"][0]["symbol"]
         page.fill("#search", symbol)
         page.wait_for_timeout(200)
@@ -545,7 +580,14 @@ class BrowserTest(unittest.TestCase):
             "// Generated by build.py -- do not edit.\nconst REPORT = %s;\n"
             % json.dumps(rep, indent=1))
 
-        page = self.page(url="file://%s/index.html" % work)
+        ctx = self.browser.new_context(viewport={"width": 1280, "height": 900})
+        self.addCleanup(ctx.close)
+        ctx.add_init_script("localStorage.setItem('zoomies.view', %s)" % json.dumps({"minScore": ""}))
+        page = ctx.new_page()
+        page.errors = []
+        page.on("pageerror", lambda e: page.errors.append(str(e)))
+        page.goto("file://%s/index.html" % work)
+        page.wait_for_selector("#rows tr")
         page.fill("#search", victim)
         page.wait_for_timeout(200)
         page.click("#rows tr:first-child td.ticker")
