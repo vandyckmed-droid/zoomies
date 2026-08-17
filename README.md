@@ -69,6 +69,8 @@ Ranked highest score first. A stock listed too recently to fill the window (273 
 
 Each stock is regressed on `SPY` over the same 12–1 window, giving beta, annualized alpha (no risk-free adjustment) and R². A name needs 120 overlapping days before a regression is reported. The detail panel also lists the five names a stock is most correlated with and the five it is least correlated with, ranked across every tracked name.
 
+The detail panel also shows a 52-week range: the low and high adjusted close over the trailing 52 calendar weeks ending on the name's latest cached trading date, with the latest close marked between them. This is independent of the 12–1 score, so a name without enough history to be scored can still show one.
+
 Starring names adds them to a watchlist, which drives a ranked "most correlated pairs" list below the table: every unique pair of starred names, highest correlation first, each with a one-tap action to drop the lower-ranked of the two.
 
 ## Percentiles and rank change

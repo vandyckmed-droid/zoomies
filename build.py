@@ -311,6 +311,25 @@ def drawdown(prices, dates):
     return worst
 
 
+def price_range_52w(prices):
+    """Low/high adjusted close over the trailing 52 calendar weeks ending on
+    the latest cached trading date.
+
+    Independent of score() -- a name can have too little history to qualify
+    for a 12-1 score yet still have a perfectly good 52-week range, the same
+    way lastClose does. A name with less than a year of cached history (a
+    recent IPO, or a fresh addition to the tracked universe) uses whatever
+    it has: the same convention real ticker pages use, not an artificial
+    requirement for a full year of data first.
+    """
+    if not prices:
+        return {"low52w": None, "high52w": None}
+    latest = max(prices)
+    cutoff = (date.fromisoformat(latest) - timedelta(weeks=52)).isoformat()
+    window = [p for d, p in prices.items() if d >= cutoff]
+    return {"low52w": min(window), "high52w": max(window)}
+
+
 def score(prices):
     """12-1 momentum: risk-adjusted drift over 252 days, skipping the last 21."""
     series = [prices[d] for d in sorted(prices)]
@@ -539,6 +558,7 @@ def main():
         if len(universe) > 60 and (i % 50 == 0 or i == len(universe)):
             print("  %d/%d" % (i, len(universe)))
         result = score(prices) if prices else None
+        range52 = price_range_52w(prices)
         row = {
             "symbol": stock["symbol"],
             "name": stock["name"],
@@ -548,6 +568,8 @@ def main():
             "lastClose": prices[max(prices)] if prices else None,
             "lastDate": max(prices) if prices else None,
             "historyDays": len(prices),
+            "low52w": range52["low52w"],
+            "high52w": range52["high52w"],
             "score": None,
             "annReturn": None,
             "annVol": None,

@@ -46,5 +46,41 @@ class RankByScoreTest(unittest.TestCase):
         self.assertEqual(build.rank_by_score({"A": 5.0}, cohort=set()), {})
 
 
+class PriceRange52wTest(unittest.TestCase):
+    def test_no_cached_prices_returns_nulls(self):
+        self.assertEqual(build.price_range_52w({}),
+                          {"low52w": None, "high52w": None})
+
+    def test_uses_the_trailing_52_weeks_ending_on_the_latest_cached_date(self):
+        """A price from more than 52 weeks before the latest cached date must
+        not pull the low/high toward it -- only the trailing window counts,
+        the same way a real 52-week range excludes a year-old spike.
+        """
+        prices = {
+            "2024-01-01": 500.0,    # far outside the window -- must be ignored
+            "2025-01-15": 90.0,
+            "2025-06-01": 150.0,
+            "2026-01-10": 110.0,    # latest cached date
+        }
+        self.assertEqual(build.price_range_52w(prices),
+                          {"low52w": 90.0, "high52w": 150.0})
+
+    def test_less_than_a_year_of_history_uses_whatever_is_cached(self):
+        """A recent IPO, or a name newly added to the tracked universe, has
+        no artificial requirement to reach a full year before it gets a
+        range -- real ticker pages show the same thing.
+        """
+        prices = {"2026-01-05": 20.0, "2026-01-10": 25.0, "2026-01-15": 22.0}
+        self.assertEqual(build.price_range_52w(prices),
+                          {"low52w": 20.0, "high52w": 25.0})
+
+    def test_a_single_cached_day_gives_a_zero_width_range(self):
+        """Degenerate, not an error -- the presentation layer is what
+        decides how to render low == high, not this function.
+        """
+        self.assertEqual(build.price_range_52w({"2026-01-10": 42.0}),
+                          {"low52w": 42.0, "high52w": 42.0})
+
+
 if __name__ == "__main__":
     unittest.main()
