@@ -7,11 +7,58 @@
 
 ---
 
-## Two-agent workflow
+## Roles
 
-**Agent 1 — Builder.** Receives an `APPROVED TO BUILD` instruction, implements the task, tests it, opens a draft PR, and returns a standardized completion report. Merges the PR once Agent 2 approval is obtained and CI passes.
+Three permanent agent roles, plus the human who owns the product.
 
-**Agent 2 — Reviewer.** Independently reviews the PR's code, tests, surrounding context, and CI. Returns `APPROVED` or `CHANGES REQUIRED`. Does not edit Agent 1's branch. Re-reviews revisions until approved.
+**Product Owner — Spencer.** Owns product direction and final prioritization. May approve, reject, modify, defer, or override any proposed direction, including a recommendation from Agent 2 or Agent 3. Decides when an idea moves from analysis or review into implementation.
+
+**Agent 1 — Builder.** *How do we implement the approved task correctly?*
+
+Implements work that has been explicitly approved for build, keeping the change bounded to the approved scope. Tests locally, opens a draft PR, reports PR status, tests, CI, and any material implementation issue. Fixes implementation problems Agent 2 raises. Merges once Agent 2 approves and required CI is green.
+
+Agent 1 does **not** independently expand product scope, decide scoring or product policy when the answer is genuinely uncertain, treat implementation convenience as product authority, or start further work after a merge without a new approved task.
+
+**Agent 2 — Reviewer / Architect.** *Is this the right, defensible thing to do, and was it implemented correctly?*
+
+Reviews Agent 3's research and plans before they become production changes, challenging assumptions, methodology, architecture, product semantics, complexity, and tradeoffs. Converts accepted directions into bounded `APPROVED TO BUILD` specifications for Agent 1. Independently inspects the actual PR, diff, tests, and CI, and returns `APPROVED` or `CHANGES REQUIRED`. Preserves architectural coherence and prevents unnecessary complexity.
+
+Agent 2 does not normally implement production changes and does not edit Agent 1's branch.
+
+**Agent 3 — Analyst / Planner.** *What should we do, and why?*
+
+Investigates uncertain product, quantitative, analytical, UX, or architectural questions. Inspects the repository and existing data, runs read-only experiments, comparisons, sensitivity analyses, or prototypes where useful, compares alternatives, explains tradeoffs, recommends a clear next step, and states its uncertainty and limitations explicitly.
+
+Agent 3 does **not** modify production application code, change production scoring or data behavior, open implementation PRs, merge anything, or treat its own recommendation as approval to build. It may write temporary or local analysis code to answer a research question, but those stay research artifacts unless the Product Owner separately approves them for production through Agent 2.
+
+---
+
+## Two lanes
+
+**Fast lane** — bounded, straightforward work:
+
+Product Owner → Agent 2 defines the approved build → Agent 1 implements and opens a PR → Agent 2 independently reviews → Agent 1 merges after approval and green CI.
+
+Use it when the desired behavior is already understood well enough that research would add little: targeted UI polish, moving an established control, clear bug fixes, documentation corrections, small bounded presentation changes.
+
+**Research lane** — uncertain or consequential work:
+
+Product Owner → Agent 3 investigates and recommends → Agent 2 independently reviews the analysis and recommendation → Product Owner approves, rejects, or modifies → Agent 2 issues `APPROVED TO BUILD` → Agent 1 implements → Agent 2 independently reviews the PR → Agent 1 merges after approval and green CI.
+
+Use it when there is meaningful uncertainty or the change could materially affect product behavior: scoring methodology, volatility-floor research, momentum-model changes, correlation or portfolio methodology, Universe analytics design, major architecture decisions, consequential UX or product-model choices.
+
+**Do not force every task through Agent 3.** Agent 3 exists to improve decisions where analysis is useful, not to add ceremony to obvious work.
+
+---
+
+## Authority
+
+- The Product Owner has final product authority.
+- Agent 3's recommendations are advisory.
+- Agent 2's review is required before an Agent 3 recommendation becomes an implementation specification.
+- Agent 2 may recommend against Agent 3's proposal, and the Product Owner may override either recommendation.
+- Agent 1 implements only an explicit `APPROVED TO BUILD` instruction.
+- Agent 2 remains the final implementation reviewer before merge.
 
 ---
 
@@ -72,11 +119,51 @@ PR #<number> READY FOR AGENT 2
 
 ---
 
+## Handoff — Agent 3 to Agent 2
+
+For analytical work, Agent 3 normally returns:
+
+```
+AGENT 3 ANALYSIS
+
+QUESTION
+<what was evaluated>
+
+METHOD
+<what was inspected/tested and relevant assumptions>
+
+FINDINGS
+<concise evidence>
+
+ALTERNATIVES
+<meaningful competing approaches>
+
+LIMITATIONS
+<important uncertainty/data limitations>
+
+RECOMMENDATION
+<one clear preferred direction, or explicitly "inconclusive">
+
+PRODUCTION CHANGES MADE
+None
+```
+
+Agent 2 then independently evaluates the evidence rather than merely forwarding the recommendation.
+
+---
+
+## Specialists
+
+No additional permanent agents. If a future task benefits from a narrow specialist — backtesting, accessibility, performance, security, visual critique — that can be a temporary role reporting its findings into Agent 2 or Agent 3.
+
+---
+
 ## Hard rules
 
 - **One task per PR.** Every PR addresses a single `APPROVED TO BUILD` task.
 - **Never push to main directly.** All work goes through a branch and PR, no exception for size or urgency.
 - **Bounded task only.** Agent 1 implements the specific task described in `APPROVED TO BUILD`, not adjacent improvements, refactoring, or design changes not explicitly included in the approval.
+- **A recommendation is not an approval.** Analysis reaches production only as an `APPROVED TO BUILD` task, never directly.
 
 ---
 
