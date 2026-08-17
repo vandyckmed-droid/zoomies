@@ -207,6 +207,117 @@ class BrowserTest(unittest.TestCase):
         self.assertNotIn(victim, headers[1:], "the missing-shard name should not appear as a column")
         self.assertEqual(page.errors, [])
 
+    @staticmethod
+    def _corr(xs, ys):
+        """Pearson correlation, mirroring pairStats()'s formula exactly so
+        the expected value here and the client-side one are computed the
+        same way rather than one being asserted against a guess."""
+        n = len(xs)
+        mx = sum(xs) / n
+        my = sum(ys) / n
+        sxy = sxx = syy = 0.0
+        for x, y in zip(xs, ys):
+            dx, dy = x - mx, y - my
+            sxy += dx * dy
+            sxx += dx * dx
+            syy += dy * dy
+        return sxy / (sxx * syy) ** 0.5
+
+    def _work_with_shards(self):
+        work = pathlib.Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, work, True)
+        shutil.copy(ROOT / "index.html", work / "index.html")
+        shutil.copy(ROOT / "scores.js", work / "scores.js")
+        shutil.copytree(ROOT / "data" / "returns", work / "data" / "returns")
+        return work
+
+    def test_ranked_pairs_lists_unique_pairs_sorted_by_correlation(self):
+        """The ranked list is the point of this feature: once a watchlist
+        outgrows a handful of names, the NxN matrix stops being scannable,
+        so a flat "highest correlation first" list should surface the most
+        redundant pair without making the reader hunt across a grid.
+
+        Uses synthetic per-symbol shards with known, non-degenerate
+        correlations computed independently in Python (via _corr, the same
+        formula pairStats() uses) rather than real market data, whose actual
+        correlations are not an invariant of the system and would make this
+        assertion drift on every rebuild.
+        """
+        work = self._work_with_shards()
+        # Three real, score >= 1 names already in the committed universe, so
+        # they render (and get star buttons) under the default MIN SCORE
+        # filter with no other setup.
+        a, b, c = "AAPL", "GOOGL", "TSM"
+        n = 130  # REPORT.minOverlap is 120; comfortably above it
+        series = {
+            a: [i for i in range(n)],
+            b: [i + (15 if i % 7 == 0 else 0) for i in range(n)],
+            c: [(n - 1 - i) + (15 if i % 5 == 0 else 0) for i in range(n)],
+        }
+        for sym, vals in series.items():
+            (work / "data" / "returns" / (sym + ".js")).write_text(
+                "RETURNS[%s]=%s;\n" % (json.dumps(sym), json.dumps(vals)))
+
+        expected = sorted(
+            ((x, y, self._corr(series[x], series[y])) for x, y in ((a, b), (a, c), (b, c))),
+            key=lambda t: t[2], reverse=True)
+
+        page = self.page(url="file://%s/index.html" % work)
+        page.click('.star[data-star="%s"]' % a)
+        page.click('.star[data-star="%s"]' % b)
+        page.click('.star[data-star="%s"]' % c)
+        page.wait_for_selector("#ranked-pairs .crow")
+
+        # h3 is styled text-transform: uppercase, so assert against textContent
+        # (the DOM text) rather than inner_text (the rendered, transformed text).
+        self.assertEqual(
+            page.eval_on_selector("#ranked-pairs h3", "e => e.textContent"),
+            "Most correlated pairs")
+        rows = page.eval_on_selector_all(
+            "#ranked-pairs .crow", "els => els.map(e => e.textContent.trim())")
+        self.assertEqual(len(rows), 3, "three starred names should give exactly three unique pairs")
+        for row, (x, y, corr) in zip(rows, expected):
+            label = "%s ↔ %s" % (x, y)
+            self.assertTrue(row.startswith(label),
+                             "expected '%s' ordered by descending correlation, got %r" % (label, rows))
+            self.assertAlmostEqual(float(row[len(label):]), corr, places=2)
+        self.assertEqual(page.errors, [])
+
+    def test_ranked_pairs_caps_at_five_when_more_are_available(self):
+        """Acceptance criterion: show at least the top 5 pairs when
+        available. Four starred names give six unique pairs -- more than
+        fit in the cap -- so this proves the list truncates rather than
+        dumping every pair once a watchlist gets large enough to actually
+        need this feature.
+        """
+        work = self._work_with_shards()
+        symbols = ["AAPL", "GOOGL", "TSM", "LLY"]
+        n = 130
+        for idx, sym in enumerate(symbols):
+            vals = [(i * (idx + 1)) % 97 - 48 for i in range(n)]
+            (work / "data" / "returns" / (sym + ".js")).write_text(
+                "RETURNS[%s]=%s;\n" % (json.dumps(sym), json.dumps(vals)))
+
+        page = self.page(url="file://%s/index.html" % work)
+        for sym in symbols:
+            page.click('.star[data-star="%s"]' % sym)
+        page.wait_for_selector("#ranked-pairs .crow")
+
+        rows = page.eval_on_selector_all("#ranked-pairs .crow", "els => els.length")
+        self.assertEqual(rows, 5, "six unique pairs exist; the list should cap at the top 5")
+        self.assertEqual(page.errors, [])
+
+    def test_ranked_pairs_hidden_with_fewer_than_two_watchlist_names(self):
+        page = self.page()
+        self.assertTrue(page.is_hidden("#pairs"), "no watchlist should show neither list nor matrix")
+        self.assertEqual(page.eval_on_selector("#ranked-pairs", "e => e.innerHTML"), "")
+
+        page.click('.star[data-star="AAPL"]')
+        page.wait_for_timeout(300)
+        self.assertTrue(page.is_hidden("#pairs"),
+                         "a single starred name has no pair to rank or show in the matrix")
+        self.assertEqual(page.errors, [])
+
     def test_filters_round_trip_and_clear(self):
         page = self.page()
         total = page.eval_on_selector_all("#rows tr", "e => e.length")

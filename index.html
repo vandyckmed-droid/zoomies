@@ -262,8 +262,9 @@
   #matrix td.self { color: var(--muted); }
   .pnote { color: var(--muted); font-size: .8rem; margin: .7rem 0 0; }
 
-  /* Most / least correlated lists in the detail panel */
-  #ov-corr h3 {
+  /* Most / least correlated lists in the detail panel, and the ranked
+     watchlist pairs list above the matrix -- same compact row shape. */
+  #ov-corr h3, #ranked-pairs h3 {
     font-size: .72rem;
     text-transform: uppercase;
     letter-spacing: .05em;
@@ -271,16 +272,19 @@
     font-weight: 400;
     margin: 1.1rem 0 .4rem;
   }
-  #ov-corr .crow {
+  #ov-corr h3:first-child, #ranked-pairs h3:first-child { margin-top: 0; }
+  #ov-corr .crow, #ranked-pairs .crow {
     display: flex;
     justify-content: space-between;
     gap: 1rem;
     padding: .2rem 0;
     font-size: .9rem;
   }
-  #ov-corr .crow span:first-child { font-weight: 600; }
+  #ov-corr .crow span:first-child, #ranked-pairs .crow span:first-child { font-weight: 600; }
   #ov-corr .cname { color: var(--muted); font-weight: 400; font-size: .8rem; }
-  #ov-corr .cval { font-variant-numeric: tabular-nums; }
+  #ov-corr .cval, #ranked-pairs .cval { font-variant-numeric: tabular-nums; }
+  #ranked-pairs:empty { display: none; }
+  #ranked-pairs { margin-bottom: .75rem; }
 
   #empty { color: var(--muted); padding: 1.5rem .6rem; display: none; }
   footer { color: var(--muted); font-size: .8rem; margin-top: 1.5rem; }
@@ -411,6 +415,7 @@
     <h2>Watchlist pairs</h2>
     <button id="pairs-mode">correlation</button>
   </div>
+  <div id="ranked-pairs"></div>
   <div class="pscroll"><table id="matrix"></table></div>
   <p class="pnote" id="pairs-note"></p>
 </section>
@@ -784,6 +789,7 @@
     var symbols = picked.map(function (s) { return s.symbol; });
     if (symbols.some(function (s) { return !returnsSettled(s); })) {
       document.getElementById('matrix').innerHTML = '';
+      document.getElementById('ranked-pairs').innerHTML = '';
       document.getElementById('pairs-note').textContent = 'Loading return series…';
       // Re-render once every shard has settled, success or failure -- do not
       // gate on all of them succeeding. A 404 is normal for a starred name
@@ -799,11 +805,33 @@
     picked = picked.filter(function (s) { return RETURNS[s.symbol]; });
     if (picked.length < 2) {
       document.getElementById('matrix').innerHTML = '';
+      document.getElementById('ranked-pairs').innerHTML = '';
       document.getElementById('pairs-note').textContent =
         'Needs two starred names with enough price history.';
       return;
     }
     var cov = view.pairsMode === 'covariance';
+
+    // Every unique pair among the starred names, ranked highest correlation
+    // first -- the fastest way to spot redundant holdings once the
+    // watchlist outgrows what the full matrix can show at a glance. Reuses
+    // the same pairStats() the matrix cells use, just laid out as a list
+    // instead of a grid.
+    var ranked = [];
+    var ri, rj, rst;
+    for (ri = 0; ri < picked.length; ri++) {
+      for (rj = ri + 1; rj < picked.length; rj++) {
+        rst = pairStats(RETURNS[picked[ri].symbol], RETURNS[picked[rj].symbol]);
+        if (rst) ranked.push({ a: picked[ri].symbol, b: picked[rj].symbol, corr: rst.corr });
+      }
+    }
+    ranked.sort(function (x, y) { return y.corr - x.corr; });
+    document.getElementById('ranked-pairs').innerHTML = ranked.length ?
+      '<h3>Most correlated pairs</h3>' + ranked.slice(0, 5).map(function (p) {
+        return '<div class="crow"><span>' + esc(p.a) + ' ↔ ' + esc(p.b) + '</span>' +
+               '<span class="cval ' + (p.corr >= 0 ? 'pos' : 'neg') + '">' +
+               p.corr.toFixed(2) + '</span></div>';
+      }).join('') : '';
 
     var head = '<tr><th></th>' + picked.map(function (s) {
       return '<th>' + esc(s.symbol) + '</th>';
