@@ -24,7 +24,7 @@ The page checks the age of `scores.js`'s `generated` date on load and shows a vi
 
 For anything the nightly schedule doesn't cover — a bigger universe, a different scoring window — **Actions > Rebuild data > Run workflow** does it instead: universe size, lookback and skip are inputs on the form, the key comes from the `API_KEY` repository secret, and the regenerated files are committed so Pages redeploys.
 
-Filters that only threshold on data already in `scores.js` — score, return, volatility, drawdown, market cap, beta, alpha, R² — are instant and client-side; they need no rebuild at all.
+Filters threshold on data already in `scores.js` — score and volatility — so they're instant and client-side; no rebuild needed.
 
 ## Files
 
@@ -85,7 +85,7 @@ Both percentiles and 63D rank change are **detail-panel-only** — neither has a
 
 ## Filtering
 
-Filters sit above the table: a minimum score, a maximum annualized volatility, a sector, and watchlist-only. Columns sort on rank, ticker, score, return, volatility and market cap.
+Filters sit above the table: search, a minimum score, a maximum annualized volatility, a sector, and watchlist-only. Columns sort on rank, ticker, score, return, volatility and max drawdown.
 
 Sector comes straight from the FMP screener response at no extra request cost, and is otherwise unused by the scoring math. The options list is whatever sectors are actually present in the current universe, so it changes as the tracked names change.
 

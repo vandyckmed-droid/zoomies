@@ -26,11 +26,20 @@ Agent 2 marks a task `APPROVED TO BUILD` when it is ready for implementation. Sp
 Agent 1:
 1. Creates a branch
 2. Implements the bounded task using normal engineering judgment
-3. Tests locally and verifies CI passes
+3. Tests locally
 4. Opens a draft PR
-5. Returns the standardized completion report (see below) to Spencer
-6. Addresses every material Agent 2 finding on the same branch
-7. Pushes revisions and re-returns the report after each iteration
+5. Immediately checks the PR's mergeability
+6. If mergeable, verifies CI actually starts (see CI below)
+7. Returns the standardized completion report (see below) to Spencer
+8. Addresses every material Agent 2 finding on the same branch
+9. Pushes revisions and re-returns the report after each iteration
+
+A PR GitHub reports as not mergeable (a real conflict against the base
+branch) may never start `pull_request` CI at all. If a mergeable PR still
+shows no CI run after roughly 2–5 minutes, that's a signal to diagnose the
+trigger or a conflict, not to keep waiting: ordinary CI on this repo
+completes in a few minutes (see CI below), so prefer a short status check
+over a long polling window.
 
 **Agent 2 review**
 
@@ -83,7 +92,9 @@ PR #<number> READY FOR AGENT 2
 
 ## CI
 
-`.github/workflows/ci.yml` runs on every PR and on pushes to `main`:
+`.github/workflows/ci.yml` runs on every PR and on pushes to `main`, as two independent jobs.
+
+**`checks`** — lint, compile, and data validation, plus the unit test suite:
 
 | Step          | What it does                                              |
 | ------------- | --------------------------------------------------------- |
@@ -97,11 +108,17 @@ The test step is skipped while no `tests/` directory exists, so adding one is en
 
 Both file checks read the list from `git ls-files`, so they cover what is committed and an untracked scratch file cannot fail a local run in a way CI would never reproduce.
 
-Reproduce the whole run locally with:
+**`browser`** — Playwright/Chromium end-to-end tests against `index.html` itself (`python -m unittest discover -s e2e -v`), in its own job because the browser install is slow and shouldn't gate the fast `checks` job.
+
+Both jobs normally complete in a few minutes. Reproduce them locally with:
 
 ```sh
 pip install ruff==0.15.8
 ruff check . && python -m compileall -q . && python .github/scripts/check_json.py
 for f in $(git ls-files '*.js'); do node --check "$f"; done
 python -m unittest discover -s tests -v
+
+pip install playwright==1.62.0
+python -m playwright install --with-deps chromium
+python -m unittest discover -s e2e -v
 ```
