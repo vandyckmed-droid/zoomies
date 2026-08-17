@@ -7,6 +7,24 @@ Staff maintains it. It is not a changelog — completed work leaves this file.
 Nothing in this file authorizes a build. Items reach production only as an
 explicit APPROVED TO BUILD task.
 
+## Inbox
+
+Raw captures from the Product Owner, unsorted and untriaged. The Chief of Staff
+moves items from here into the sections below. Nothing in this section is
+approved, scheduled, or lane-assigned.
+
+- 52-week range presentation. The Product Owner liked an external layout: a
+  horizontal track with the high label above and right-aligned, the low label
+  below and left-aligned, and a hollow circular marker sitting on the line at
+  the current close. Zoomies already renders low52w / high52w / lastClose as a
+  track-and-marker in the detail panel (rangeBarHtml, index.html), so this is
+  presentation only — no new data, payload, or build work. Two separable
+  pieces: (a) restyle the existing detail-panel range, cosmetic, folds into the
+  Detail panel polish item under Next; (b) promote the range to a per-row
+  column in the ranking table, which is not cosmetic — it competes with the
+  primary ticker/rank/score/return/volatility hierarchy and with progressive
+  disclosure, and needs a product decision before it is scheduled.
+
 ## In Progress
 
 - Volatility-floor scoring (Agent 3, Research Lane). Question: does unusually
@@ -72,7 +90,13 @@ as Fast Lane is already in Next.
   quality improves enough to justify the complexity.
 - Price-graph range selectors.
 - Expanding the GitHub-as-shared-office workflow (PR threads for Agent 1 <->
-  Agent 2, Issues for Agent 3 -> Agent 2). Test on real work before formalizing.
+  Agent 2, Issues for Agent 3 -> Agent 2). Trialled on PR #34, qualified
+  result. Agent 2 posting its verdict as a GitHub review worked and removed one
+  relay. Two limits surfaced: Agent 1 and Agent 2 share a GitHub identity, so
+  native review states are unavailable; and webhook delivery is best-effort, so
+  the approval and merge events never arrived. Keep the PR-review convention.
+  Do not build on branch protection or on event delivery. Not formalized
+  further until a second real trial.
 
 ## Rejected / Do Not Resurrect Without New Reason
 
