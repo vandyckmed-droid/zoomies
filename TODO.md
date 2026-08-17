@@ -4,6 +4,8 @@ This is the active backlog and work ledger, not a history log. It answers:
 what is happening now, what comes next, what is being researched, what
 remains on the roadmap, what has been deferred or rejected. The Chief of
 Staff maintains it. It is not a changelog — completed work leaves this file.
+Nothing in this file authorizes a build. Items reach production only as an
+explicit APPROVED TO BUILD task.
 
 ## In Progress
 
@@ -16,7 +18,7 @@ Staff maintains it. It is not a changelog — completed work leaves this file.
   is quantifying this. Permitted conclusions: KEEP CURRENT SCORE; fixed
   one-sided 20/22/25%; adaptive 20th; adaptive 25th; INCONCLUSIVE — GATHER MORE
   HISTORY. No production change approved. Return path: Agent 3 → Chief of Staff
-  → Agent 2 independent review → President decision → only then Agent 1.
+  → Agent 2 independent review → Product Owner decision → only then Agent 1.
 
 ## Next
 
