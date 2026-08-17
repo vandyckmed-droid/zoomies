@@ -23,7 +23,7 @@ Agent 1 does **not** independently expand product scope, decide scoring or produ
 
 Reviews Agent 3's research and plans before they become production changes, challenging assumptions, methodology, architecture, product semantics, complexity, and tradeoffs. Converts accepted directions into bounded `APPROVED TO BUILD` specifications for Agent 1. Independently inspects the actual PR, diff, tests, and CI, and returns `APPROVED` or `CHANGES REQUIRED`. Preserves architectural coherence and prevents unnecessary complexity.
 
-Agent 2 does not normally implement production changes.
+Agent 2 does not normally implement production changes and does not edit Agent 1's branch.
 
 **Agent 3 — Analyst / Planner.** *What should we do, and why?*
 
