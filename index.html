@@ -288,17 +288,24 @@
   #ranked-pairs .cval-group { display: flex; align-items: center; gap: .6rem; }
   .prow-remove {
     font: inherit;
-    font-size: .8rem;
+    font-size: .72rem;
     font-variant-numeric: tabular-nums;
     color: var(--neg);
     background: none;
-    border: none;
-    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: .2rem .55rem;
     cursor: pointer;
     white-space: nowrap;
     -webkit-appearance: none;
   }
-  .prow-remove:hover { text-decoration: underline; }
+  /* Hover is gated to devices that actually have one. A tapped :hover state
+     on touch has no "leave" event to clear it, so it would otherwise stay
+     visually pressed until some unrelated later tap. */
+  @media (hover: hover) and (pointer: fine) {
+    .prow-remove:hover { border-color: var(--neg); background: rgba(var(--neg-rgb), .08); }
+  }
+  .prow-remove:active { background: rgba(var(--neg-rgb), .16); border-color: var(--neg); }
   .prow-remove:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
 
   #empty { color: var(--muted); padding: 1.5rem .6rem; display: none; }
@@ -1128,7 +1135,45 @@
   });
   document.getElementById('ranked-pairs').addEventListener('click', function (e) {
     var btn = e.target.closest('.prow-remove');
-    if (btn) toggleWatch(btn.dataset.remove);   // re-renders the list, matrix and table itself
+    if (!btn) return;
+    // #pairs is the last real content on the page (only the footer follows
+    // it), so whoever can see and tap this button is already scrolled near
+    // the bottom -- exactly where the browser has no slack left to keep the
+    // viewport in place once the ranked list and matrix shrink by a row.
+    // Rather than fight that (a plain scroll offset can't recover space
+    // that no longer exists), pin the section's on-screen height across the
+    // DOM swap and transition it down to the new content's natural height,
+    // so the collapse reads as one smooth shrink instead of an instant
+    // snap. prefers-reduced-motion skips the animation and falls back to
+    // the plain instant swap.
+    var pairs = document.getElementById('pairs');
+    var reduced = window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var animate = !reduced && !pairs.hidden;
+    if (animate) {
+      pairs.style.height = pairs.offsetHeight + 'px';
+      pairs.style.overflow = 'hidden';
+    }
+
+    toggleWatch(btn.dataset.remove);   // re-renders the list, matrix and table itself
+
+    if (!animate) return;
+    if (pairs.hidden) {                // fewer than two names remain watched
+      pairs.style.height = '';
+      pairs.style.overflow = '';
+      return;
+    }
+    var endHeight = pairs.scrollHeight;
+    void pairs.offsetHeight;           // force layout before animating
+    pairs.style.transition = 'height .18s ease';
+    pairs.style.height = endHeight + 'px';
+    pairs.addEventListener('transitionend', function done(ev) {
+      if (ev.propertyName !== 'height') return;
+      pairs.style.height = '';
+      pairs.style.overflow = '';
+      pairs.style.transition = '';
+      pairs.removeEventListener('transitionend', done);
+    });
   });
   document.getElementById('rows').addEventListener('keydown', function (e) {
     if (e.key === 'Enter' && e.target.dataset.symbol) openDetail(e.target.dataset.symbol);
