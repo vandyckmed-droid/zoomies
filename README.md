@@ -83,13 +83,13 @@ Both percentiles and 63D rank change are **detail-panel-only** — neither has a
 
 ## Filtering
 
-Filters sit above the table: a minimum score, a maximum annualized volatility, a maximum drawdown, a sector, and watchlist-only. Columns sort on rank, ticker, score, return, volatility and market cap.
+Filters sit above the table: a minimum score, a maximum annualized volatility, a sector, and watchlist-only. Columns sort on rank, ticker, score, return, volatility and market cap.
 
 Sector comes straight from the FMP screener response at no extra request cost, and is otherwise unused by the scoring math. The options list is whatever sectors are actually present in the current universe, so it changes as the tracked names change.
 
 ## State
 
-The page remembers sort, search, scroll position, the open ticker, the theme, the watchlist, the filters and the pair mode in localStorage, so reopening it lands exactly where you left off. The theme button cycles auto (follow the device) → light → dark.
+The page remembers sort, search, scroll position, the open ticker, the theme, the watchlist and the filters in localStorage, so reopening it lands exactly where you left off. The theme button cycles auto (follow the device) → light → dark.
 
 ---
 
