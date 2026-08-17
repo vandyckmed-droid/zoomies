@@ -317,6 +317,37 @@
   }
   .card h2 { font-size: 1.15rem; margin: 0; }
   .card .sub { color: var(--muted); font-size: .85rem; margin: .15rem 0 1rem; }
+  #ov-range:empty { display: none; }
+  #ov-range { margin: 0 0 1.1rem; }
+  #ov-range .rlabel {
+    font-size: .72rem; text-transform: uppercase; letter-spacing: .05em;
+    color: var(--muted); margin: 0 0 .5rem;
+  }
+  #ov-range .rtrack {
+    position: relative;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--line);
+    margin: 0 7px;    /* half the marker's width, so it never clips at 0%/100% */
+  }
+  #ov-range .rmarker {
+    position: absolute;
+    top: 50%;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--fg);
+    border: 2px solid var(--card);
+    transform: translate(-50%, -50%);
+  }
+  #ov-range .rvals {
+    display: flex;
+    justify-content: space-between;
+    font-size: .78rem;
+    color: var(--muted);
+    margin-top: .55rem;
+    font-variant-numeric: tabular-nums;
+  }
   #ov-close {
     position: absolute;
     top: .5rem;
@@ -427,6 +458,7 @@
     <button id="ov-close" aria-label="Close">&times;</button>
     <h2 id="ov-title"></h2>
     <p class="sub" id="ov-sub"></p>
+    <div id="ov-range"></div>
     <dl id="ov-stats"></dl>
     <div id="ov-corr"></div>
   </div>
@@ -856,6 +888,23 @@
 
   var overlay = document.getElementById('overlay');
 
+  // A compact low-to-high price bar with the latest close marked between
+  // them -- independent of score() the same way lastClose is, so a name
+  // with too little history for a 12-1 score can still show one. Returns
+  // '' (rendering nothing, via #ov-range:empty) rather than a bar with no
+  // real position when the build never cached a range for this name.
+  function rangeBarHtml(s) {
+    if (s.low52w === null || s.high52w === null || s.lastClose === null) return '';
+    var lo = s.low52w, hi = s.high52w;
+    var span = hi - lo;
+    // A single cached day (or a name that never moved) gives a zero-width
+    // range -- center the marker rather than divide by zero.
+    var pos = span > 0 ? Math.max(0, Math.min(100, (s.lastClose - lo) / span * 100)) : 50;
+    return '<p class="rlabel">52W range</p>' +
+           '<div class="rtrack"><span class="rmarker" style="left:' + pos.toFixed(2) + '%"></span></div>' +
+           '<div class="rvals"><span>$' + lo.toFixed(2) + '</span><span>$' + hi.toFixed(2) + '</span></div>';
+  }
+
   function openDetail(symbol, focus) {
     var s = stocks.filter(function (x) { return x.symbol === symbol; })[0];
     if (!s) return;
@@ -935,6 +984,7 @@
 
     document.getElementById('ov-title').textContent = s.symbol;
     document.getElementById('ov-sub').textContent = s.name;
+    document.getElementById('ov-range').innerHTML = rangeBarHtml(s);
     document.getElementById('ov-stats').innerHTML = stats.map(function (row) {
       return row[0] === 'hr' ? '<hr>' : '<dt>' + row[0] + '</dt><dd>' + row[1] + '</dd>';
     }).join('');
