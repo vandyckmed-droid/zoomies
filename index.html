@@ -13,59 +13,72 @@
   } catch (e) {}
 </script>
 <style>
-  /* Light is the base palette; the two blocks below restate only the tokens,
-     so every rule further down works in either theme. */
+  /* Graphite Terminal. Light is the base palette -- a technical-sheet
+     off-white, not an inverted dark theme -- and the two blocks below
+     restate only the tokens, so every rule further down works in either
+     theme. --accent is the one deliberately loud color in the system: acid
+     green, reserved for score, active state, watchlist emphasis and the
+     price marker -- never ambient decoration. --pos/--neg stay a calmer,
+     more ordinary green/red for everyday positive/negative numbers, so
+     score visually outranks them rather than competing on equal footing. */
   :root {
     color-scheme: light;
-    --bg: #fff;
-    --fg: #1a1a1a;
-    --muted: #666;
-    --line: #e5e5e5;
-    --sorted: #f6f8fa;
-    --hover: #fafafa;
-    --field: #ccc;
+    --bg: #f5f5f2;
+    --fg: #15171a;
+    --muted: #6b6f73;
+    --line: #dcdfd9;
+    --sorted: rgba(79, 122, 18, .08);
+    --hover: #eff0eb;
+    --field: #c5c8c2;
     --card: #fff;
-    --scrim: rgba(0, 0, 0, .35);
+    --scrim: rgba(15, 17, 15, .4);
     --pos: #157347;
     --neg: #b02a37;
     --pos-rgb: 21, 115, 71;
     --neg-rgb: 176, 42, 55;
+    --accent: #4f7a12;
+    --accent-rgb: 79, 122, 18;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo, Consolas, monospace;
   }
   /* Following the system, unless the viewer explicitly picked light. */
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       color-scheme: dark;
-      --bg: #14161a;
-      --fg: #e8eaed;
-      --muted: #9aa0a8;
-      --line: #2a2e35;
-      --sorted: #1c2028;
-      --hover: #1a1d23;
-      --field: #3a3f47;
-      --card: #1c1f25;
-      --scrim: rgba(0, 0, 0, .6);
+      --bg: #0e0f11;
+      --fg: #ebeced;
+      --muted: #888e94;
+      --line: #24262a;
+      --sorted: rgba(166, 226, 46, .07);
+      --hover: #17191c;
+      --field: #34373b;
+      --card: #18191c;
+      --scrim: rgba(0, 0, 0, .7);
       --pos: #3fb950;
       --neg: #f85149;
       --pos-rgb: 63, 185, 80;
       --neg-rgb: 248, 81, 73;
+      --accent: #a6e22e;
+      --accent-rgb: 166, 226, 46;
     }
   }
   /* An explicit dark choice wins over a light system setting. */
   :root[data-theme="dark"] {
     color-scheme: dark;
-    --bg: #14161a;
-    --fg: #e8eaed;
-    --muted: #9aa0a8;
-    --line: #2a2e35;
-    --sorted: #1c2028;
-    --hover: #1a1d23;
-    --field: #3a3f47;
-    --card: #1c1f25;
-    --scrim: rgba(0, 0, 0, .6);
+    --bg: #0e0f11;
+    --fg: #ebeced;
+    --muted: #888e94;
+    --line: #24262a;
+    --sorted: rgba(166, 226, 46, .07);
+    --hover: #17191c;
+    --field: #34373b;
+    --card: #18191c;
+    --scrim: rgba(0, 0, 0, .7);
     --pos: #3fb950;
     --neg: #f85149;
     --pos-rgb: 63, 185, 80;
     --neg-rgb: 248, 81, 73;
+    --accent: #a6e22e;
+    --accent-rgb: 166, 226, 46;
   }
   * { box-sizing: border-box; }
   body {
@@ -74,37 +87,56 @@
     background: var(--bg);
     max-width: 720px;
     margin: 0 auto;
-    padding: 2rem 1.25rem 4rem;
+    padding: 1.75rem 1.25rem 4rem;
     -webkit-text-size-adjust: 100%;
   }
   .head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
-  h1 { font-size: 1.4rem; margin: 0 0 .25rem; }
+  h1 {
+    font-family: var(--mono);
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: -.01em;
+    margin: 0;
+  }
   #theme, #only-watch {
     font: inherit;
-    font-size: .7rem;
+    font-family: var(--mono);
+    font-size: .68rem;
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: .05em;
+    letter-spacing: .07em;
     color: var(--muted);
     background: none;
     border: 1px solid var(--line);
-    border-radius: 999px;
-    padding: .45rem .8rem;
+    border-radius: 3px;
+    padding: .4rem .7rem;
     cursor: pointer;
     white-space: nowrap;
     -webkit-appearance: none;
   }
   #theme:hover, #only-watch:hover { color: var(--fg); border-color: var(--field); }
   #theme:focus-visible, #only-watch:focus-visible {
-    outline: 2px solid var(--fg); outline-offset: 2px;
+    outline: 2px solid var(--accent); outline-offset: 2px;
   }
-  #only-watch[aria-pressed="true"] { color: var(--fg); border-color: var(--field); }
-  #only-watch:disabled { opacity: .45; cursor: default; }
-  p.meta { color: var(--muted); font-size: .85rem; margin: 0 0 1.25rem; }
+  /* Unmistakable: watchlist-only is the one header toggle that filters what
+     you see, so its active state fills solid rather than just outlining. */
+  #only-watch[aria-pressed="true"] {
+    color: var(--bg);
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  #only-watch:disabled { opacity: .4; cursor: default; }
+  p.meta {
+    color: var(--muted);
+    font-size: .78rem;
+    line-height: 1.45;
+    margin: .3rem 0 1.1rem;
+  }
   p.stale {
     color: var(--neg);
-    font-size: .8rem;
+    font-size: .78rem;
     font-weight: 600;
-    margin: -.75rem 0 1.25rem;
+    margin: -.7rem 0 1.1rem;
   }
   p.stale[hidden] { display: none; }
 
@@ -121,28 +153,45 @@
     font: inherit;
     padding: .6rem .75rem;
     border: 1px solid var(--field);
-    border-radius: 8px;
+    border-radius: 4px;
+    background: var(--card);
+    color: var(--fg);
     -webkit-appearance: none;
   }
-  #search:focus { outline: 2px solid var(--fg); outline-offset: -1px; border-color: var(--fg); }
-  .filters { display: flex; align-items: center; gap: .5rem; padding: .5rem 0 0; }
+  #search:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: var(--accent); }
+  /* A bordered instrument cluster, not loose form controls -- one bounded
+     panel holding every ranking-screen filter. */
+  .filters {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .5rem .8rem;
+    margin-top: .55rem;
+    padding: .6rem .7rem;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--card);
+  }
   .filters label {
     display: flex;
     align-items: center;
     gap: .35rem;
-    font-size: .72rem;
+    font-family: var(--mono);
+    font-size: .68rem;
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: .04em;
+    letter-spacing: .05em;
     color: var(--muted);
     white-space: nowrap;
   }
   .filters input {
     font: inherit;
+    font-family: var(--mono);
     font-size: .85rem;
     width: 3.4rem;
     padding: .3rem .4rem;
     border: 1px solid var(--field);
-    border-radius: 6px;
+    border-radius: 3px;
     background: var(--bg);
     color: var(--fg);
     -webkit-appearance: none;
@@ -150,38 +199,40 @@
   }
   .filters input::-webkit-outer-spin-button,
   .filters input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-  .filters input:focus { outline: 2px solid var(--fg); outline-offset: -1px; }
+  .filters input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
   .filters select {
     font: inherit;
+    font-family: var(--mono);
     font-size: .85rem;
     max-width: 6.5rem;
     padding: .3rem .4rem;
     border: 1px solid var(--field);
-    border-radius: 6px;
+    border-radius: 3px;
     background: var(--bg);
     color: var(--fg);
   }
-  .filters select:focus { outline: 2px solid var(--fg); outline-offset: -1px; }
+  .filters select:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
   .filters .pctsign { margin-left: -.2rem; }
   .filters #only-watch { margin-left: auto; }
   #reset-filters {
-    font: inherit; font-size: .75rem; background: none; border: 0; padding: 0;
+    font: inherit; font-family: var(--mono); font-size: .72rem; background: none; border: 0; padding: 0;
     color: var(--muted); text-decoration: underline; cursor: pointer;
   }
   #reset-filters[hidden] { display: none; }
-  #reset-filters:hover { color: var(--fg); }
-  .barrow { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .45rem 0 0; }
-  #count { color: var(--muted); font-size: .8rem; }
+  #reset-filters:hover { color: var(--accent); }
+  .barrow { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .5rem 0 0; }
+  #count { color: var(--muted); font-size: .78rem; font-family: var(--mono); }
 
   table { border-collapse: collapse; width: 100%; }
-  th, td { padding: .5rem .55rem; border-bottom: 1px solid var(--line); }
+  th, td { padding: .5rem .55rem; border-bottom: 1px solid var(--line); font-family: var(--mono); }
   th {
     position: sticky;
     top: var(--bar-h, 5.5rem);   /* measured from the search bar above it */
     background: var(--bg);
     z-index: 2;
     text-align: right;
-    font-size: .75rem;
+    font-size: .72rem;
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: .04em;
     color: var(--muted);
@@ -189,24 +240,32 @@
     cursor: pointer;
     user-select: none;
     -webkit-user-select: none;
-    box-shadow: inset 0 -2px 0 var(--fg);
+    box-shadow: inset 0 -1px 0 var(--line);
   }
   th:hover { color: var(--fg); }
-  th .arrow { font-size: .7em; opacity: .55; }
+  th .arrow { font-size: .7em; opacity: .7; }
   th:nth-child(-n+2), td:nth-child(-n+2) { text-align: left; }
   td { text-align: right; font-variant-numeric: tabular-nums; }
-  td.ticker { font-weight: 700; }
+  td.ticker { font-weight: 700; letter-spacing: .01em; }
   td.rank { color: var(--muted); width: 3rem; }
-  td.score { font-weight: 600; }
+  td.score { font-weight: 700; }
   td.note { color: var(--muted); font-size: .85rem; text-align: right; }
   .pos { color: var(--pos); }
   .neg { color: var(--neg); }
+  /* Score is the product's mathematical heart, so a positive score gets
+     the one loud accent color in the system -- distinct from the calmer
+     green every other positive number (return, alpha, ...) uses -- so it
+     visually outranks them rather than blending in as just another green
+     figure. A negative score is still bad news first: it keeps the
+     ordinary red. */
+  td.score.pos { color: var(--accent); }
 
   tbody tr { cursor: pointer; }
   tbody tr:hover { background: var(--hover); }
-  tbody tr:focus-visible { outline: 2px solid var(--fg); outline-offset: -2px; }
+  tbody tr:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 
-  /* Highlight whichever column is driving the sort. */
+  /* Highlight whichever column is driving the sort, in accent rather than a
+     neutral tint -- the active sort is a piece of state, not just emphasis. */
   table[data-sort="rank"]      td:nth-child(1),
   table[data-sort="symbol"]    td:nth-child(2),
   table[data-sort="score"]     td:nth-child(3),
@@ -218,7 +277,10 @@
   table[data-sort="score"]     th:nth-child(3),
   table[data-sort="annReturn"] th:nth-child(4),
   table[data-sort="annVol"]    th:nth-child(5),
-  table[data-sort="maxDrawdown"] th:nth-child(6) { color: var(--fg); }
+  table[data-sort="maxDrawdown"] th:nth-child(6) {
+    color: var(--accent);
+    box-shadow: inset 0 -2px 0 var(--accent);
+  }
 
   /* Watchlist star */
   th.watch, td.watch { width: 2.6rem; text-align: center; padding-left: 0; padding-right: .25rem; }
@@ -234,24 +296,33 @@
     cursor: pointer;
     -webkit-appearance: none;
   }
-  .star[aria-pressed="true"] { color: var(--fg); }
-  .star:focus-visible { outline: 2px solid var(--fg); outline-offset: 1px; }
+  /* Watchlist emphasis is one of accent's few reserved uses. */
+  .star[aria-pressed="true"] { color: var(--accent); }
+  .star:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
   /* Pair statistics for the watchlist */
-  #pairs { margin-top: 2.25rem; }
+  #pairs { margin-top: 2.25rem; padding-top: 1.25rem; border-top: 1px solid var(--line); }
   #pairs[hidden] { display: none; }
   .phead { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
-  .phead h2 { font-size: 1rem; margin: 0 0 .5rem; }
-  .pnote { color: var(--muted); font-size: .8rem; margin: .7rem 0 0; }
+  .phead h2 {
+    font-family: var(--mono);
+    font-size: .82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin: 0 0 .5rem;
+  }
+  .pnote { color: var(--muted); font-size: .78rem; margin: .7rem 0 0; }
 
   /* Most / least correlated lists in the detail panel, and the ranked
      watchlist pairs list -- same compact row shape. */
   #ov-corr h3, #ranked-pairs h3 {
-    font-size: .72rem;
+    font-family: var(--mono);
+    font-size: .68rem;
     text-transform: uppercase;
-    letter-spacing: .05em;
+    letter-spacing: .06em;
     color: var(--muted);
-    font-weight: 400;
+    font-weight: 600;
     margin: 1.1rem 0 .4rem;
   }
   #ov-corr h3:first-child, #ranked-pairs h3:first-child { margin-top: 0; }
@@ -259,24 +330,29 @@
     display: flex;
     justify-content: space-between;
     gap: 1rem;
-    padding: .2rem 0;
+    padding: .3rem 0;
     font-size: .9rem;
+    border-bottom: 1px solid var(--line);
   }
+  #ov-corr .crow:last-child, #ranked-pairs .crow:last-child { border-bottom: 0; }
   #ov-corr .crow span:first-child, #ranked-pairs .crow span:first-child { font-weight: 600; }
   #ov-corr .cname { color: var(--muted); font-weight: 400; font-size: .8rem; }
-  #ov-corr .cval, #ranked-pairs .cval { font-variant-numeric: tabular-nums; }
+  #ov-corr .cval, #ranked-pairs .cval { font-family: var(--mono); font-variant-numeric: tabular-nums; }
   #ranked-pairs:empty { display: none; }
   #ranked-pairs { margin-bottom: .75rem; }
   #ranked-pairs .cval-group { display: flex; align-items: center; gap: .6rem; }
+  /* Destructive, so it stays clearly red -- but restrained: a thin outline,
+     not a filled alarm button, matching the rest of the instrument system. */
   .prow-remove {
     font: inherit;
+    font-family: var(--mono);
     font-size: .72rem;
     font-variant-numeric: tabular-nums;
     color: var(--neg);
     background: none;
     border: 1px solid var(--line);
-    border-radius: 999px;
-    padding: .2rem .55rem;
+    border-radius: 3px;
+    padding: .2rem .5rem;
     cursor: pointer;
     white-space: nowrap;
     -webkit-appearance: none;
@@ -288,7 +364,7 @@
     .prow-remove:hover { border-color: var(--neg); background: rgba(var(--neg-rgb), .08); }
   }
   .prow-remove:active { background: rgba(var(--neg-rgb), .16); border-color: var(--neg); }
-  .prow-remove:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+  .prow-remove:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   #empty { color: var(--muted); padding: 1.5rem .6rem; display: none; }
   footer { color: var(--muted); font-size: .8rem; margin-top: 1.5rem; }
@@ -307,7 +383,8 @@
   #overlay[hidden] { display: none; }
   .card {
     background: var(--card);
-    border-radius: 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
     padding: 1.25rem;
     width: 100%;
     max-width: 420px;
@@ -315,37 +392,61 @@
     overflow-y: auto;
     position: relative;
   }
-  .card h2 { font-size: 1.15rem; margin: 0; }
-  .card .sub { color: var(--muted); font-size: .85rem; margin: .15rem 0 1rem; }
+  .card h2 {
+    font-family: var(--mono);
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: -.01em;
+    margin: 0;
+  }
+  .card .sub { color: var(--muted); font-size: .82rem; margin: .15rem 0 1rem; }
   #ov-range:empty { display: none; }
   #ov-range { margin: 0 0 1.1rem; }
   #ov-range .rlabel {
-    font-size: .72rem; text-transform: uppercase; letter-spacing: .05em;
-    color: var(--muted); margin: 0 0 .5rem;
+    font-family: var(--mono);
+    font-size: .68rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em;
+    color: var(--muted); margin: 0 0 .6rem;
   }
+  /* A thin, precise track with a small tick at each hard endpoint, so the
+     low/high aren't just numbers below -- they're visibly the ends of the
+     measured range. */
   #ov-range .rtrack {
     position: relative;
-    height: 4px;
-    border-radius: 999px;
+    height: 2px;
     background: var(--line);
     margin: 0 7px;    /* half the marker's width, so it never clips at 0%/100% */
   }
+  #ov-range .rtrack::before, #ov-range .rtrack::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 1px;
+    height: 9px;
+    background: var(--field);
+    transform: translateY(-50%);
+  }
+  #ov-range .rtrack::before { left: 0; }
+  #ov-range .rtrack::after { right: 0; }
+  /* The strongest mark on the panel: today's price, in the one accent
+     color the system reserves for exactly this kind of thing. */
   #ov-range .rmarker {
     position: absolute;
     top: 50%;
-    width: 14px;
-    height: 14px;
+    width: 13px;
+    height: 13px;
     border-radius: 50%;
-    background: var(--fg);
+    background: var(--accent);
     border: 2px solid var(--card);
+    box-shadow: 0 0 0 3px rgba(var(--accent-rgb), .28);
     transform: translate(-50%, -50%);
   }
   #ov-range .rvals {
     display: flex;
     justify-content: space-between;
+    font-family: var(--mono);
     font-size: .78rem;
     color: var(--muted);
-    margin-top: .55rem;
+    margin-top: .6rem;
     font-variant-numeric: tabular-nums;
   }
   #ov-close {
@@ -361,10 +462,18 @@
     color: var(--muted);
     cursor: pointer;
   }
-  dl { display: grid; grid-template-columns: auto auto; gap: .45rem 1rem; margin: 0; }
-  dt { color: var(--muted); font-size: .85rem; }
-  dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
-  dl hr { grid-column: 1 / -1; border: 0; border-top: 1px solid var(--line); margin: .2rem 0; }
+  #ov-close:hover { color: var(--fg); }
+  #ov-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  dl { display: grid; grid-template-columns: auto auto; gap: .5rem 1rem; margin: 0; }
+  dt {
+    color: var(--muted);
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    align-self: center;
+  }
+  dd { margin: 0; text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  dl hr { grid-column: 1 / -1; border: 0; border-top: 1px solid var(--line); margin: .3rem 0; }
 
   @media (min-width: 560px) { #overlay { align-items: center; } }
 
@@ -1126,33 +1235,35 @@
     if (!btn) return;
     // #pairs is the last real content on the page (only the footer follows
     // it), so whoever can see and tap this button is already scrolled near
-    // the bottom -- exactly where the browser has no slack left to keep the
-    // viewport in place once the ranked list shrinks by a row. Rather than
-    // fight that (a plain scroll offset can't recover space that no longer
-    // exists), pin the section's on-screen height across the DOM swap and
-    // transition it down to the new content's natural height, so the
-    // collapse reads as one smooth shrink instead of an instant snap.
-    // prefers-reduced-motion skips the animation and falls back to the
-    // plain instant swap.
+    // the bottom. Once the ranked list shrinks by a row, the document
+    // itself gets shorter -- if there was no slack left below, the browser
+    // has no choice but to settle the viewport lower once the shrink is
+    // real; no client-side trick recovers scrollable space that no longer
+    // corresponds to any content. What IS avoidable is an instant snap: pin
+    // the section's on-screen height across the DOM swap and transition it
+    // down to the new content's natural height, so that unavoidable settle
+    // happens as one smooth collapse over the transition instead of a
+    // single-frame jump. prefers-reduced-motion skips the animation and
+    // falls back to the plain instant swap.
     var pairs = document.getElementById('pairs');
     var reduced = window.matchMedia &&
       window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var animate = !reduced && !pairs.hidden;
-    if (animate) {
-      pairs.style.height = pairs.offsetHeight + 'px';
-      pairs.style.overflow = 'hidden';
-    }
+    var startHeight = animate ? pairs.offsetHeight : 0;
 
     toggleWatch(btn.dataset.remove);   // re-renders the ranked list and table itself
 
-    if (!animate) return;
-    if (pairs.hidden) {                // fewer than two names remain watched
-      pairs.style.height = '';
-      pairs.style.overflow = '';
-      return;
-    }
-    var endHeight = pairs.scrollHeight;
-    void pairs.offsetHeight;           // force layout before animating
+    if (!animate || pairs.hidden) return;   // hidden: fewer than two remain watched
+
+    // scrollHeight lies while an explicit height is still locked to the old
+    // (taller) size: nothing overflows a box that's already bigger than its
+    // content, so it just reports the locked height back, not the true
+    // natural one. Measure with no lock active at all, then pin to the
+    // start height and animate to that real target.
+    var endHeight = pairs.offsetHeight;
+    pairs.style.height = startHeight + 'px';
+    pairs.style.overflow = 'hidden';
+    void pairs.offsetHeight;           // force layout at the start height
     pairs.style.transition = 'height .18s ease';
     pairs.style.height = endHeight + 'px';
     pairs.addEventListener('transitionend', function done(ev) {
