@@ -87,7 +87,7 @@
     background: var(--bg);
     max-width: 720px;
     margin: 0 auto;
-    padding: 1.75rem 1.25rem 4rem;
+    padding: 1.75rem 1.25rem calc(4rem + 3.75rem + env(safe-area-inset-bottom));
     -webkit-text-size-adjust: 100%;
   }
   .head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
@@ -98,7 +98,7 @@
     letter-spacing: -.01em;
     margin: 0;
   }
-  #theme, #only-watch {
+  #theme {
     font: inherit;
     font-family: var(--mono);
     font-size: .68rem;
@@ -114,18 +114,10 @@
     white-space: nowrap;
     -webkit-appearance: none;
   }
-  #theme:hover, #only-watch:hover { color: var(--fg); border-color: var(--field); }
-  #theme:focus-visible, #only-watch:focus-visible {
+  #theme:hover { color: var(--fg); border-color: var(--field); }
+  #theme:focus-visible {
     outline: 2px solid var(--accent); outline-offset: 2px;
   }
-  /* Unmistakable: watchlist-only is the one header toggle that filters what
-     you see, so its active state fills solid rather than just outlining. */
-  #only-watch[aria-pressed="true"] {
-    color: var(--bg);
-    background: var(--accent);
-    border-color: var(--accent);
-  }
-  #only-watch:disabled { opacity: .4; cursor: default; }
   p.meta {
     color: var(--muted);
     font-size: .78rem;
@@ -148,6 +140,7 @@
     padding: .75rem 0 .5rem;
     z-index: 3;
   }
+  .bar[hidden] { display: none; }
   #search {
     width: 100%;
     font: inherit;
@@ -213,7 +206,6 @@
   }
   .filters select:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
   .filters .pctsign { margin-left: -.2rem; }
-  .filters #only-watch { margin-left: auto; }
   #reset-filters {
     font: inherit; font-family: var(--mono); font-size: .72rem; background: none; border: 0; padding: 0;
     color: var(--muted); text-decoration: underline; cursor: pointer;
@@ -369,6 +361,50 @@
   #empty { color: var(--muted); padding: 1.5rem .6rem; display: none; }
   footer { color: var(--muted); font-size: .8rem; margin-top: 1.5rem; }
 
+  /* Bottom navigation. Two destinations today (Ranks, Watchlist); each
+     .nav-btn takes an equal flex share, so a third or fourth slot drops in
+     later without restructuring this. */
+  #bottom-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 5;
+    display: flex;
+    background: var(--card);
+    border-top: 1px solid var(--line);
+    padding: .3rem .4rem calc(.3rem + env(safe-area-inset-bottom));
+  }
+  .nav-btn {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .2rem;
+    font: inherit;
+    font-family: var(--mono);
+    font-size: .62rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    background: none;
+    border: 0;
+    border-radius: 4px;
+    padding: .35rem .25rem;
+    color: var(--muted);
+    cursor: pointer;
+    -webkit-appearance: none;
+  }
+  .nav-btn svg { display: block; }
+  /* The one active-state accent use in the nav: same reserved token as
+     score, watchlist emphasis and the price marker. */
+  .nav-btn[aria-current="page"] { color: var(--accent); }
+  @media (hover: hover) and (pointer: fine) {
+    .nav-btn:hover { color: var(--fg); }
+    .nav-btn[aria-current="page"]:hover { color: var(--accent); }
+  }
+  .nav-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
   /* Detail overlay */
   #overlay {
     position: fixed;
@@ -377,7 +413,7 @@
     display: flex;
     align-items: flex-end;
     justify-content: center;
-    z-index: 10;
+    z-index: 10;    /* above #bottom-nav (5), so an open detail panel covers it */
     padding: 1rem;
   }
   #overlay[hidden] { display: none; }
@@ -478,7 +514,7 @@
   @media (min-width: 560px) { #overlay { align-items: center; } }
 
   @media (max-width: 559px) {
-    body { padding: 1.25rem .6rem 3rem; }
+    body { padding: 1.25rem .6rem calc(3rem + 3.75rem + env(safe-area-inset-bottom)); }
     /* Tap targets stay >=44px tall even at this reduced padding (measured),
        tight columns so seven of them fit. Max drawdown is the one that
        gives way — it stays in the detail panel. */
@@ -491,7 +527,7 @@
     th.watch, td.watch { width: 1.9rem; padding-right: 0; }
     .star { padding: .4rem .25rem; }
     /* Three filters no longer fit on one phone-width line. Wrapping puts the
-       inputs on the first row and the watchlist button on the second. */
+       two numeric inputs on the first row and the sector select on the second. */
     .filters { flex-wrap: wrap; row-gap: .35rem; }
     .filters label { font-size: .66rem; }
     .filters input { width: 3rem; }
@@ -500,7 +536,7 @@
 
   /* Narrower phones (SE, mini) need the last few pixels squeezed out. */
   @media (max-width: 389px) {
-    body { padding: 1.25rem .35rem 3rem; }
+    body { padding: 1.25rem .35rem calc(3rem + 3.75rem + env(safe-area-inset-bottom)); }
     th, td { padding: .73rem .14rem; }
     td, th { font-size: .8rem; }
     th { font-size: .58rem; }
@@ -528,7 +564,6 @@
     <label>Max vol <input id="f-vol" type="number" step="5" min="0" inputmode="decimal"
            placeholder="any" aria-label="Maximum annualized volatility, percent"><span class="pctsign">%</span></label>
     <label>Sector <select id="f-sector" aria-label="Sector"><option value="">any</option></select></label>
-    <button id="only-watch" aria-pressed="false">&#9733; <span id="watch-n">0</span></button>
   </div>
   <div class="barrow">
     <span id="count"></span>
@@ -562,6 +597,23 @@
 
 <footer id="note"></footer>
 
+<nav id="bottom-nav" aria-label="Primary">
+  <button class="nav-btn" id="nav-ranks" data-tab="ranks" aria-current="page">
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+      <path d="M4 6h2M4 12h2M4 18h2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <path d="M9 6h11M9 12h11M9 18h11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <span>Ranks</span>
+  </button>
+  <button class="nav-btn" id="nav-watchlist" data-tab="watchlist" aria-current="false">
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+      <path d="M12 2.5l2.97 6.16 6.8.9-4.92 4.71 1.27 6.73L12 17.6l-6.12 3.4 1.27-6.73L2.23 9.56l6.8-.9L12 2.5z"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    </svg>
+    <span>Watchlist</span>
+  </button>
+</nav>
+
 <div id="overlay" hidden>
   <div class="card" role="dialog" aria-modal="true" aria-labelledby="ov-title">
     <button id="ov-close" aria-label="Close">&times;</button>
@@ -584,10 +636,13 @@
   // (it is stored negative, hence ascending where Ann. Vol is descending).
   var FIRST_DIR = { rank: 1, symbol: 1, score: -1, annReturn: -1, annVol: -1,
                     maxDrawdown: 1, marketCap: -1 };
+  // Destinations the bottom nav can switch between. Built to grow past two
+  // (Universe is the likely next one) without restructuring this list.
+  var TABS = ['ranks', 'watchlist'];
 
   // Everything the page remembers between visits.
-  var view = { key: 'rank', dir: 1, q: '', scroll: 0, open: null, theme: 'auto',
-              watch: [], onlyWatch: false,
+  var view = { key: 'rank', dir: 1, q: '', open: null, theme: 'auto',
+              watch: [], tab: 'ranks', scrollRanks: 0, scrollWatch: 0,
               minScore: '1', maxVol: '', sector: '' };
   try {
     var saved = JSON.parse(localStorage.getItem(STORE_KEY));
@@ -599,8 +654,11 @@
       // theme, watchlist and filters have nothing to do with which column
       // used to be sortable.
       if (!FIRST_DIR[view.key]) { view.key = 'rank'; view.dir = 1; }
+      if (TABS.indexOf(view.tab) === -1) view.tab = 'ranks';
     }
   } catch (e) { /* first visit, or storage blocked */ }
+
+  function scrollKey(tab) { return tab === 'watchlist' ? 'scrollWatch' : 'scrollRanks'; }
 
   function save() {
     try { localStorage.setItem(STORE_KEY, JSON.stringify(view)); } catch (e) {}
@@ -715,20 +773,29 @@
   }
 
   function render() {
-    var q = view.q.trim().toLowerCase();
-    var minScore = view.minScore === '' ? null : parseFloat(view.minScore);
-    var maxVol = view.maxVol === '' ? null : parseFloat(view.maxVol) / 100;
+    var shown;
+    if (view.tab === 'watchlist') {
+      // Watchlist membership is the only criterion here -- Ranks-screen
+      // search/score/vol/sector filters never apply, so a watched name never
+      // disappears because of a filter set on the other destination.
+      shown = view.watch.map(function (sym) {
+        return stocks.filter(function (x) { return x.symbol === sym; })[0];
+      }).filter(Boolean).sort(compare);
+    } else {
+      var q = view.q.trim().toLowerCase();
+      var minScore = view.minScore === '' ? null : parseFloat(view.minScore);
+      var maxVol = view.maxVol === '' ? null : parseFloat(view.maxVol) / 100;
 
-    var shown = stocks.filter(function (s) {
-      if (view.onlyWatch && !watched(s.symbol)) return false;
-      // An unscored name satisfies no numeric filter. Its metrics are null, and
-      // null compares as 0, so it slips past any ceiling unless excluded first.
-      var unscored = s.score === null;
-      if (minScore !== null && !isNaN(minScore) && (unscored || !(s.score >= minScore))) return false;
-      if (maxVol !== null && !isNaN(maxVol) && (unscored || !(s.annVol <= maxVol))) return false;
-      if (view.sector && s.sector !== view.sector) return false;
-      return !q || s.symbol.toLowerCase().indexOf(q) > -1 || s.name.toLowerCase().indexOf(q) > -1;
-    }).sort(compare);
+      shown = stocks.filter(function (s) {
+        // An unscored name satisfies no numeric filter. Its metrics are null, and
+        // null compares as 0, so it slips past any ceiling unless excluded first.
+        var unscored = s.score === null;
+        if (minScore !== null && !isNaN(minScore) && (unscored || !(s.score >= minScore))) return false;
+        if (maxVol !== null && !isNaN(maxVol) && (unscored || !(s.annVol <= maxVol))) return false;
+        if (view.sector && s.sector !== view.sector) return false;
+        return !q || s.symbol.toLowerCase().indexOf(q) > -1 || s.name.toLowerCase().indexOf(q) > -1;
+      }).sort(compare);
+    }
 
     document.getElementById('table').setAttribute('data-sort', view.key);
     document.querySelectorAll('th[data-key]').forEach(function (th) {
@@ -754,20 +821,18 @@
         (on ? ' from' : ' to') + ' watchlist">' + (on ? '★' : '☆') + '</button></td></tr>';
     }).join('');
 
+    document.getElementById('empty').textContent = view.tab === 'watchlist'
+      ? 'No stocks in your watchlist yet.' : 'No stocks match that search.';
     document.getElementById('empty').style.display = shown.length ? 'none' : 'block';
-    document.getElementById('count').textContent =
-      shown.length === stocks.length
-        ? stocks.length + ' stocks'
-        : shown.length + ' of ' + stocks.length + ' shown';
 
-    document.getElementById('reset-filters').hidden =
-      !(view.q || view.minScore !== '1' || view.maxVol !== '' ||
-        view.sector || view.onlyWatch);
-
-    var only = document.getElementById('only-watch');
-    document.getElementById('watch-n').textContent = view.watch.length;
-    only.setAttribute('aria-pressed', String(view.onlyWatch));
-    only.disabled = view.watch.length === 0;
+    if (view.tab === 'ranks') {
+      document.getElementById('count').textContent =
+        shown.length === stocks.length
+          ? stocks.length + ' stocks'
+          : shown.length + ' of ' + stocks.length + ' shown';
+      document.getElementById('reset-filters').hidden =
+        !(view.q || view.minScore !== '1' || view.maxVol !== '' || view.sector);
+    }
   }
 
   // --- watchlist and pair statistics --------------------------------------
@@ -778,7 +843,6 @@
     var i = view.watch.indexOf(symbol);
     if (i > -1) view.watch.splice(i, 1);
     else view.watch.push(symbol);
-    if (!view.watch.length) view.onlyWatch = false;
     save();
     render();
     renderPairs();
@@ -933,11 +997,14 @@
       return stocks.filter(function (x) { return x.symbol === sym; })[0];
     }).filter(Boolean);
 
-    if (picked.length < 2) {
-      section.hidden = true;
-      return;
-    }
-    section.hidden = false;
+    // This section moved into the Watchlist destination -- it never shows
+    // on Ranks, no matter how many names are starred. The fetch/compute
+    // pipeline below still runs regardless of tab, so switching to
+    // Watchlist never has to wait on a fetch that could have started the
+    // moment a name was starred.
+    section.hidden = !(view.tab === 'watchlist' && picked.length >= 2);
+
+    if (picked.length < 2) return;
 
     var symbols = picked.map(function (s) { return s.symbol; });
     if (symbols.some(function (s) { return !returnsSettled(s); })) {
@@ -1215,7 +1282,6 @@
   document.getElementById('reset-filters').addEventListener('click', function () {
     view.q = view.maxVol = view.sector = '';
     view.minScore = '1';
-    view.onlyWatch = false;
     document.getElementById('search').value = '';
     Object.keys(FILTER_FIELD).forEach(function (id) {
       document.getElementById(id).value = id === 'f-score' ? '1' : '';
@@ -1224,11 +1290,39 @@
     render();
   });
 
-  document.getElementById('only-watch').addEventListener('click', function () {
-    view.onlyWatch = !view.onlyWatch;
+  // --- bottom navigation ----------------------------------------------------
+
+  function updateNavActive() {
+    document.getElementById('nav-ranks').setAttribute(
+      'aria-current', view.tab === 'ranks' ? 'page' : 'false');
+    document.getElementById('nav-watchlist').setAttribute(
+      'aria-current', view.tab === 'watchlist' ? 'page' : 'false');
+  }
+
+  function switchTab(tab) {
+    if (tab === view.tab) return;
+    restoring = true;                        // suppress the scroll listener while we move
+    view[scrollKey(view.tab)] = Math.round(window.scrollY);
+    closeDetail();                           // switching destinations closes any open detail
+    view.tab = tab;
+    document.querySelector('.bar').hidden = tab === 'watchlist';
     save();
+    updateNavActive();
     render();
-  });
+    renderPairs();
+    syncStickyOffset();
+
+    // Two frames: one for the table to lay out under the new tab, one for
+    // the sticky offset -- same pattern the initial load restore uses.
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        window.scrollTo(0, view[scrollKey(tab)] || 0);
+        restoring = false;
+      });
+    });
+  }
+  document.getElementById('nav-ranks').addEventListener('click', function () { switchTab('ranks'); });
+  document.getElementById('nav-watchlist').addEventListener('click', function () { switchTab('watchlist'); });
 
   document.getElementById('ranked-pairs').addEventListener('click', function (e) {
     var btn = e.target.closest('.prow-remove');
@@ -1336,7 +1430,7 @@
   var restoring = true;
   window.addEventListener('scroll', function () {
     if (restoring) return;
-    view.scroll = Math.round(window.scrollY);
+    view[scrollKey(view.tab)] = Math.round(window.scrollY);
     saveSoon();
   }, { passive: true });
 
@@ -1344,7 +1438,7 @@
   // Read the live position rather than trusting the last scroll event, which
   // may not have fired yet when the app is backgrounded.
   function flush() {
-    if (!restoring) view.scroll = Math.round(window.scrollY);
+    if (!restoring) view[scrollKey(view.tab)] = Math.round(window.scrollY);
     save();
   }
   window.addEventListener('pagehide', flush);
@@ -1353,6 +1447,8 @@
   });
 
   applyTheme();
+  document.querySelector('.bar').hidden = view.tab === 'watchlist';
+  updateNavActive();
   render();
   renderPairs();
   syncStickyOffset();
@@ -1360,7 +1456,7 @@
   // Two frames: one for the table to lay out, one for the sticky offset.
   requestAnimationFrame(function () {
     requestAnimationFrame(function () {
-      window.scrollTo(0, view.scroll || 0);
+      window.scrollTo(0, view[scrollKey(view.tab)] || 0);
       if (view.open) openDetail(view.open, false);
       restoring = false;
     });
