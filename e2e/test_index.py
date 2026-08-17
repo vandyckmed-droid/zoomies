@@ -433,6 +433,76 @@ class BrowserTest(unittest.TestCase):
                           "a full tie should fall back to deterministic ticker order")
         self.assertEqual(page.errors, [])
 
+    def test_ranked_pairs_remove_button_reads_as_a_button_without_a_stuck_hover(self):
+        """The remove action must look tappable (a bordered control, not
+        plain colored text) and must not lean on a :hover underline -- on
+        touch, a tapped :hover state has no "pointer left" event to clear
+        it, so it would otherwise stay visually stuck until some unrelated
+        later tap.
+        """
+        page = self.page()
+        for sym in ["AAPL", "GOOGL", "TSM"]:
+            page.click('.star[data-star="%s"]' % sym)
+        page.wait_for_selector("#ranked-pairs .crow")
+
+        style = page.eval_on_selector(
+            "#ranked-pairs .prow-remove",
+            "e => { var s = getComputedStyle(e); "
+            "return {border: s.borderStyle, width: s.borderWidth, decoration: s.textDecorationLine}; }")
+        self.assertEqual(style["border"], "solid",
+                          "the remove action should read as a bordered button, not plain text")
+        self.assertNotEqual(style["width"], "0px")
+        self.assertEqual(style["decoration"], "none")
+
+        page.hover("#ranked-pairs .prow-remove")
+        hovered = page.eval_on_selector(
+            "#ranked-pairs .prow-remove", "e => getComputedStyle(e).textDecorationLine")
+        self.assertEqual(hovered, "none",
+                          "hover must not introduce an underline that can stay visually stuck on touch")
+        self.assertEqual(page.errors, [])
+
+    def test_ranked_pairs_remove_preserves_scroll_position(self):
+        """#pairs is the last real section on the page -- reachable only by
+        scrolling near the bottom, since just the footer follows it -- so
+        removing a name here is exactly the scenario where an unmanaged
+        reflow would yank the viewport around as the list and matrix shrink
+        by a row. The section's on-screen position must stay put.
+        """
+        work = self._work_with_shards()
+        a, b, c = "AAPL", "GOOGL", "TSM"
+        n = 130
+        series = {
+            a: [i for i in range(n)],
+            b: [i + (15 if i % 7 == 0 else 0) for i in range(n)],
+            c: [(n - 1 - i) + (15 if i % 5 == 0 else 0) for i in range(n)],
+        }
+        for sym, vals in series.items():
+            (work / "data" / "returns" / (sym + ".js")).write_text(
+                "RETURNS[%s]=%s;\n" % (json.dumps(sym), json.dumps(vals)))
+
+        page = self.page(width=390, height=700, url="file://%s/index.html" % work)
+        page.click('.star[data-star="%s"]' % a)
+        page.click('.star[data-star="%s"]' % b)
+        page.click('.star[data-star="%s"]' % c)
+        page.wait_for_selector("#ranked-pairs .crow")
+
+        # Flush to the top of the viewport -- the realistic worst case,
+        # since there is nowhere further to reveal below it.
+        page.eval_on_selector("#pairs", "e => e.scrollIntoView({block: 'start'})")
+        page.wait_for_timeout(150)
+        before = page.eval_on_selector("#pairs", "e => e.getBoundingClientRect().top")
+
+        page.click("#ranked-pairs .prow-remove")
+        page.wait_for_timeout(400)   # let the .18s collapse transition settle
+
+        after = page.eval_on_selector("#pairs", "e => e.getBoundingClientRect().top")
+        self.assertAlmostEqual(after, before, delta=2,
+                                msg="removing a name should not visibly move the pairs section")
+        # The next highest-correlated pair should have naturally taken the
+        # freed slot rather than the list going empty.
+        self.assertGreater(page.eval_on_selector_all("#ranked-pairs .crow", "e => e.length"), 0)
+        self.assertEqual(page.errors, [])
+
     def test_filters_round_trip_and_clear(self):
         page = self.page()
         total = page.eval_on_selector_all("#rows tr", "e => e.length")
