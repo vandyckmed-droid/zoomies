@@ -409,13 +409,14 @@ class BrowserTest(unittest.TestCase):
         rep = report()
         rep["rankChangeDaysBack"] = 63
         template = rep["universe"][0]
+        # Shift all scores up by 4 so minimum is 1.0 (visible with default MIN SCORE = 1)
         fixture = [
-            ("Z", 10.0, 0.70, 0.05, -0.02, None),
-            ("A", 5.0, 0.50, 0.10, -0.05, 1),
-            ("B", 3.0, 0.30, 0.20, -0.10, 5),
-            ("C", 1.0, 0.10, 0.30, -0.15, 3),
-            ("D", -1.0, -0.10, 0.40, -0.20, 2),
-            ("E", -3.0, -0.30, 0.50, -0.25, None),
+            ("Z", 14.0, 0.70, 0.05, -0.02, None),
+            ("A", 9.0, 0.50, 0.10, -0.05, 1),
+            ("B", 7.0, 0.30, 0.20, -0.10, 5),
+            ("C", 5.0, 0.10, 0.30, -0.15, 3),
+            ("D", 3.0, -0.10, 0.40, -0.20, 2),
+            ("E", 1.0, -0.30, 0.50, -0.25, None),
         ]
         rows = []
         for symbol, score, ann_return, ann_vol, max_dd, hist_rank in fixture:
