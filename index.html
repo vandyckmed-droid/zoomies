@@ -164,12 +164,12 @@
   .filters select:focus { outline: 2px solid var(--fg); outline-offset: -1px; }
   .filters .pctsign { margin-left: -.2rem; }
   .filters #only-watch { margin-left: auto; }
-  #clear-filters {
+  #reset-filters {
     font: inherit; font-size: .75rem; background: none; border: 0; padding: 0;
     color: var(--muted); text-decoration: underline; cursor: pointer;
   }
-  #clear-filters[hidden] { display: none; }
-  #clear-filters:hover { color: var(--fg); }
+  #reset-filters[hidden] { display: none; }
+  #reset-filters:hover { color: var(--fg); }
   .barrow { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .45rem 0 0; }
   #count { color: var(--muted); font-size: .8rem; }
 
@@ -387,14 +387,12 @@
            placeholder="any" aria-label="Minimum score"></label>
     <label>Max vol <input id="f-vol" type="number" step="5" min="0" inputmode="decimal"
            placeholder="any" aria-label="Maximum annualized volatility, percent"><span class="pctsign">%</span></label>
-    <label>Max DD <input id="f-dd" type="number" step="5" min="0" inputmode="decimal"
-           placeholder="any" aria-label="Maximum drawdown depth, percent"><span class="pctsign">%</span></label>
     <label>Sector <select id="f-sector" aria-label="Sector"><option value="">any</option></select></label>
     <button id="only-watch" aria-pressed="false">&#9733; <span id="watch-n">0</span></button>
   </div>
   <div class="barrow">
     <span id="count"></span>
-    <button id="clear-filters" hidden>clear</button>
+    <button id="reset-filters" hidden>Reset filters</button>
   </div>
 </div>
 
@@ -449,7 +447,7 @@
   // Everything the page remembers between visits.
   var view = { key: 'rank', dir: 1, q: '', scroll: 0, open: null, theme: 'auto',
               watch: [], onlyWatch: false,
-              minScore: '1', maxVol: '', maxDD: '', sector: '' };
+              minScore: '1', maxVol: '', sector: '' };
   try {
     var saved = JSON.parse(localStorage.getItem(STORE_KEY));
     if (saved) {
@@ -579,7 +577,6 @@
     var q = view.q.trim().toLowerCase();
     var minScore = view.minScore === '' ? null : parseFloat(view.minScore);
     var maxVol = view.maxVol === '' ? null : parseFloat(view.maxVol) / 100;
-    var maxDD = view.maxDD === '' ? null : parseFloat(view.maxDD) / 100;
 
     var shown = stocks.filter(function (s) {
       if (view.onlyWatch && !watched(s.symbol)) return false;
@@ -588,8 +585,6 @@
       var unscored = s.score === null;
       if (minScore !== null && !isNaN(minScore) && (unscored || !(s.score >= minScore))) return false;
       if (maxVol !== null && !isNaN(maxVol) && (unscored || !(s.annVol <= maxVol))) return false;
-      // Typed as a depth ("30" = no worse than -30%), compared as a negative.
-      if (maxDD !== null && !isNaN(maxDD) && (unscored || !(s.maxDrawdown >= -Math.abs(maxDD)))) return false;
       if (view.sector && s.sector !== view.sector) return false;
       return !q || s.symbol.toLowerCase().indexOf(q) > -1 || s.name.toLowerCase().indexOf(q) > -1;
     }).sort(compare);
@@ -624,8 +619,8 @@
         ? stocks.length + ' stocks'
         : shown.length + ' of ' + stocks.length + ' shown';
 
-    document.getElementById('clear-filters').hidden =
-      !(view.q || view.minScore !== '' || view.maxVol !== '' || view.maxDD !== '' ||
+    document.getElementById('reset-filters').hidden =
+      !(view.q || view.minScore !== '1' || view.maxVol !== '' ||
         view.sector || view.onlyWatch);
 
     var only = document.getElementById('only-watch');
@@ -1042,8 +1037,7 @@
     document.getElementById('f-sector').appendChild(opt);
   });
 
-  var FILTER_FIELD = { 'f-score': 'minScore', 'f-vol': 'maxVol', 'f-dd': 'maxDD',
-                       'f-sector': 'sector' };
+  var FILTER_FIELD = { 'f-score': 'minScore', 'f-vol': 'maxVol', 'f-sector': 'sector' };
   Object.keys(FILTER_FIELD).forEach(function (id) {
     var el = document.getElementById(id);
     var field = FILTER_FIELD[id];
@@ -1059,8 +1053,8 @@
     });
   });
 
-  document.getElementById('clear-filters').addEventListener('click', function () {
-    view.q = view.maxVol = view.maxDD = view.sector = '';
+  document.getElementById('reset-filters').addEventListener('click', function () {
+    view.q = view.maxVol = view.sector = '';
     view.minScore = '1';
     view.onlyWatch = false;
     document.getElementById('search').value = '';

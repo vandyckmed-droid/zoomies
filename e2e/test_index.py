@@ -504,9 +504,11 @@ class BrowserTest(unittest.TestCase):
         self.assertGreater(page.eval_on_selector_all("#ranked-pairs .crow", "e => e.length"), 0)
         self.assertEqual(page.errors, [])
 
-    def test_filters_round_trip_and_clear(self):
+    def test_filters_round_trip_and_reset(self):
         page = self.page()
         total = page.eval_on_selector_all("#rows tr", "e => e.length")
+        self.assertFalse(page.is_visible("#reset-filters"),
+                          "a fresh load at the default MIN SCORE = 1 has nothing to reset")
 
         page.fill("#f-vol", "30")
         page.wait_for_timeout(200)
@@ -518,14 +520,25 @@ class BrowserTest(unittest.TestCase):
         notes = page.eval_on_selector_all("#rows tr td.note", "e => e.length")
         self.assertEqual(notes, 0, "unscored names leaked through a ceiling filter")
 
-        self.assertTrue(page.is_visible("#clear-filters"))
-        page.click("#clear-filters")
+        self.assertTrue(page.is_visible("#reset-filters"))
+        self.assertEqual(page.inner_text("#reset-filters"), "Reset filters")
+        page.click("#reset-filters")
         page.wait_for_timeout(200)
         self.assertEqual(page.eval_on_selector_all("#rows tr", "e => e.length"), total)
         self.assertEqual(page.input_value("#f-vol"), "")
         self.assertEqual(page.errors, [])
 
-    def test_sector_filter_narrows_and_clears(self):
+    def test_max_dd_filter_is_removed(self):
+        """Drawdown stays a sortable column and detail-panel metric -- only
+        the ranking-screen threshold filter is gone.
+        """
+        page = self.page()
+        self.assertIsNone(page.query_selector("#f-dd"), "the Max DD filter input should not exist")
+        self.assertIsNotNone(page.query_selector('th[data-key="maxDrawdown"]'),
+                              "the Max DD column should still be sortable")
+        self.assertEqual(page.errors, [])
+
+    def test_sector_filter_narrows_and_resets(self):
         """No committed scores.js has real sector data yet (it needs a
         --refresh-universe rebuild), so synthesize it here rather than wait
         for one.
@@ -555,8 +568,8 @@ class BrowserTest(unittest.TestCase):
         self.assertLess(filtered, total)
         self.assertGreater(filtered, 0)
 
-        self.assertTrue(page.is_visible("#clear-filters"))
-        page.click("#clear-filters")
+        self.assertTrue(page.is_visible("#reset-filters"))
+        page.click("#reset-filters")
         page.wait_for_timeout(200)
         self.assertEqual(page.eval_on_selector_all("#rows tr", "e => e.length"), total)
         self.assertEqual(page.input_value("#f-sector"), "")
@@ -911,7 +924,7 @@ class BrowserTest(unittest.TestCase):
         self.addCleanup(ctx.close)
         saved = json.dumps({
             "key": "rank", "dir": 1, "minScore": "2.5",
-            "maxVol": "", "maxDD": "", "sector": ""
+            "maxVol": "", "sector": ""
         })
         ctx.add_init_script("localStorage.setItem('zoomies.view', %s)" % json.dumps(saved))
         page = ctx.new_page()
@@ -924,8 +937,8 @@ class BrowserTest(unittest.TestCase):
         self.assertEqual(page.input_value("#f-score"), "2.5")
         self.assertEqual(page.errors, [])
 
-    def test_clear_filters_resets_min_score_to_one(self):
-        """Clearing filters should reset MIN SCORE to the default of "1",
+    def test_reset_filters_resets_min_score_to_one(self):
+        """Resetting filters should reset MIN SCORE to the default of "1",
         not to empty.
         """
         page = self.page()
@@ -934,8 +947,7 @@ class BrowserTest(unittest.TestCase):
         page.wait_for_timeout(200)
         self.assertEqual(page.input_value("#f-score"), "3")
 
-        # Clear filters
-        page.click("#clear-filters")
+        page.click("#reset-filters")
         page.wait_for_timeout(200)
 
         # MIN SCORE should be reset to "1", not empty
