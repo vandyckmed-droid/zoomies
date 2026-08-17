@@ -274,10 +274,11 @@ class BrowserTest(unittest.TestCase):
         in the current universe has, hiding the whole table with no
         visible cause.
         """
+        saved = json.dumps({
+            "key": "rank", "sector": "Sector That No Longer Exists", "minScore": ""})
         ctx = self.browser.new_context(viewport={"width": 1280, "height": 900})
         self.addCleanup(ctx.close)
-        ctx.add_init_script("localStorage.setItem('zoomies.view', %s)" % json.dumps(
-            {"key": "rank", "sector": "Sector That No Longer Exists", "minScore": ""}))
+        ctx.add_init_script("localStorage.setItem('zoomies.view', %s)" % json.dumps(saved))
         page = ctx.new_page()
         page.errors = []
         page.on("pageerror", lambda e: page.errors.append(str(e)))
