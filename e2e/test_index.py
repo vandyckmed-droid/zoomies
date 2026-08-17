@@ -74,9 +74,15 @@ class BrowserTest(unittest.TestCase):
         return page
 
     def test_cold_load_renders_every_row_without_error(self):
+        # Fresh load defaults MIN SCORE to 1, which filters out stocks with score < 1
         page = self.page()
         rows = page.eval_on_selector_all("#rows tr", "e => e.length")
-        self.assertEqual(rows, len(self.report["universe"]))
+        # Count expected rows: all stocks with score >= 1, plus stocks with null score that pass the filter
+        # (unscored names have null score and are filtered out when minScore is not null)
+        expected = sum(1 for s in self.report["universe"] if s["score"] is None or s["score"] >= 1)
+        # But unscored names are actually excluded by the filter logic when minScore is set
+        expected = sum(1 for s in self.report["universe"] if s["score"] is not None and s["score"] >= 1)
+        self.assertEqual(rows, expected)
         self.assertEqual(page.errors, [])
 
     def test_restore_path_resolves_the_correlation_panel(self):
@@ -90,8 +96,10 @@ class BrowserTest(unittest.TestCase):
         its panel sits on "loading..." forever with no error shown.
         """
         page = self.page()
-        page.click('.star[data-star="%s"]' % self.report["universe"][0]["symbol"])
-        page.click('.star[data-star="%s"]' % self.report["universe"][1]["symbol"])
+        # Use high-scoring stocks that are visible with default MIN SCORE = 1
+        a, b = "AAPL", "GOOGL"
+        page.click('.star[data-star="%s"]' % a)
+        page.click('.star[data-star="%s"]' % b)
         page.click("#rows tr:first-child td.ticker")
         page.wait_for_selector("#overlay:not([hidden])")
         page.wait_for_timeout(200)
@@ -120,7 +128,8 @@ class BrowserTest(unittest.TestCase):
         page.on("request", lambda req: requests.append(req.url)
                 if "/data/returns/" in req.url or req.url.endswith("returns.js") else None)
 
-        a, b = self.report["universe"][0]["symbol"], self.report["universe"][1]["symbol"]
+        # Use high-scoring stocks that are visible with default MIN SCORE = 1
+        a, b = "AAPL", "GOOGL"
         page.click('.star[data-star="%s"]' % a)
         page.click('.star[data-star="%s"]' % b)
         page.wait_for_function(
@@ -151,8 +160,9 @@ class BrowserTest(unittest.TestCase):
         requests = []
         page.on("request", lambda req: requests.append(req.url)
                 if "/data/returns/" in req.url or req.url.endswith("returns.js") else None)
-        page.click('.star[data-star="%s"]' % self.report["universe"][0]["symbol"])
-        page.click('.star[data-star="%s"]' % self.report["universe"][1]["symbol"])
+        # Use high-scoring stocks that are visible with default MIN SCORE = 1
+        page.click('.star[data-star="AAPL"]')
+        page.click('.star[data-star="GOOGL"]')
         page.wait_for_timeout(300)
 
         self.assertEqual(requests, [], "starring after a bulk load should fetch nothing new")
@@ -175,7 +185,9 @@ class BrowserTest(unittest.TestCase):
         shutil.copy(ROOT / "scores.js", work / "scores.js")
         shutil.copytree(ROOT / "data" / "returns", work / "data" / "returns")
 
-        a, b, victim = (self.report["universe"][i]["symbol"] for i in (0, 1, 2))
+        # Use high-scoring stocks visible with default MIN SCORE = 1
+        # MSFT has score -0.814 so use TSM (score 1.42) instead
+        a, b, victim = "AAPL", "GOOGL", "TSM"
         (work / "data" / "returns" / (victim + ".js")).unlink()
 
         page = self.page(url="file://%s/index.html" % work)
@@ -262,14 +274,19 @@ class BrowserTest(unittest.TestCase):
         in the current universe has, hiding the whole table with no
         visible cause.
         """
-        page = self.page()
-        page.evaluate(
-            "localStorage.setItem('zoomies.view', "
-            "JSON.stringify({key: 'rank', sector: 'Sector That No Longer Exists'}))")
-        page.reload()
+        saved = json.dumps({
+            "key": "rank", "sector": "Sector That No Longer Exists", "minScore": ""})
+        ctx = self.browser.new_context(viewport={"width": 1280, "height": 900})
+        self.addCleanup(ctx.close)
+        ctx.add_init_script("localStorage.setItem('zoomies.view', %s)" % json.dumps(saved))
+        page = ctx.new_page()
+        page.errors = []
+        page.on("pageerror", lambda e: page.errors.append(str(e)))
+        page.goto(SITE)
         page.wait_for_selector("#rows tr")
 
         self.assertEqual(page.input_value("#f-sector"), "")
+        # With minScore: '', no score filter is applied, so all 1000 stocks are shown
         self.assertEqual(page.eval_on_selector_all("#rows tr", "e => e.length"),
                           len(self.report["universe"]))
         self.assertEqual(page.errors, [])
@@ -301,7 +318,7 @@ class BrowserTest(unittest.TestCase):
             # entirely depending on its real volatility, hiding its star
             # button and breaking the watchlist assertion below for a
             # reason that has nothing to do with what this test checks.
-            "watch": [symbol], "maxVol": "500",
+            "watch": [symbol], "maxVol": "500", "minScore": "",
         })
         ctx = self.browser.new_context(viewport={"width": 1280, "height": 900})
         self.addCleanup(ctx.close)
@@ -398,13 +415,14 @@ class BrowserTest(unittest.TestCase):
         rep = report()
         rep["rankChangeDaysBack"] = 63
         template = rep["universe"][0]
+        # Shift all scores up by 4 so minimum is 1.0 (visible with default MIN SCORE = 1)
         fixture = [
-            ("Z", 10.0, 0.70, 0.05, -0.02, None),
-            ("A", 5.0, 0.50, 0.10, -0.05, 1),
-            ("B", 3.0, 0.30, 0.20, -0.10, 5),
-            ("C", 1.0, 0.10, 0.30, -0.15, 3),
-            ("D", -1.0, -0.10, 0.40, -0.20, 2),
-            ("E", -3.0, -0.30, 0.50, -0.25, None),
+            ("Z", 14.0, 0.70, 0.05, -0.02, None),
+            ("A", 9.0, 0.50, 0.10, -0.05, 1),
+            ("B", 7.0, 0.30, 0.20, -0.10, 5),
+            ("C", 5.0, 0.10, 0.30, -0.15, 3),
+            ("D", 3.0, -0.10, 0.40, -0.20, 2),
+            ("E", 1.0, -0.30, 0.50, -0.25, None),
         ]
         rows = []
         for symbol, score, ann_return, ann_vol, max_dd, hist_rank in fixture:
@@ -510,7 +528,8 @@ class BrowserTest(unittest.TestCase):
 
     def test_search_survives_a_reload(self):
         page = self.page()
-        symbol = self.report["universe"][0]["symbol"]
+        # Use AAPL, a high-scoring stock visible with default MIN SCORE = 1
+        symbol = "AAPL"
         page.fill("#search", symbol)
         page.wait_for_timeout(200)
         page.reload()
@@ -530,7 +549,8 @@ class BrowserTest(unittest.TestCase):
             shutil.copy(ROOT / name, work / name)
 
         rep = report()
-        victim = rep["universe"][3]["symbol"]
+        # Use AAPL, a high-scoring stock visible with default MIN SCORE = 1
+        victim = "AAPL"
         for row in rep["universe"]:
             if row["symbol"] == victim:
                 row["lastClose"] = None
@@ -576,6 +596,54 @@ class BrowserTest(unittest.TestCase):
             h = page.eval_on_selector("#rows tr:first-child", "e => e.getBoundingClientRect().height")
             self.assertGreaterEqual(h, 44, "row tap target dropped below 44px at %dpx wide" % width)
             self.assertEqual(page.errors, [])
+
+    def test_fresh_visit_defaults_min_score_to_one(self):
+        """A fresh visit without saved preferences should default the MIN SCORE
+        filter to "1" to reduce the number of rows shown on first load.
+        """
+        page = self.page()
+        self.assertEqual(page.input_value("#f-score"), "1")
+        self.assertEqual(page.errors, [])
+
+    def test_saved_min_score_preference_takes_precedence(self):
+        """A saved MIN SCORE preference should override the default when
+        the page reloads. Include other fields in saved state to mimic
+        a realistic saved view object.
+        """
+        ctx = self.browser.new_context(viewport={"width": 1280, "height": 900})
+        self.addCleanup(ctx.close)
+        saved = json.dumps({
+            "key": "rank", "dir": 1, "minScore": "2.5",
+            "maxVol": "", "maxDD": "", "sector": ""
+        })
+        ctx.add_init_script("localStorage.setItem('zoomies.view', %s)" % json.dumps(saved))
+        page = ctx.new_page()
+        page.errors = []
+        page.on("pageerror", lambda e: page.errors.append(str(e)))
+        page.goto(SITE)
+        page.wait_for_selector("#rows tr")
+
+        # The saved preference should take precedence over the default
+        self.assertEqual(page.input_value("#f-score"), "2.5")
+        self.assertEqual(page.errors, [])
+
+    def test_clear_filters_resets_min_score_to_one(self):
+        """Clearing filters should reset MIN SCORE to the default of "1",
+        not to empty.
+        """
+        page = self.page()
+        # Set MIN SCORE to a different value
+        page.fill("#f-score", "3")
+        page.wait_for_timeout(200)
+        self.assertEqual(page.input_value("#f-score"), "3")
+
+        # Clear filters
+        page.click("#clear-filters")
+        page.wait_for_timeout(200)
+
+        # MIN SCORE should be reset to "1", not empty
+        self.assertEqual(page.input_value("#f-score"), "1")
+        self.assertEqual(page.errors, [])
 
 
 if __name__ == "__main__":
