@@ -285,6 +285,21 @@
   #ov-corr .cval, #ranked-pairs .cval { font-variant-numeric: tabular-nums; }
   #ranked-pairs:empty { display: none; }
   #ranked-pairs { margin-bottom: .75rem; }
+  #ranked-pairs .cval-group { display: flex; align-items: center; gap: .6rem; }
+  .prow-remove {
+    font: inherit;
+    font-size: .8rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--neg);
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    white-space: nowrap;
+    -webkit-appearance: none;
+  }
+  .prow-remove:hover { text-decoration: underline; }
+  .prow-remove:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
 
   #empty { color: var(--muted); padding: 1.5rem .6rem; display: none; }
   footer { color: var(--muted); font-size: .8rem; margin-top: 1.5rem; }
@@ -646,6 +661,24 @@
     renderPairs();
   }
 
+  // Which of a correlated pair is the weaker holding, for the ranked
+  // list's one-tap "drop the redundant one" action. Worse (higher) rank
+  // number loses first, unscored (rank null) counting as worse than any
+  // real rank; a rank tie -- which in practice only happens when both are
+  // unscored, since s.rank is assigned by unique score-sorted position --
+  // falls to worse (lower) score, unscored counting as worse than any real
+  // score; a full tie falls to ticker order, so the choice is always the
+  // same for the same pair rather than flipping between renders.
+  function worseOfPair(x, y) {
+    var rx = x.rank === null ? Infinity : x.rank;
+    var ry = y.rank === null ? Infinity : y.rank;
+    if (rx !== ry) return rx > ry ? x : y;
+    var sx = x.score === null ? -Infinity : x.score;
+    var sy = y.score === null ? -Infinity : y.score;
+    if (sx !== sy) return sx < sy ? x : y;
+    return x.symbol > y.symbol ? x : y;
+  }
+
   // Correlation and annualized covariance over the days both names traded.
   // The series are already aligned to the benchmark's date axis by build.py.
   function pairStats(a, b) {
@@ -816,21 +849,27 @@
     // first -- the fastest way to spot redundant holdings once the
     // watchlist outgrows what the full matrix can show at a glance. Reuses
     // the same pairStats() the matrix cells use, just laid out as a list
-    // instead of a grid.
+    // instead of a grid. Each row also names the weaker of the two names
+    // (worseOfPair) with a one-tap remove action, so trimming a redundant
+    // holding never requires hunting its star button back down in the table.
     var ranked = [];
     var ri, rj, rst;
     for (ri = 0; ri < picked.length; ri++) {
       for (rj = ri + 1; rj < picked.length; rj++) {
         rst = pairStats(RETURNS[picked[ri].symbol], RETURNS[picked[rj].symbol]);
-        if (rst) ranked.push({ a: picked[ri].symbol, b: picked[rj].symbol, corr: rst.corr });
+        if (rst) ranked.push({ x: picked[ri], y: picked[rj], corr: rst.corr });
       }
     }
-    ranked.sort(function (x, y) { return y.corr - x.corr; });
+    ranked.sort(function (m, n) { return n.corr - m.corr; });
     document.getElementById('ranked-pairs').innerHTML = ranked.length ?
       '<h3>Most correlated pairs</h3>' + ranked.slice(0, 5).map(function (p) {
-        return '<div class="crow"><span>' + esc(p.a) + ' ↔ ' + esc(p.b) + '</span>' +
-               '<span class="cval ' + (p.corr >= 0 ? 'pos' : 'neg') + '">' +
-               p.corr.toFixed(2) + '</span></div>';
+        var worse = worseOfPair(p.x, p.y);
+        return '<div class="crow"><span>' + esc(p.x.symbol) + ' ↔ ' + esc(p.y.symbol) + '</span>' +
+               '<span class="cval-group"><span class="cval ' + (p.corr >= 0 ? 'pos' : 'neg') + '">' +
+               p.corr.toFixed(2) + '</span>' +
+               '<button class="prow-remove" data-remove="' + esc(worse.symbol) + '" ' +
+               'aria-label="Remove ' + esc(worse.symbol) + ' from watchlist">− ' +
+               esc(worse.symbol) + '</button></span></div>';
       }).join('') : '';
 
     var head = '<tr><th></th>' + picked.map(function (s) {
@@ -1086,6 +1125,10 @@
     view.pairsMode = view.pairsMode === 'correlation' ? 'covariance' : 'correlation';
     save();
     renderPairs();
+  });
+  document.getElementById('ranked-pairs').addEventListener('click', function (e) {
+    var btn = e.target.closest('.prow-remove');
+    if (btn) toggleWatch(btn.dataset.remove);   // re-renders the list, matrix and table itself
   });
   document.getElementById('rows').addEventListener('keydown', function (e) {
     if (e.key === 'Enter' && e.target.dataset.symbol) openDetail(e.target.dataset.symbol);
