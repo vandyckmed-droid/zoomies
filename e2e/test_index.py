@@ -95,16 +95,11 @@ class BrowserTest(unittest.TestCase):
         original bug in a new shape. If either caller's callback is dropped,
         its panel sits on "loading..." forever with no error shown.
         """
-        ctx = self.browser.new_context(viewport={"width": 1280, "height": 900})
-        self.addCleanup(ctx.close)
-        ctx.add_init_script("localStorage.setItem('zoomies.view', %s)" % json.dumps({"minScore": ""}))
-        page = ctx.new_page()
-        page.errors = []
-        page.on("pageerror", lambda e: page.errors.append(str(e)))
-        page.goto(SITE)
-        page.wait_for_selector("#rows tr")
-        page.click('.star[data-star="%s"]' % self.report["universe"][0]["symbol"])
-        page.click('.star[data-star="%s"]' % self.report["universe"][1]["symbol"])
+        page = self.page()
+        # Use high-scoring stocks that are visible with default MIN SCORE = 1
+        a, b = "AAPL", "GOOGL"
+        page.click('.star[data-star="%s"]' % a)
+        page.click('.star[data-star="%s"]' % b)
         page.click("#rows tr:first-child td.ticker")
         page.wait_for_selector("#overlay:not([hidden])")
         page.wait_for_timeout(200)
@@ -128,19 +123,13 @@ class BrowserTest(unittest.TestCase):
         accidentally widens the fetch back out (e.g. reverting to a bulk
         load, or fetching more than what is starred).
         """
-        ctx = self.browser.new_context(viewport={"width": 1280, "height": 900})
-        self.addCleanup(ctx.close)
-        ctx.add_init_script("localStorage.setItem('zoomies.view', %s)" % json.dumps({"minScore": ""}))
-        page = ctx.new_page()
-        page.errors = []
-        page.on("pageerror", lambda e: page.errors.append(str(e)))
-        page.goto(SITE)
-        page.wait_for_selector("#rows tr")
+        page = self.page()
         requests = []
         page.on("request", lambda req: requests.append(req.url)
                 if "/data/returns/" in req.url or req.url.endswith("returns.js") else None)
 
-        a, b = self.report["universe"][0]["symbol"], self.report["universe"][1]["symbol"]
+        # Use high-scoring stocks that are visible with default MIN SCORE = 1
+        a, b = "AAPL", "GOOGL"
         page.click('.star[data-star="%s"]' % a)
         page.click('.star[data-star="%s"]' % b)
         page.wait_for_function(
@@ -160,14 +149,7 @@ class BrowserTest(unittest.TestCase):
         should need zero further requests -- the two loaders are meant to
         share data, not duplicate it.
         """
-        ctx = self.browser.new_context(viewport={"width": 1280, "height": 900})
-        self.addCleanup(ctx.close)
-        ctx.add_init_script("localStorage.setItem('zoomies.view', %s)" % json.dumps({"minScore": ""}))
-        page = ctx.new_page()
-        page.errors = []
-        page.on("pageerror", lambda e: page.errors.append(str(e)))
-        page.goto(SITE)
-        page.wait_for_selector("#rows tr")
+        page = self.page()
         page.click("#rows tr:first-child td.ticker")
         page.wait_for_selector("#overlay:not([hidden])")
         page.wait_for_function(
@@ -178,8 +160,9 @@ class BrowserTest(unittest.TestCase):
         requests = []
         page.on("request", lambda req: requests.append(req.url)
                 if "/data/returns/" in req.url or req.url.endswith("returns.js") else None)
-        page.click('.star[data-star="%s"]' % self.report["universe"][0]["symbol"])
-        page.click('.star[data-star="%s"]' % self.report["universe"][1]["symbol"])
+        # Use high-scoring stocks that are visible with default MIN SCORE = 1
+        page.click('.star[data-star="AAPL"]')
+        page.click('.star[data-star="GOOGL"]')
         page.wait_for_timeout(300)
 
         self.assertEqual(requests, [], "starring after a bulk load should fetch nothing new")
@@ -202,17 +185,11 @@ class BrowserTest(unittest.TestCase):
         shutil.copy(ROOT / "scores.js", work / "scores.js")
         shutil.copytree(ROOT / "data" / "returns", work / "data" / "returns")
 
-        a, b, victim = (self.report["universe"][i]["symbol"] for i in (0, 1, 2))
+        # Use high-scoring stocks visible with default MIN SCORE = 1
+        a, b, victim = "AAPL", "GOOGL", "MSFT"
         (work / "data" / "returns" / (victim + ".js")).unlink()
 
-        ctx = self.browser.new_context(viewport={"width": 1280, "height": 900})
-        self.addCleanup(ctx.close)
-        ctx.add_init_script("localStorage.setItem('zoomies.view', %s)" % json.dumps({"minScore": ""}))
-        page = ctx.new_page()
-        page.errors = []
-        page.on("pageerror", lambda e: page.errors.append(str(e)))
-        page.goto("file://%s/index.html" % work)
-        page.wait_for_selector("#rows tr")
+        page = self.page(url="file://%s/index.html" % work)
         page.click('.star[data-star="%s"]' % a)
         page.click('.star[data-star="%s"]' % b)
         page.click('.star[data-star="%s"]' % victim)
@@ -543,15 +520,9 @@ class BrowserTest(unittest.TestCase):
         self.assertEqual(page.errors, [])
 
     def test_search_survives_a_reload(self):
-        ctx = self.browser.new_context(viewport={"width": 1280, "height": 900})
-        self.addCleanup(ctx.close)
-        ctx.add_init_script("localStorage.setItem('zoomies.view', %s)" % json.dumps({"minScore": ""}))
-        page = ctx.new_page()
-        page.errors = []
-        page.on("pageerror", lambda e: page.errors.append(str(e)))
-        page.goto(SITE)
-        page.wait_for_selector("#rows tr")
-        symbol = self.report["universe"][0]["symbol"]
+        page = self.page()
+        # Use AAPL, a high-scoring stock visible with default MIN SCORE = 1
+        symbol = "AAPL"
         page.fill("#search", symbol)
         page.wait_for_timeout(200)
         page.reload()
@@ -571,7 +542,8 @@ class BrowserTest(unittest.TestCase):
             shutil.copy(ROOT / name, work / name)
 
         rep = report()
-        victim = rep["universe"][3]["symbol"]
+        # Use AAPL, a high-scoring stock visible with default MIN SCORE = 1
+        victim = "AAPL"
         for row in rep["universe"]:
             if row["symbol"] == victim:
                 row["lastClose"] = None
@@ -580,14 +552,7 @@ class BrowserTest(unittest.TestCase):
             "// Generated by build.py -- do not edit.\nconst REPORT = %s;\n"
             % json.dumps(rep, indent=1))
 
-        ctx = self.browser.new_context(viewport={"width": 1280, "height": 900})
-        self.addCleanup(ctx.close)
-        ctx.add_init_script("localStorage.setItem('zoomies.view', %s)" % json.dumps({"minScore": ""}))
-        page = ctx.new_page()
-        page.errors = []
-        page.on("pageerror", lambda e: page.errors.append(str(e)))
-        page.goto("file://%s/index.html" % work)
-        page.wait_for_selector("#rows tr")
+        page = self.page(url="file://%s/index.html" % work)
         page.fill("#search", victim)
         page.wait_for_timeout(200)
         page.click("#rows tr:first-child td.ticker")
