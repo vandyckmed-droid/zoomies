@@ -186,7 +186,8 @@ class BrowserTest(unittest.TestCase):
         shutil.copytree(ROOT / "data" / "returns", work / "data" / "returns")
 
         # Use high-scoring stocks visible with default MIN SCORE = 1
-        a, b, victim = "AAPL", "GOOGL", "MSFT"
+        # MSFT has score -0.814 so use TSM (score 1.42) instead
+        a, b, victim = "AAPL", "GOOGL", "TSM"
         (work / "data" / "returns" / (victim + ".js")).unlink()
 
         page = self.page(url="file://%s/index.html" % work)
@@ -273,14 +274,18 @@ class BrowserTest(unittest.TestCase):
         in the current universe has, hiding the whole table with no
         visible cause.
         """
-        page = self.page()
-        page.evaluate(
-            "localStorage.setItem('zoomies.view', "
-            "JSON.stringify({key: 'rank', sector: 'Sector That No Longer Exists', minScore: ''}))")
-        page.reload()
+        ctx = self.browser.new_context(viewport={"width": 1280, "height": 900})
+        self.addCleanup(ctx.close)
+        ctx.add_init_script("localStorage.setItem('zoomies.view', %s)" % json.dumps(
+            {"key": "rank", "sector": "Sector That No Longer Exists", "minScore": ""}))
+        page = ctx.new_page()
+        page.errors = []
+        page.on("pageerror", lambda e: page.errors.append(str(e)))
+        page.goto(SITE)
         page.wait_for_selector("#rows tr")
 
         self.assertEqual(page.input_value("#f-sector"), "")
+        # With minScore: '', no score filter is applied, so all 1000 stocks are shown
         self.assertEqual(page.eval_on_selector_all("#rows tr", "e => e.length"),
                           len(self.report["universe"]))
         self.assertEqual(page.errors, [])
