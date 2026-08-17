@@ -71,7 +71,7 @@ Each stock is regressed on `SPY` over the same 12–1 window, giving beta, annua
 
 The detail panel also shows a 52-week range: the low and high adjusted close over the trailing 52 calendar weeks ending on the name's latest cached trading date, with the latest close marked between them. This is independent of the 12–1 score, so a name without enough history to be scored can still show one.
 
-Starring names adds them to a watchlist, which drives a ranked "most correlated pairs" list below the table: every unique pair of starred names, highest correlation first, each with a one-tap action to drop the lower-ranked of the two.
+Starring names adds them to a watchlist, which drives a ranked "most correlated pairs" list in the Watchlist destination: every unique pair of starred names, highest correlation first, each with a one-tap action to drop the lower-ranked of the two.
 
 ## Percentiles and rank change
 
@@ -83,15 +83,26 @@ The detail panel shows each name's rank, how that rank has moved over the last 6
 
 Both percentiles and 63D rank change are **detail-panel-only** — neither has a main-table column.
 
+## Destinations
+
+A fixed bottom navigation bar switches between two destinations:
+
+| Destination | What it shows                                              |
+| ----------- | ---------------------------------------------------------- |
+| Ranks       | The filterable ranked table — the primary ranking screen.   |
+| Watchlist   | Every starred name, plus the ranked correlated pairs list.  |
+
+Watchlist contains all starred names regardless of the Ranks filters — membership is its only criterion, so a name never disappears from it because of a score, volatility or sector threshold set on Ranks. Stars can be added or removed from either destination and stay in sync between them. The ranked watchlist correlation pairs list appears only in Watchlist.
+
 ## Filtering
 
-Filters sit above the table: search, a minimum score, a maximum annualized volatility, a sector, and watchlist-only. Columns sort on rank, ticker, score, return, volatility and max drawdown.
+Filters sit above the table on Ranks: search, a minimum score, a maximum annualized volatility, and a sector. Columns sort on rank, ticker, score, return, volatility and max drawdown.
 
 Sector comes straight from the FMP screener response at no extra request cost, and is otherwise unused by the scoring math. The options list is whatever sectors are actually present in the current universe, so it changes as the tracked names change.
 
 ## State
 
-The page remembers sort, search, scroll position, the open ticker, the theme, the watchlist and the filters in localStorage, so reopening it lands exactly where you left off. The theme button cycles auto (follow the device) → light → dark.
+The page remembers sort, search, the open ticker, the theme, the watchlist and the filters in localStorage, so reopening it lands exactly where you left off. It also remembers the active destination and each destination's own scroll position separately, so switching away and back — or reopening the page — restores that destination where you left it rather than at the top. The theme button cycles auto (follow the device) → light → dark.
 
 ---
 
