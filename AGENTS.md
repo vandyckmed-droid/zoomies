@@ -51,13 +51,13 @@ Agent 1 may mechanically edit root Markdown only when explicitly instructed by t
 
 **Fast lane** — bounded, straightforward work:
 
-Product Owner → Agent 2 defines the approved build → Agent 1 implements and opens a PR → Agent 2 independently reviews → Agent 1 merges after approval and green CI.
+Product Owner → Chief of Staff routes and frames the assignment → Agent 2 or the Chief of Staff issues `APPROVED TO BUILD` → Agent 1 implements and opens a PR → Agent 2 independently reviews → Agent 1 merges after approval and green CI.
 
 Use it when the desired behavior is already understood well enough that research would add little: targeted UI polish, moving an established control, clear bug fixes, documentation corrections, small bounded presentation changes.
 
 **Research lane** — uncertain or consequential work:
 
-Product Owner → Agent 3 investigates and recommends → Agent 2 independently reviews the analysis and recommendation → Product Owner approves, rejects, or modifies → Agent 2 issues `APPROVED TO BUILD` → Agent 1 implements → Agent 2 independently reviews the PR → Agent 1 merges after approval and green CI.
+Product Owner → Chief of Staff routes to Agent 3 → Agent 3 investigates and recommends → Agent 2 independently reviews the analysis and recommendation → Chief of Staff synthesizes and escalates the decision → Product Owner approves, rejects, or modifies → Agent 2 or the Chief of Staff issues `APPROVED TO BUILD` → Agent 1 implements → Agent 2 independently reviews the PR → Agent 1 merges after approval and green CI.
 
 Use it when there is meaningful uncertainty or the change could materially affect product behavior: scoring methodology, volatility-floor research, momentum-model changes, correlation or portfolio methodology, Universe analytics design, major architecture decisions, consequential UX or product-model choices.
 
@@ -72,6 +72,7 @@ Use it when there is meaningful uncertainty or the change could materially affec
 - Agent 2's review is required before an Agent 3 recommendation becomes an implementation specification.
 - Agent 2 may recommend against Agent 3's proposal, and the Product Owner may override either recommendation.
 - Agent 1 implements only an explicit `APPROVED TO BUILD` instruction.
+- The Chief of Staff decides routing and lane and may issue `APPROVED TO BUILD`, but never substitutes for Agent 2's required implementation review.
 - Agent 2 remains the final implementation reviewer before merge.
 
 ---
@@ -133,6 +134,16 @@ PR #<number> READY FOR AGENT 2
 
 ---
 
+## Reporting to the Product Owner
+
+The Chief of Staff's reports to the Product Owner follow two fixed conventions.
+
+**ACTION REQUIRED is always last.** Every report ends with a section titled `ACTION REQUIRED`. Nothing appears below it. When there is nothing for the Product Owner to do, the section says so explicitly rather than being omitted. Everything above it is context that can be skimmed or ignored.
+
+**Every loop closes.** An assignment relayed to an agent is not finished when it is sent. The Chief of Staff reports the outcome back explicitly — what was sent, what came back, and whether it landed — verified against GitHub directly rather than against an agent's own summary. Going quiet is not a valid end state for a relayed assignment.
+
+---
+
 ## Handoff — Agent 3 to Agent 2
 
 For analytical work, Agent 3 normally returns:
@@ -185,6 +196,8 @@ No additional permanent agents. If a future task benefits from a narrow speciali
 
 - **Agent 1's GitHub token cannot dispatch `workflow_dispatch` runs.** Attempting one fails with `403: Resource not accessible by integration`. Any on-demand workflow (`rebuild.yml` is the current example) needs Spencer to tap "Run workflow" himself — Actions → the workflow name → Run workflow.
 - **Agent 1 cannot set or read repository secrets.** An API key belongs in Settings → Secrets and variables → Actions, entered by Spencer directly — never relayed through chat.
+- **Agent 1 and Agent 2 post to GitHub as the same account.** GitHub's native review states (`APPROVE` / `REQUEST_CHANGES`) are therefore unavailable between them, and a formal change request cannot block a merge. The verdict must be carried in the review body text. The approval gate is a convention this document enforces, not a mechanism GitHub enforces.
+- **PR webhook delivery to an agent session is best-effort.** On PR #34 a `CHANGES REQUIRED` review was delivered, but the subsequent approval and merge events never arrived. Absence of an event is not evidence of absence of activity — confirm PR state by checking GitHub directly.
 - When Agent 1 hits one of these, say so plainly, give exact steps, and wait.
 
 **Logging discipline:** Use the standard return format when submitting a PR for Agent 2 review. Write it for a reader with no prior context. After merging, confirm the change is live before proposing the next best step.

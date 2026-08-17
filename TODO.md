@@ -72,7 +72,13 @@ as Fast Lane is already in Next.
   quality improves enough to justify the complexity.
 - Price-graph range selectors.
 - Expanding the GitHub-as-shared-office workflow (PR threads for Agent 1 <->
-  Agent 2, Issues for Agent 3 -> Agent 2). Test on real work before formalizing.
+  Agent 2, Issues for Agent 3 -> Agent 2). Trialled on PR #34, qualified
+  result. Agent 2 posting its verdict as a GitHub review worked and removed one
+  relay. Two limits surfaced: Agent 1 and Agent 2 share a GitHub identity, so
+  native review states are unavailable; and webhook delivery is best-effort, so
+  the approval and merge events never arrived. Keep the PR-review convention.
+  Do not build on branch protection or on event delivery. Not formalized
+  further until a second real trial.
 
 ## Rejected / Do Not Resurrect Without New Reason
 
