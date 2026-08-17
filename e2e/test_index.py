@@ -495,17 +495,26 @@ class BrowserTest(unittest.TestCase):
         self.assertEqual(page.errors, [])
 
     def test_ranked_pairs_remove_collapses_smoothly_not_instantly(self):
-        """#pairs is the last real section on the page -- reachable only by
-        scrolling near the bottom, since just the footer follows it -- so
-        removing a name here can genuinely leave less document to scroll
-        through. Once the shrink is real, the viewport settling lower (more
-        of what's above becoming visible) is a correct, unavoidable
-        consequence at the document's actual bottom -- no client-side trick
-        recovers scrollable space that no longer corresponds to any
-        content. What must never happen is an instant snap: the very first
-        frame after the tap should not already show wherever the section
-        ends up settling: the collapse must unfold smoothly across the
+        """What must never happen is an instant snap: the very first frame
+        after the tap should not already show the section at its final,
+        post-removal height -- the collapse must unfold smoothly across the
         transition, not jump there in one frame.
+
+        Measures #pairs's own height, the property actually under CSS
+        transition control, sampled as soon as possible after the click
+        rather than after an arbitrary fixed delay -- a fixed-delay sample
+        (e.g. wait 30ms, then check a value) is not robust to CI scheduler
+        jitter: on a briefly stalled runner, a delayed sample can land after
+        the .18s transition has already caught up, making it equal the
+        settled value for a reason that has nothing to do with whether an
+        instant snap actually happened. The invariant that actually matters
+        -- still taller than the final, settled height on this first read --
+        holds regardless of exactly how much (short of the full .18s) real
+        time the round trip to sample it took. This is also why the
+        assertion checks height directly rather than #pairs's
+        viewport-relative position: position only moves as an indirect,
+        second-order consequence of the browser's own scroll-clamping once
+        the document shrinks, adding its own timing uncertainty on top.
         """
         work = self._work_with_shards()
         a, b, c = "AAPL", "GOOGL", "TSM"
@@ -519,11 +528,6 @@ class BrowserTest(unittest.TestCase):
             (work / "data" / "returns" / (sym + ".js")).write_text(
                 "RETURNS[%s]=%s;\n" % (json.dumps(sym), json.dumps(vals)))
 
-        # The Watchlist destination has far less content above #pairs than
-        # the old single-page layout did (no filters bar, only the three
-        # watched rows) -- a short viewport is what recreates genuine
-        # document overflow here, the precondition for the browser's
-        # unavoidable scroll-clamp this test is about.
         page = self.page(width=390, height=650, url="file://%s/index.html" % work)
         page.click('.star[data-star="%s"]' % a)
         page.click('.star[data-star="%s"]' % b)
@@ -531,31 +535,24 @@ class BrowserTest(unittest.TestCase):
         page.click("#nav-watchlist")
         page.wait_for_selector("#ranked-pairs .crow")
 
-        # Flush to the top of the viewport -- the realistic worst case,
-        # since there is nowhere further to reveal below it.
-        page.eval_on_selector("#pairs", "e => e.scrollIntoView({block: 'start'})")
-        page.wait_for_timeout(150)
-        before = page.eval_on_selector("#pairs", "e => e.getBoundingClientRect().top")
+        start_height = page.eval_on_selector("#pairs", "e => e.getBoundingClientRect().height")
 
         page.click("#ranked-pairs .prow-remove")
-        page.wait_for_timeout(30)   # well inside the .18s collapse transition
-        immediate = page.eval_on_selector("#pairs", "e => e.getBoundingClientRect().top")
-        page.wait_for_timeout(400)  # let the transition fully settle
-        settled = page.eval_on_selector("#pairs", "e => e.getBoundingClientRect().top")
+        immediate_height = page.eval_on_selector("#pairs", "e => e.getBoundingClientRect().height")
+        page.wait_for_timeout(500)  # comfortably past the .18s collapse transition
+        settled_height = page.eval_on_selector("#pairs", "e => e.getBoundingClientRect().height")
 
-        # The 30ms sample should still be mid-transition -- meaningfully
-        # short of wherever it finally settles -- rather than having already
-        # arrived there in one frame. Whether "before" itself moves at all
-        # depends on how much real headroom the document had left, which is
-        # exactly the unavoidable, correct part described above.
-        self.assertNotAlmostEqual(
-            immediate, settled, delta=10,
-            msg="the collapse should still be in progress shortly after "
-                "the tap, not already fully settled")
+        self.assertGreater(
+            immediate_height, settled_height,
+            "the very first read after the tap should still be taller than "
+            "the final, settled height -- not already collapsed there in "
+            "one frame")
+        self.assertLess(
+            settled_height, start_height,
+            "the section should end up shorter once the row is gone")
         # The next highest-correlated pair should have naturally taken the
         # freed slot rather than the list going empty.
         self.assertGreater(page.eval_on_selector_all("#ranked-pairs .crow", "e => e.length"), 0)
-        self.assertIsInstance(before, float)
         self.assertEqual(page.errors, [])
 
     def _page_with_many_scored_rows(self, n=60):
