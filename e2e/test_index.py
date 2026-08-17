@@ -100,6 +100,9 @@ class BrowserTest(unittest.TestCase):
         a, b = "AAPL", "GOOGL"
         page.click('.star[data-star="%s"]' % a)
         page.click('.star[data-star="%s"]' % b)
+        # Ranked pairs live on the Watchlist destination now; switch there so
+        # the active tab (persisted, like theme) survives the reload below.
+        page.click("#nav-watchlist")
         page.click("#rows tr:first-child td.ticker")
         page.wait_for_selector("#overlay:not([hidden])")
         page.wait_for_timeout(200)
@@ -198,6 +201,7 @@ class BrowserTest(unittest.TestCase):
             "!document.getElementById('pairs-note').textContent.includes('Loading')",
             timeout=10000)
 
+        page.click("#nav-watchlist")
         note = page.inner_text("#pairs-note")
         self.assertNotIn("unavailable", note.lower(),
                           "two valid names should still show pair stats, not an error")
@@ -267,6 +271,7 @@ class BrowserTest(unittest.TestCase):
         page.click('.star[data-star="%s"]' % a)
         page.click('.star[data-star="%s"]' % b)
         page.click('.star[data-star="%s"]' % c)
+        page.click("#nav-watchlist")
         page.wait_for_selector("#ranked-pairs .crow")
 
         # h3 is styled text-transform: uppercase, so assert against textContent
@@ -303,6 +308,7 @@ class BrowserTest(unittest.TestCase):
         page = self.page(url="file://%s/index.html" % work)
         for sym in symbols:
             page.click('.star[data-star="%s"]' % sym)
+        page.click("#nav-watchlist")
         page.wait_for_selector("#ranked-pairs .crow")
 
         rows = page.eval_on_selector_all("#ranked-pairs .crow", "els => els.length")
@@ -311,13 +317,28 @@ class BrowserTest(unittest.TestCase):
 
     def test_ranked_pairs_hidden_with_fewer_than_two_watchlist_names(self):
         page = self.page()
+        page.click("#nav-watchlist")
         self.assertTrue(page.is_hidden("#pairs"), "no watchlist should show the ranked pairs section")
         self.assertEqual(page.eval_on_selector("#ranked-pairs", "e => e.innerHTML"), "")
 
+        page.click("#nav-ranks")
         page.click('.star[data-star="AAPL"]')
         page.wait_for_timeout(300)
+        page.click("#nav-watchlist")
         self.assertTrue(page.is_hidden("#pairs"),
                          "a single starred name has no pair to rank")
+        self.assertEqual(page.errors, [])
+
+    def test_ranked_pairs_never_shown_on_ranks_destination(self):
+        """The section moved into Watchlist entirely -- two or more starred
+        names must not resurrect it on the Ranks screen.
+        """
+        page = self.page()
+        page.click('.star[data-star="AAPL"]')
+        page.click('.star[data-star="GOOGL"]')
+        page.wait_for_timeout(300)
+        self.assertTrue(page.is_hidden("#pairs"),
+                         "correlation pairs must appear only in Watchlist, never on Ranks")
         self.assertEqual(page.errors, [])
 
     def _page_with_pair_fixture(self, rows, series, clear_score_filter=False):
@@ -363,6 +384,7 @@ class BrowserTest(unittest.TestCase):
             page.wait_for_timeout(200)
         for sym in series:
             page.click('.star[data-star="%s"]' % sym)
+        page.click("#nav-watchlist")
         page.wait_for_selector("#ranked-pairs .crow")
         return page
 
@@ -383,17 +405,22 @@ class BrowserTest(unittest.TestCase):
         self.assertEqual(page.get_attribute("#ranked-pairs .prow-remove", "data-remove"), "LO",
                           "HI outranks LO, so LO is the weaker holding and should be offered for removal")
         self.assertEqual(page.inner_text("#ranked-pairs .prow-remove"), "− LO")
-        self.assertEqual(page.inner_text("#watch-n"), "2")
+        self.assertEqual(page.eval_on_selector_all("#rows tr", "e => e.length"), 2)
 
         page.click("#ranked-pairs .prow-remove")
         page.wait_for_timeout(200)
 
         self.assertTrue(page.is_hidden("#pairs"),
                          "removing one of only two watched names leaves no pair to show")
+        # The Watchlist table itself is governed by membership, so removing
+        # LO should drop it from the visible list, not just the star state --
+        # its star button no longer exists here at all. Check the star state
+        # back on Ranks, where every name (watched or not) still has a row.
+        self.assertEqual(page.eval_on_selector_all("#rows tr", "e => e.length"), 1)
+        page.click("#nav-ranks")
         self.assertEqual(page.get_attribute('.star[data-star="LO"]', "aria-pressed"), "false")
         self.assertEqual(page.get_attribute('.star[data-star="HI"]', "aria-pressed"), "true",
                           "removal must only affect the targeted ticker")
-        self.assertEqual(page.inner_text("#watch-n"), "1")
         self.assertEqual(page.errors, [])
 
     def test_ranked_pairs_remove_treats_an_unscored_name_as_the_weaker_holding(self):
@@ -414,6 +441,10 @@ class BrowserTest(unittest.TestCase):
         page.click("#ranked-pairs .prow-remove")
         page.wait_for_timeout(200)
         self.assertTrue(page.is_hidden("#pairs"))
+        # NS's row no longer exists in the (membership-governed) Watchlist
+        # table at all -- check the star state back on Ranks instead, where
+        # NS still has a row (the score filter was cleared for this fixture).
+        page.click("#nav-ranks")
         self.assertEqual(page.get_attribute('.star[data-star="NS"]', "aria-pressed"), "false")
         self.assertEqual(page.errors, [])
 
@@ -444,6 +475,7 @@ class BrowserTest(unittest.TestCase):
         page = self.page()
         for sym in ["AAPL", "GOOGL", "TSM"]:
             page.click('.star[data-star="%s"]' % sym)
+        page.click("#nav-watchlist")
         page.wait_for_selector("#ranked-pairs .crow")
 
         style = page.eval_on_selector(
@@ -487,10 +519,16 @@ class BrowserTest(unittest.TestCase):
             (work / "data" / "returns" / (sym + ".js")).write_text(
                 "RETURNS[%s]=%s;\n" % (json.dumps(sym), json.dumps(vals)))
 
-        page = self.page(width=390, height=700, url="file://%s/index.html" % work)
+        # The Watchlist destination has far less content above #pairs than
+        # the old single-page layout did (no filters bar, only the three
+        # watched rows) -- a short viewport is what recreates genuine
+        # document overflow here, the precondition for the browser's
+        # unavoidable scroll-clamp this test is about.
+        page = self.page(width=390, height=650, url="file://%s/index.html" % work)
         page.click('.star[data-star="%s"]' % a)
         page.click('.star[data-star="%s"]' % b)
         page.click('.star[data-star="%s"]' % c)
+        page.click("#nav-watchlist")
         page.wait_for_selector("#ranked-pairs .crow")
 
         # Flush to the top of the viewport -- the realistic worst case,
@@ -518,6 +556,185 @@ class BrowserTest(unittest.TestCase):
         # freed slot rather than the list going empty.
         self.assertGreater(page.eval_on_selector_all("#ranked-pairs .crow", "e => e.length"), 0)
         self.assertIsInstance(before, float)
+        self.assertEqual(page.errors, [])
+
+    def _page_with_many_scored_rows(self, n=60):
+        """A deterministic, large-enough universe to make both the Ranks
+        table and a fully-starred Watchlist scrollable -- real committed
+        data's actual score distribution is not an invariant of the system,
+        so a scroll-position test needs a fixture, not a hope that enough
+        real names happen to score >= 1 today.
+        """
+        work = pathlib.Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, work, True)
+        for name in ("index.html", "returns.js"):
+            shutil.copy(ROOT / name, work / name)
+        rep = report()
+        template = rep["universe"][0]
+        rows = []
+        for i in range(n):
+            row = dict(template)
+            row.update({"symbol": "SYM%03d" % i, "name": "Symbol %d Corp" % i,
+                        "score": 5.0 - i * 0.01, "lastClose": None, "lastDate": None})
+            rows.append(row)
+        rep["universe"] = rows
+        (work / "scores.js").write_text(
+            "// Generated by build.py -- do not edit.\nconst REPORT = %s;\n"
+            % json.dumps(rep, indent=1))
+        return work
+
+    # --- bottom navigation / Watchlist destination --------------------------
+
+    def test_bottom_nav_renders_exactly_two_destinations(self):
+        page = self.page()
+        labels = page.eval_on_selector_all(
+            "#bottom-nav .nav-btn span", "els => els.map(e => e.textContent)")
+        self.assertEqual(labels, ["Ranks", "Watchlist"])
+        icons = page.eval_on_selector_all("#bottom-nav .nav-btn svg", "e => e.length")
+        self.assertEqual(icons, 2, "each destination should use an inline SVG icon")
+        # No emoji/unicode glyph icons riding along in the button text --
+        # each button's full text should be exactly its label.
+        texts = page.eval_on_selector_all(
+            "#bottom-nav .nav-btn", "els => els.map(e => e.textContent.trim())")
+        self.assertEqual(texts, ["Ranks", "Watchlist"])
+        self.assertEqual(page.errors, [])
+
+    def test_switching_to_watchlist_updates_active_state_and_hides_ranks_filters(self):
+        page = self.page()
+        self.assertEqual(page.get_attribute("#nav-ranks", "aria-current"), "page")
+        self.assertEqual(page.get_attribute("#nav-watchlist", "aria-current"), "false")
+        self.assertTrue(page.is_visible(".bar"), "the Ranks filter bar should show on Ranks")
+
+        page.click("#nav-watchlist")
+        self.assertEqual(page.get_attribute("#nav-watchlist", "aria-current"), "page")
+        self.assertEqual(page.get_attribute("#nav-ranks", "aria-current"), "false")
+        self.assertTrue(page.is_hidden(".bar"),
+                         "search/MIN SCORE/MAX VOL/sector belong to Ranks, not Watchlist")
+        self.assertEqual(page.errors, [])
+
+    def test_watchlist_shows_watched_stocks_regardless_of_ranks_filters(self):
+        """Membership governs Watchlist; a Ranks-screen filter that would
+        hide a name on Ranks must not hide it on Watchlist.
+        """
+        page = self.page()
+        symbol = "AAPL"
+        page.click('.star[data-star="%s"]' % symbol)
+        # High enough to exclude every real tracked name from Ranks, the
+        # just-starred one included.
+        page.fill("#f-score", "999")
+        page.wait_for_timeout(200)
+        self.assertEqual(page.eval_on_selector_all("#rows tr", "e => e.length"), 0,
+                          "sanity check: the filter should hide every Ranks row")
+
+        page.click("#nav-watchlist")
+        self.assertEqual(page.eval_on_selector_all("#rows tr", "e => e.length"), 1,
+                          "the starred name should still show on Watchlist")
+        self.assertEqual(page.eval_on_selector("#rows tr td.ticker", "e => e.textContent"), symbol)
+        self.assertEqual(page.errors, [])
+
+    def test_ticker_detail_opens_from_watchlist(self):
+        page = self.page()
+        page.click('.star[data-star="AAPL"]')
+        page.click("#nav-watchlist")
+        page.click("#rows tr:first-child td.ticker")
+        page.wait_for_selector("#overlay:not([hidden])")
+        self.assertEqual(page.inner_text("#ov-title"), "AAPL")
+        self.assertEqual(page.errors, [])
+
+    def test_switching_tabs_closes_open_ticker_detail(self):
+        """The open detail overlay is a full-screen scrim above the bottom
+        nav (by design -- a modal blocking the nav underneath it is
+        standard, expected behaviour, the same as any native app), so a
+        real pointer tap can't reach the nav bar while it's up. What this
+        guards is the underlying state: whatever eventually switches the
+        active tab -- the close button then a tap, or activating a nav
+        button directly by its own click() the way a keyboard/assistive
+        activation would -- must never leave the overlay dangling open on
+        the new destination. Invoking .click() on the element exercises
+        exactly that path without depending on pointer hit-testing.
+        """
+        page = self.page()
+        page.click("#rows tr:first-child td.ticker")
+        page.wait_for_selector("#overlay:not([hidden])")
+        page.eval_on_selector("#nav-watchlist", "e => e.click()")
+        self.assertTrue(page.is_hidden("#overlay"),
+                         "switching destinations should close any open detail overlay")
+        self.assertEqual(page.get_attribute("#nav-watchlist", "aria-current"), "page")
+        self.assertEqual(page.errors, [])
+
+    def test_star_state_stays_synchronized_between_destinations(self):
+        page = self.page()
+        symbol = "AAPL"
+        page.click('.star[data-star="%s"]' % symbol)
+        page.click("#nav-watchlist")
+        self.assertEqual(page.get_attribute('.star[data-star="%s"]' % symbol, "aria-pressed"), "true")
+
+        # Unstar directly from Watchlist: the row should drop out of the
+        # watchlist table itself, and Ranks should see the same state with
+        # no stale star left behind.
+        page.click('.star[data-star="%s"]' % symbol)
+        page.wait_for_timeout(200)
+        self.assertEqual(page.eval_on_selector_all("#rows tr", "e => e.length"), 0)
+
+        page.click("#nav-ranks")
+        self.assertEqual(page.get_attribute('.star[data-star="%s"]' % symbol, "aria-pressed"), "false")
+        self.assertEqual(page.errors, [])
+
+    def test_active_destination_persists_across_reload(self):
+        page = self.page()
+        # Star a name first -- an empty Watchlist renders zero <tr> rows,
+        # and this test's own point is a successful restore, not a timeout
+        # waiting for rows that were never going to exist.
+        page.click('.star[data-star="AAPL"]')
+        page.click("#nav-watchlist")
+        page.reload()
+        page.wait_for_selector("#rows tr")
+        self.assertEqual(page.get_attribute("#nav-watchlist", "aria-current"), "page")
+        self.assertTrue(page.is_hidden(".bar"))
+        self.assertEqual(page.errors, [])
+
+    def test_independent_scroll_positions_restore_when_switching_tabs(self):
+        work = self._page_with_many_scored_rows(60)
+        page = self.page(width=390, height=700, url="file://%s/index.html" % work)
+        for i in range(60):
+            page.click('.star[data-star="SYM%03d"]' % i)
+
+        page.evaluate("window.scrollTo(0, 400)")
+        page.wait_for_timeout(100)
+
+        page.click("#nav-watchlist")
+        page.wait_for_timeout(100)
+        page.evaluate("window.scrollTo(0, 250)")
+        page.wait_for_timeout(100)
+
+        page.click("#nav-ranks")
+        page.wait_for_timeout(150)
+        ranks_scroll = page.evaluate("window.scrollY")
+        self.assertGreater(ranks_scroll, 300,
+                            "Ranks scroll position should be restored, not reset to 0")
+
+        page.click("#nav-watchlist")
+        page.wait_for_timeout(150)
+        watch_scroll = page.evaluate("window.scrollY")
+        self.assertLess(abs(watch_scroll - 250), 60,
+                         "Watchlist should restore its own scroll position, not Ranks'")
+        self.assertEqual(page.errors, [])
+
+    def test_bottom_nav_fixed_with_safe_area_and_no_overflow(self):
+        page = self.page(width=375, height=780)
+        style = page.eval_on_selector(
+            "#bottom-nav", "e => { var s = getComputedStyle(e); "
+            "return {position: s.position, bottom: s.bottom}; }")
+        self.assertEqual(style["position"], "fixed")
+        self.assertEqual(style["bottom"], "0px")
+        self.assertLessEqual(page.evaluate("document.documentElement.scrollWidth"), 375)
+
+        body_padding = page.eval_on_selector(
+            "body", "e => parseFloat(getComputedStyle(e).paddingBottom)")
+        nav_height = page.eval_on_selector(
+            "#bottom-nav", "e => e.getBoundingClientRect().height")
+        self.assertGreater(body_padding, nav_height,
+                            "page content must not disappear behind the fixed nav")
         self.assertEqual(page.errors, [])
 
     def test_filters_round_trip_and_reset(self):
