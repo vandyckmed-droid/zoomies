@@ -35,7 +35,7 @@ Filters that only threshold on data already in `scores.js` — score, return, vo
 | `data/prices/*.csv` | Cached daily adjusted closes, ~2 years per ticker.          |
 | `data/prices/SPY.csv`| The benchmark series for beta, alpha and R².                |
 | `scores.js`         | Generated table data, loaded by `index.html`.               |
-| `data/returns/*.js` | One return series per ticker, fetched only for starred names — the pair matrix. |
+| `data/returns/*.js` | One return series per ticker, fetched only for starred names — the ranked watchlist pairs list. |
 | `returns.js`        | All return series in one file, for the correlation lists.   |
 | `index.html`        | The ranking table.                                          |
 
@@ -69,7 +69,7 @@ Ranked highest score first. A stock listed too recently to fill the window (273 
 
 Each stock is regressed on `SPY` over the same 12–1 window, giving beta, annualized alpha (no risk-free adjustment) and R². A name needs 120 overlapping days before a regression is reported. The detail panel also lists the five names a stock is most correlated with and the five it is least correlated with, ranked across every tracked name.
 
-Starring names adds them to a watchlist, which drives a pair matrix below the table showing correlation or annualized covariance of daily log returns.
+Starring names adds them to a watchlist, which drives a ranked "most correlated pairs" list below the table: every unique pair of starred names, highest correlation first, each with a one-tap action to drop the lower-ranked of the two.
 
 ## Percentiles and rank change
 

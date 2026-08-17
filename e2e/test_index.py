@@ -112,11 +112,11 @@ class BrowserTest(unittest.TestCase):
         corr = page.inner_text("#ov-corr")
         self.assertNotIn("loading", corr.lower(), "correlation panel never resolved")
         note = page.inner_text("#pairs-note")
-        self.assertNotIn("Loading", note, "pair matrix never resolved")
-        self.assertGreater(page.eval_on_selector_all("#matrix td", "e => e.length"), 0)
+        self.assertNotIn("Loading", note, "ranked pairs list never resolved")
+        self.assertGreater(page.eval_on_selector_all("#ranked-pairs .crow", "e => e.length"), 0)
         self.assertEqual(page.errors, [])
 
-    def test_pair_matrix_fetches_only_starred_shards(self):
+    def test_ranked_pairs_fetches_only_starred_shards(self):
         """The whole point of sharding: starring 2 names should not download
         the other 998+ tracked series, only theirs. This is the regression
         guard for that specific claim -- catches a future change that
@@ -140,10 +140,10 @@ class BrowserTest(unittest.TestCase):
                           "starring 2 names should fetch exactly 2 shards, not %r" % requests)
         fetched = set(u.rsplit("/", 1)[-1] for u in requests)
         self.assertEqual(fetched, {a + ".js", b + ".js"})
-        self.assertEqual(page.eval_on_selector_all("#matrix td", "e => e.length"), 4)
+        self.assertEqual(page.eval_on_selector_all("#ranked-pairs .crow", "e => e.length"), 1)
         self.assertEqual(page.errors, [])
 
-    def test_bulk_load_warms_the_pair_matrix_for_free(self):
+    def test_bulk_load_warms_the_ranked_pairs_for_free(self):
         """returns.js and the shards merge onto the same RETURNS object, so
         once a detail panel has bulk-loaded it, starring names afterward
         should need zero further requests -- the two loaders are meant to
@@ -166,18 +166,18 @@ class BrowserTest(unittest.TestCase):
         page.wait_for_timeout(300)
 
         self.assertEqual(requests, [], "starring after a bulk load should fetch nothing new")
-        self.assertEqual(page.eval_on_selector_all("#matrix td", "e => e.length"), 4)
+        self.assertEqual(page.eval_on_selector_all("#ranked-pairs .crow", "e => e.length"), 1)
         self.assertEqual(page.errors, [])
 
     def test_one_missing_shard_does_not_hide_the_other_pairs(self):
         """A 404 on one starred name's shard used to take out the whole
-        matrix, not just that name -- withReturnsForAll's completion callback
-        was gated on every symbol succeeding, so one failure meant the two
-        names that DID load never got shown either. The single bulk file
-        never had this failure mode: a name missing from RETURNS just got
-        filtered out, and valid pairs still rendered. Force a 404 by deleting
-        one starred name's shard, since every name in the committed data
-        happens to have one.
+        ranked pairs list, not just that name -- withReturnsForAll's
+        completion callback was gated on every symbol succeeding, so one
+        failure meant the two names that DID load never got shown either.
+        The single bulk file never had this failure mode: a name missing
+        from RETURNS just got filtered out, and valid pairs still rendered.
+        Force a 404 by deleting one starred name's shard, since every name
+        in the committed data happens to have one.
         """
         work = pathlib.Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, work, True)
@@ -201,10 +201,10 @@ class BrowserTest(unittest.TestCase):
         note = page.inner_text("#pairs-note")
         self.assertNotIn("unavailable", note.lower(),
                           "two valid names should still show pair stats, not an error")
-        cells = page.eval_on_selector_all("#matrix td", "e => e.length")
-        self.assertEqual(cells, 4, "a and b should form a 2x2 matrix, excluding the victim")
-        headers = page.eval_on_selector_all("#matrix th", "e => e.map(x => x.textContent)")
-        self.assertNotIn(victim, headers[1:], "the missing-shard name should not appear as a column")
+        labels = page.eval_on_selector_all(
+            "#ranked-pairs .crow > span:first-child", "els => els.map(e => e.textContent)")
+        self.assertEqual(len(labels), 1, "a and b should form exactly one pair, excluding the victim")
+        self.assertNotIn(victim, labels[0], "the missing-shard name should not appear in the ranked list")
         self.assertEqual(page.errors, [])
 
     @staticmethod
@@ -232,10 +232,11 @@ class BrowserTest(unittest.TestCase):
         return work
 
     def test_ranked_pairs_lists_unique_pairs_sorted_by_correlation(self):
-        """The ranked list is the point of this feature: once a watchlist
-        outgrows a handful of names, the NxN matrix stops being scannable,
-        so a flat "highest correlation first" list should surface the most
-        redundant pair without making the reader hunt across a grid.
+        """The ranked list is the whole watchlist correlation experience:
+        once a watchlist outgrows a handful of names, an NxN grid stops
+        being scannable, so a flat "highest correlation first" list should
+        surface the most redundant pair without making the reader hunt
+        across a grid.
 
         Uses synthetic per-symbol shards with known, non-degenerate
         correlations computed independently in Python (via _corr, the same
@@ -310,13 +311,13 @@ class BrowserTest(unittest.TestCase):
 
     def test_ranked_pairs_hidden_with_fewer_than_two_watchlist_names(self):
         page = self.page()
-        self.assertTrue(page.is_hidden("#pairs"), "no watchlist should show neither list nor matrix")
+        self.assertTrue(page.is_hidden("#pairs"), "no watchlist should show the ranked pairs section")
         self.assertEqual(page.eval_on_selector("#ranked-pairs", "e => e.innerHTML"), "")
 
         page.click('.star[data-star="AAPL"]')
         page.wait_for_timeout(300)
         self.assertTrue(page.is_hidden("#pairs"),
-                         "a single starred name has no pair to rank or show in the matrix")
+                         "a single starred name has no pair to rank")
         self.assertEqual(page.errors, [])
 
     def _page_with_pair_fixture(self, rows, series, clear_score_filter=False):
@@ -370,7 +371,7 @@ class BrowserTest(unittest.TestCase):
         with the worse (higher) rank number -- not just whichever symbol
         happens to come first, and removing it must immediately recompute
         every piece of state that depends on the watchlist: the ranked
-        list, the matrix, the star button, and the watch count.
+        list, the star button, and the watch count.
         """
         n = 130
         base = list(range(n))
@@ -465,8 +466,8 @@ class BrowserTest(unittest.TestCase):
         """#pairs is the last real section on the page -- reachable only by
         scrolling near the bottom, since just the footer follows it -- so
         removing a name here is exactly the scenario where an unmanaged
-        reflow would yank the viewport around as the list and matrix shrink
-        by a row. The section's on-screen position must stay put.
+        reflow would yank the viewport around as the list shrinks by a row.
+        The section's on-screen position must stay put.
         """
         work = self._work_with_shards()
         a, b, c = "AAPL", "GOOGL", "TSM"

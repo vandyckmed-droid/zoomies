@@ -79,7 +79,7 @@
   }
   .head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
   h1 { font-size: 1.4rem; margin: 0 0 .25rem; }
-  #theme, #only-watch, #pairs-mode {
+  #theme, #only-watch {
     font: inherit;
     font-size: .7rem;
     text-transform: uppercase;
@@ -93,8 +93,8 @@
     white-space: nowrap;
     -webkit-appearance: none;
   }
-  #theme:hover, #only-watch:hover, #pairs-mode:hover { color: var(--fg); border-color: var(--field); }
-  #theme:focus-visible, #only-watch:focus-visible, #pairs-mode:focus-visible {
+  #theme:hover, #only-watch:hover { color: var(--fg); border-color: var(--field); }
+  #theme:focus-visible, #only-watch:focus-visible {
     outline: 2px solid var(--fg); outline-offset: 2px;
   }
   #only-watch[aria-pressed="true"] { color: var(--fg); border-color: var(--field); }
@@ -242,28 +242,10 @@
   #pairs[hidden] { display: none; }
   .phead { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
   .phead h2 { font-size: 1rem; margin: 0 0 .5rem; }
-  .pscroll { overflow-x: auto; }          /* the matrix scrolls, not the page */
-  #matrix { width: auto; min-width: 100%; }
-  #matrix th, #matrix td {
-    position: static;
-    box-shadow: none;
-    border: 1px solid var(--line);
-    padding: .45rem .55rem;
-    font-size: .8rem;
-    text-align: right;
-    white-space: nowrap;
-    cursor: default;
-    text-transform: none;
-    letter-spacing: 0;
-    background: var(--bg);
-  }
-  #matrix th { color: var(--muted); font-weight: 400; }
-  #matrix th.rowhead { text-align: left; color: var(--fg); font-weight: 600; }
-  #matrix td.self { color: var(--muted); }
   .pnote { color: var(--muted); font-size: .8rem; margin: .7rem 0 0; }
 
   /* Most / least correlated lists in the detail panel, and the ranked
-     watchlist pairs list above the matrix -- same compact row shape. */
+     watchlist pairs list -- same compact row shape. */
   #ov-corr h3, #ranked-pairs h3 {
     font-size: .72rem;
     text-transform: uppercase;
@@ -435,10 +417,8 @@
 <section id="pairs" hidden>
   <div class="phead">
     <h2>Watchlist pairs</h2>
-    <button id="pairs-mode">correlation</button>
   </div>
   <div id="ranked-pairs"></div>
-  <div class="pscroll"><table id="matrix"></table></div>
   <p class="pnote" id="pairs-note"></p>
 </section>
 
@@ -468,7 +448,7 @@
 
   // Everything the page remembers between visits.
   var view = { key: 'rank', dir: 1, q: '', scroll: 0, open: null, theme: 'auto',
-              watch: [], onlyWatch: false, pairsMode: 'correlation',
+              watch: [], onlyWatch: false,
               minScore: '1', maxVol: '', maxDD: '', sector: '' };
   try {
     var saved = JSON.parse(localStorage.getItem(STORE_KEY));
@@ -721,8 +701,9 @@
   // "RETURNS is not defined".
   window.RETURNS = {};
 
-  // 1. The pair matrix needs only the starred names -- typically under ten
-  // -- so it fetches one small file per ticker from data/returns/<sym>.js.
+  // 1. The ranked pairs list needs only the starred names -- typically
+  // under ten -- so it fetches one small file per ticker from
+  // data/returns/<sym>.js.
   // A script tag rather than fetch(), so this still works when index.html
   // is opened straight off the filesystem. Callers that arrive while a
   // symbol's shard is already in flight queue up rather than triggering a
@@ -789,7 +770,8 @@
   // overhead dominates at that count. A phone on a real connection would be
   // worse, not better. returns.js merges onto the same RETURNS object the
   // shards use (`Object.assign(RETURNS, {...})` -- see build.py), so after
-  // it loads once, the pair matrix above needs no further fetches either.
+  // it loads once, the ranked pairs list above needs no further fetches
+  // either.
   var haveBulkReturns = false;
   var waitingForBulkReturns = [];
   function withBulkReturns(done) {
@@ -809,11 +791,6 @@
     document.head.appendChild(el);
   }
 
-  function tint(corr) {
-    var alpha = (Math.min(Math.abs(corr), 1) * 0.3).toFixed(3);
-    return 'background:rgba(var(--' + (corr >= 0 ? 'pos' : 'neg') + '-rgb),' + alpha + ')';
-  }
-
   function renderPairs() {
     var section = document.getElementById('pairs');
     var picked = view.watch.map(function (sym) {
@@ -828,37 +805,33 @@
 
     var symbols = picked.map(function (s) { return s.symbol; });
     if (symbols.some(function (s) { return !returnsSettled(s); })) {
-      document.getElementById('matrix').innerHTML = '';
       document.getElementById('ranked-pairs').innerHTML = '';
       document.getElementById('pairs-note').textContent = 'Loading return series…';
       // Re-render once every shard has settled, success or failure -- do not
       // gate on all of them succeeding. A 404 is normal for a starred name
       // with no return data (unscored, or fell out of the universe), and one
-      // missing shard should not hide the matrix for the names that did
-      // load. The filter below already excludes whichever symbols are still
-      // missing from RETURNS after this; that is what makes partial success
-      // work, the same way it did with the single bulk file.
+      // missing shard should not hide the pairs that did load. The filter
+      // below already excludes whichever symbols are still missing from
+      // RETURNS after this; that is what makes partial success work, the
+      // same way it did with the single bulk file.
       withReturnsForAll(symbols, renderPairs);
       return;
     }
 
     picked = picked.filter(function (s) { return RETURNS[s.symbol]; });
     if (picked.length < 2) {
-      document.getElementById('matrix').innerHTML = '';
       document.getElementById('ranked-pairs').innerHTML = '';
       document.getElementById('pairs-note').textContent =
         'Needs two starred names with enough price history.';
       return;
     }
-    var cov = view.pairsMode === 'covariance';
 
     // Every unique pair among the starred names, ranked highest correlation
     // first -- the fastest way to spot redundant holdings once the
-    // watchlist outgrows what the full matrix can show at a glance. Reuses
-    // the same pairStats() the matrix cells use, just laid out as a list
-    // instead of a grid. Each row also names the weaker of the two names
-    // (worseOfPair) with a one-tap remove action, so trimming a redundant
-    // holding never requires hunting its star button back down in the table.
+    // watchlist outgrows a handful of names. Each row also names the weaker
+    // of the two names (worseOfPair) with a one-tap remove action, so
+    // trimming a redundant holding never requires hunting its star button
+    // back down in the table.
     var ranked = [];
     var ri, rj, rst;
     for (ri = 0; ri < picked.length; ri++) {
@@ -879,33 +852,9 @@
                esc(worse.symbol) + '</button></span></div>';
       }).join('') : '';
 
-    var head = '<tr><th></th>' + picked.map(function (s) {
-      return '<th>' + esc(s.symbol) + '</th>';
-    }).join('') + '</tr>';
-
-    var body = picked.map(function (row) {
-      return '<tr><th class="rowhead">' + esc(row.symbol) + '</th>' + picked.map(function (col) {
-        if (row === col) {
-          // row.annVol is null for a name with no score, and null * null is
-          // 0 in JS -- rendering a confident "0.000" variance for a stock
-          // that actually has no data. Same null-coerces-to-0 shape as the
-          // filter-leak bug, just here instead of in a comparison.
-          var variance = row.annVol === null ? '—' : (row.annVol * row.annVol).toFixed(3);
-          return '<td class="self">' + (cov ? variance : '1.00') + '</td>';
-        }
-        var st = pairStats(RETURNS[row.symbol], RETURNS[col.symbol]);
-        if (!st) return '<td class="self">—</td>';
-        return '<td style="' + tint(st.corr) + '">' +
-               (cov ? st.cov.toFixed(3) : st.corr.toFixed(2)) + '</td>';
-      }).join('') + '</tr>';
-    }).join('');
-
-    document.getElementById('matrix').innerHTML = head + body;
-    document.getElementById('pairs-mode').textContent = view.pairsMode;
-    document.getElementById('pairs-note').textContent = cov
-      ? 'Annualized covariance of daily log returns over the same 12–1 window. The diagonal is each stock’s own variance.'
-      : 'Correlation of daily log returns over the same 12–1 window, on the ' +
-        REPORT.benchmark + ' trading calendar.';
+    document.getElementById('pairs-note').textContent =
+      'Correlation of daily log returns over the same 12–1 window, on the ' +
+      REPORT.benchmark + ' trading calendar.';
   }
 
   // --- detail overlay ------------------------------------------------------
@@ -1128,24 +1077,19 @@
     render();
   });
 
-  document.getElementById('pairs-mode').addEventListener('click', function () {
-    view.pairsMode = view.pairsMode === 'correlation' ? 'covariance' : 'correlation';
-    save();
-    renderPairs();
-  });
   document.getElementById('ranked-pairs').addEventListener('click', function (e) {
     var btn = e.target.closest('.prow-remove');
     if (!btn) return;
     // #pairs is the last real content on the page (only the footer follows
     // it), so whoever can see and tap this button is already scrolled near
     // the bottom -- exactly where the browser has no slack left to keep the
-    // viewport in place once the ranked list and matrix shrink by a row.
-    // Rather than fight that (a plain scroll offset can't recover space
-    // that no longer exists), pin the section's on-screen height across the
-    // DOM swap and transition it down to the new content's natural height,
-    // so the collapse reads as one smooth shrink instead of an instant
-    // snap. prefers-reduced-motion skips the animation and falls back to
-    // the plain instant swap.
+    // viewport in place once the ranked list shrinks by a row. Rather than
+    // fight that (a plain scroll offset can't recover space that no longer
+    // exists), pin the section's on-screen height across the DOM swap and
+    // transition it down to the new content's natural height, so the
+    // collapse reads as one smooth shrink instead of an instant snap.
+    // prefers-reduced-motion skips the animation and falls back to the
+    // plain instant swap.
     var pairs = document.getElementById('pairs');
     var reduced = window.matchMedia &&
       window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1155,7 +1099,7 @@
       pairs.style.overflow = 'hidden';
     }
 
-    toggleWatch(btn.dataset.remove);   // re-renders the list, matrix and table itself
+    toggleWatch(btn.dataset.remove);   // re-renders the ranked list and table itself
 
     if (!animate) return;
     if (pairs.hidden) {                // fewer than two names remain watched
