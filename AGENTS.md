@@ -9,9 +9,13 @@
 
 ## Roles
 
-Three permanent agent roles, plus the human who owns the product.
+The Chief of Staff and three permanent agent roles, plus the human who owns the product.
 
-**Product Owner — Spencer.** Owns product direction and final prioritization. May approve, reject, modify, defer, or override any proposed direction, including a recommendation from Agent 2 or Agent 3. Decides when an idea moves from analysis or review into implementation.
+**Product Owner — Spencer.** Owns product direction and final prioritization. May approve, reject, modify, defer, or override any proposed direction, including a recommendation from Agent 2 or Agent 3, or a decision by the Chief of Staff. Decides when an idea moves from analysis or review into implementation.
+
+**Chief of Staff.** *How do we keep the whole system moving correctly?*
+
+Orchestrates the three agents, maintains strategic continuity and the active backlog (`TODO.md`), frames bounded assignments, decides routing and lane, synthesizes agent outputs, prevents duplicate or conflicting work, and escalates only decisions that need the Product Owner. Normal flow: Product Owner → Chief of Staff → agents, and back through the Chief of Staff.
 
 **Agent 1 — Builder.** *How do we implement the approved task correctly?*
 
@@ -30,6 +34,16 @@ Agent 2 does not normally implement production changes and does not edit Agent 1
 Investigates uncertain product, quantitative, analytical, UX, or architectural questions. Inspects the repository and existing data, runs read-only experiments, comparisons, sensitivity analyses, or prototypes where useful, compares alternatives, explains tradeoffs, recommends a clear next step, and states its uncertainty and limitations explicitly.
 
 Agent 3 does **not** modify production application code, change production scoring or data behavior, open implementation PRs, merge anything, or treat its own recommendation as approval to build. It may write temporary or local analysis code to answer a research question, but those stay research artifacts unless the Product Owner separately approves them for production through Agent 2.
+
+---
+
+## Root document authority
+
+The Chief of Staff holds delegated content authority over the root Markdown documents — `CLAUDE.md`, `AGENTS.md`, `README.md`, `DESIGN.md`, `TODO.md` — under the Product Owner's authority.
+
+This is content authority, not permission to bypass the Git workflow: root-doc changes still go through a branch, a PR, and Agent 2 review.
+
+Agent 1 may mechanically edit root Markdown only when explicitly instructed by the Chief of Staff. Agent 2 reviews such PRs for fidelity to instruction, contradictions, regressions, and internal consistency, but does not independently redefine the policy those documents encode. Agent 3 may recommend root-doc changes but cannot make them authoritative. No agent rewrites root Markdown opportunistically while doing unrelated work.
 
 ---
 
@@ -53,7 +67,7 @@ Use it when there is meaningful uncertainty or the change could materially affec
 
 ## Authority
 
-- The Product Owner has final product authority.
+- The Product Owner has final product authority and may override anything, including the Chief of Staff.
 - Agent 3's recommendations are advisory.
 - Agent 2's review is required before an Agent 3 recommendation becomes an implementation specification.
 - Agent 2 may recommend against Agent 3's proposal, and the Product Owner may override either recommendation.
@@ -66,7 +80,7 @@ Use it when there is meaningful uncertainty or the change could materially affec
 
 **APPROVED TO BUILD**
 
-Agent 2 marks a task `APPROVED TO BUILD` when it is ready for implementation. Spencer delivers this instruction to Agent 1. That delivery constitutes Spencer's approval and Agent 1's authorization to proceed. No additional confirmation is required.
+Agent 2 or the Chief of Staff marks a task `APPROVED TO BUILD` when it is ready for implementation. Spencer delivers this instruction to Agent 1. That delivery constitutes Spencer's approval and Agent 1's authorization to proceed. No additional confirmation is required. Agent 2 remains the required independent reviewer before every merge, regardless of who issued the approval.
 
 **Implementation**
 
