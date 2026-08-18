@@ -40,13 +40,6 @@ approved, scheduled, or lane-assigned.
 
 ## Next
 
-- Risk-equivalent dollar size, V1 (Fast Lane, high priority). Display a rounded
-  dollar amount representing approximately equal standalone daily volatility
-  risk across stocks. Target one-standard-deviation daily move of about ±$10.
-  Size = 10 x sqrt(252) / annualized volatility, rounded to nearest $100.
-  Standalone volatility only; no correlation adjustment in V1. No holdings data,
-  no personalized position management. Not presented as a literal "Buy $X"
-  recommendation. Candidate labels: SIZE or RISK $.
 - Cosmetic bundle (Fast Lane). Two adjacent surfaces, one PR.
   (a) Watchlist pair rows: move the correlation value inward, use a compact
       minus control at far right, drop the repeated ticker from the remove
