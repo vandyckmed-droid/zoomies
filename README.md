@@ -71,6 +71,8 @@ Each stock is regressed on `SPY` over the same 12–1 window, giving beta, annua
 
 The detail panel also shows a 52-week range: the low and high adjusted close over the trailing 52 calendar weeks ending on the name's latest cached trading date, with the latest close marked between them. This is independent of the 12–1 score, so a name without enough history to be scored can still show one.
 
+Next to the volatility figures the panel shows a **risk-equivalent size**: `10 / dailyVol`, rounded to the nearest $100 and floored at $100. It answers how many dollars of one name carry about the same standalone one-day risk as a given dollar amount of another — roughly $800 of a calm name against $300 of a jumpy one, each sitting at a one-standard-deviation daily move of about $10. It measures a single name in isolation: there is no correlation adjustment, and it knows nothing about holdings or an actual portfolio, so it sizes risk rather than recommending a purchase. Like the 52-week range it is independent of the 12–1 score, and it is omitted entirely for a name whose volatility was never cached.
+
 Starring names adds them to a watchlist, which drives a ranked "most correlated pairs" list in the Watchlist destination: every unique pair of starred names, highest correlation first, each with a one-tap action to drop the lower-ranked of the two.
 
 ## Percentiles and rank change

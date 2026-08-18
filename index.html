@@ -1081,6 +1081,26 @@
            '<div class="rvals"><span>$' + lo.toFixed(2) + '</span><span>$' + hi.toFixed(2) + '</span></div>';
   }
 
+  // Roughly how many dollars of a name carry the same standalone one-day
+  // volatility risk as any other: 10 / dailyVol puts a one-standard-deviation
+  // daily move at about $10, so ~$800 of a calm name and ~$300 of a jumpy one
+  // sit at comparable risk. Independent of score() the same way lastClose is,
+  // so a name with too little history for a 12-1 score still gets one. Returns
+  // null -- pushing no row at all, rather than a meaningless number -- when the
+  // build cached no usable volatility for this name.
+  function riskSize(s) {
+    if (typeof s.dailyVol !== 'number' || !isFinite(s.dailyVol) || s.dailyVol <= 0) return null;
+    // One $100 step is the floor: the roundest number that is still a size.
+    return Math.max(100, Math.round(10 / s.dailyVol / 100) * 100);
+  }
+
+  function pushRiskSize(stats, s) {
+    var size = riskSize(s);
+    if (size === null) return;
+    stats.push(['Risk-equivalent size', '$' + size +
+      ' <span style="color:var(--muted)">approx. ± $10 one-day move (1 s.d.)</span>']);
+  }
+
   function openDetail(symbol, focus) {
     var s = stocks.filter(function (x) { return x.symbol === symbol; })[0];
     if (!s) return;
@@ -1109,7 +1129,12 @@
                       ' → ' + s.ddTrough + '</span>' : '')],
         ['hr'],
         ['Mean daily log return', (s.meanDaily * 100).toFixed(3) + '%'],
-        ['Daily volatility', (s.dailyVol * 100).toFixed(2) + '%'],
+        ['Daily volatility', (s.dailyVol * 100).toFixed(2) + '%']
+      );
+      // Sits directly under the volatility it is derived from, so the number
+      // and its dollar translation read as one thought.
+      pushRiskSize(stats, s);
+      stats.push(
         ['Return over window', signed(s.windowReturn)],
         ['Return over skipped ' + REPORT.skip + 'd', signed(s.skipReturn)],
         ['hr'],
@@ -1155,6 +1180,7 @@
     } else {
       stats.push(['hr'], ['Score', 'not enough history for a ' +
         (REPORT.lookback + REPORT.skip) + '-day window']);
+      pushRiskSize(stats, s);
     }
     stats.push(['Days cached', s.historyDays]);
 
