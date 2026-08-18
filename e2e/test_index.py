@@ -1347,6 +1347,11 @@ class BrowserTest(unittest.TestCase):
                 value.startswith(dollars + " "),
                 "%s: expected %s, got %r" % (symbol, dollars, value))
             self.assertIn("one-day move (1 s.d.)", value)
+            # V1 sizes risk; it never tells anyone to buy. Asserted against the
+            # row's own text, on every panel that renders it -- checking the
+            # panel as a whole after opening the one name that has no row would
+            # pass no matter how the caption were later reworded.
+            self.assertNotIn("buy", value.lower())
             page.click("#ov-close")
 
         check("NORM", "$500")
@@ -1363,8 +1368,6 @@ class BrowserTest(unittest.TestCase):
         # placeholder or a number derived from nothing.
         self.assertNotIn(label, self._open_by_symbol(page, "NOVOL"))
 
-        # V1 sizes risk; it never tells anyone to buy.
-        self.assertNotIn("buy", page.inner_text("#ov-stats").lower())
         self.assertEqual(page.errors, [])
 
 
