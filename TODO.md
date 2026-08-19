@@ -27,19 +27,25 @@ approved, scheduled, or lane-assigned.
 
 ## In Progress
 
-- Volatility-floor scoring (Agent 3, Research Lane). Question: does unusually
-  low realized volatility give too much ranking advantage? Candidates: baseline
-  no floor; naive 20/22/25%; one-sided 20/22/25%; adaptive one-sided 20th and
-  25th percentile. One-sided = positive-return names use max(realized vol,
-  floor); zero/negative-return names keep the existing score. Known pathology:
-  a naive floor improves negative scores by making them less negative — Agent 3
-  is quantifying this. Permitted conclusions: KEEP CURRENT SCORE; fixed
-  one-sided 20/22/25%; adaptive 20th; adaptive 25th; INCONCLUSIVE — GATHER MORE
-  HISTORY. No production change approved. Return path: Agent 3 → Chief of Staff
-  → Agent 2 independent review → Product Owner decision → only then Agent 1.
+- Universe contamination detection (Agent 3, Research Lane, issue in flight).
+  At least 22 exchange-traded debt and preferred instruments pass
+  is_common_stock(). Both detection methods tried so far are name-based
+  heuristics and both were provably incomplete. The real question is whether
+  the data provider exposes an authoritative security-type field. Currently
+  ranks 380-850, nothing user-visible affected. Low priority.
+- Candidate -> Watchlist correlation (issue #38). While scanning rankings, see
+  whether a candidate is already highly correlated with watchlist names.
+  Possible later extensions: redundancy warning on add, diversification
+  summary, candidate comparison, correlation-aware selection. Awaiting a
+  Product Owner decision.
 
 ## Next
 
+- Correct README.md line 44. It currently claims ETFs, funds, preferreds,
+  warrants, rights and units are excluded from the universe; preferreds and
+  exchange-traded debt are demonstrably present. The corrected wording depends
+  on the universe-contamination research now in flight, so this is recorded
+  rather than scheduled.
 - Cosmetic bundle (Fast Lane). Two adjacent surfaces, one PR.
   (a) Watchlist pair rows: move the correlation value inward, use a compact
       minus control at far right, drop the repeated ticker from the remove
@@ -49,16 +55,12 @@ approved, scheduled, or lane-assigned.
 
 ## Research Queue
 
-- Candidate -> Watchlist correlation. While scanning rankings, see whether a
-  candidate is already highly correlated with watchlist names. Possible later
-  extensions: redundancy warning on add, diversification summary, candidate
-  comparison, correlation-aware selection.
-- Universe tab scope. Goal is understanding the population, not a generic
-  dashboard. Must go through Agent 3 before any build.
+- Universe tab scoping. What population-level views actually change a decision.
+  Must precede any design work, to avoid building a generic dashboard.
 - Risk/return map. Natural Universe candidate; research and design first.
-- Proper per-ticker price graph. Real price-vs-time, not a rank sparkline.
-  Needs deliberate payload/data/UI design; possible per-symbol price-history
-  shards mirroring the return shards.
+- Per-ticker price graph — payload and data design. A real price-vs-time chart,
+  not a rank sparkline. Likely per-symbol price shards mirroring the return
+  shards. Architecture decision must precede UI work.
 
 ## Fast Lane Candidates
 
@@ -95,6 +97,17 @@ as Fast Lane is already in Next.
 
 Revisit only with genuinely new reasoning or evidence.
 
+- Volatility floor in the score. Researched in issue #36, reviewed and ACCEPTED
+  by Agent 2. Decision: KEEP CURRENT SCORE. The premise fails on current data —
+  Spearman(annVol, score) = -0.099, and top-25 median volatility (0.3252) sits
+  above the universe median (0.3217). No floor candidate separated from
+  baseline on forward returns; the best result deflates to t < 0.9 once window
+  overlap is honoured, and is less extreme than noise across a 30-cell sweep
+  would typically produce. A 22% floor would reprice roughly 113 legitimate
+  low-volatility equities and act as an undeclared sector bet against
+  utilities, REITs and pipelines. Adaptive floors additionally make a name's
+  rank depend on other names' volatility, which contradicts DESIGN.md. Do not
+  reopen without materially more price history or a different market regime.
 - Rank/score sparkline (PR #15, closed)
 - Universe-wide watchlist correlation matrix
 - Covariance toggle

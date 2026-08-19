@@ -77,6 +77,18 @@ Use it when there is meaningful uncertainty or the change could materially affec
 
 ---
 
+## Standing mandate
+
+The Product Owner's standing mandate for how the system runs between his decisions.
+
+- **`TODO.md` is the Product Owner's authorization.** Items on it are approved. The Chief of Staff executes them autonomously — routing, specs, review cycles, and merges — without further confirmation.
+- **Genuinely new goals require Product Owner approval before joining `TODO.md`.** The file is the boundary: getting onto it takes his decision, and being on it is his decision already made.
+- **Corrections and follow-ups arising from already-approved work do not require separate approval.** Fixing what an approved change got wrong is part of that change, not a new one.
+- **The Chief of Staff and the agents go idle only when `TODO.md` is empty, or when the Product Owner explicitly pauses the system.** Nothing else is a reason to stop.
+- **The Chief of Staff may commission Agent 3 to research candidate items** for `TODO.md` and bring them to the Product Owner for approval.
+
+---
+
 ## Approval and execution
 
 **APPROVED TO BUILD**
